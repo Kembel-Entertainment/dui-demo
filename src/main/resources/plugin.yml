@@ -7,7 +7,7 @@ description: Work in progress examples for the embedded dui library
 commands:
   dui:
     description: Explore the dui demo
-    usage: /dui [components|setup|shop|rewards|advent|warps|poker|roulette|slots|videos|reload] [compact|spacious|refresh]
+    usage: /dui [components|setup|shop|rewards|advent|warps|poker|roulette|blackjack|slots|videos|reload] [compact|spacious|refresh]
   uikit:
     description: Open the component catalogue
   uishop:
@@ -26,6 +26,9 @@ commands:
   roulette:
     description: Open the Riviera European roulette table (demo credits)
     usage: /roulette [compact|spacious]
+  blackjack:
+    description: Open the Monarch Blackjack table (demo credits)
+    usage: /blackjack [compact|spacious]
   uivideos:
     description: Open runtime video thumbnails
 permissions:

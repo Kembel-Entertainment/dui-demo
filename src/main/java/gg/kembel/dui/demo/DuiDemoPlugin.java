@@ -42,6 +42,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     AdventState advent = new AdventState();
     WarpState warps = new WarpState();
     RouletteGame roulette = new RouletteGame();
+    BlackjackState blackjack = new BlackjackState();
     PokerState poker = new PokerState();
     SlotState slots = new SlotState();
     BukkitTask settlement, expiry;
@@ -66,6 +67,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               "advent",
               "warps",
               "roulette",
+              "blackjack",
               "poker",
               "slots",
               "videos",
@@ -122,7 +124,8 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               "advent",
               "warps",
               "poker",
-              "roulette")) Objects.requireNonNull(getCommand(command)).setExecutor(this);
+              "roulette",
+              "blackjack")) Objects.requireNonNull(getCommand(command)).setExecutor(this);
       getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.2");
     } catch (Exception e) {
       getLogger()
@@ -154,6 +157,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             "advent",
             "warps",
             "roulette",
+            "blackjack",
             "poker",
             "slots",
             "videos",
@@ -208,6 +212,11 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       roulette.place("n:17", 100);
       roulette.spin(new Random(2), 120);
       next.get("roulette").render(RouletteView.data(roulette), RouletteArt.images());
+      var blackjack = new BlackjackState();
+      blackjack.compact = compact;
+      next.get("blackjack").render(BlackjackView.data(blackjack), BlackjackArt.images());
+      blackjack.deal(100, true, new Random(1));
+      next.get("blackjack").render(BlackjackView.data(blackjack), BlackjackArt.images());
       var poker = new PokerState();
       poker.compact = compact;
       next.get("poker").render(PokerView.data(poker), PokerArt.images(poker.game));
@@ -296,6 +305,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
                     s.warps.stop();
                     s.poker.reset();
                     s.roulette.reset();
+                    s.blackjack.reset();
                     if (s.expiry != null) {
                       s.expiry.cancel();
                       s.expiry = null;
@@ -309,6 +319,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       case "rewards" -> rewards(p, s);
       case "advent" -> advent(p, s);
       case "warps" -> warps(p, s);
+      case "blackjack" -> blackjack(p, s);
       case "roulette" -> roulette(p, s);
       case "poker" -> poker(p, s);
       case "slots" -> slots(p, s);
@@ -785,6 +796,94 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             c.clips));
   }
 
+  private void blackjack(Player p, Session s) {
+    if (s.expiry != null) {
+      s.expiry.cancel();
+      s.expiry = null;
+    }
+    var state = s.blackjack;
+    long tick = p.getWorld().getGameTime();
+    state.finish(tick);
+    var images = BlackjackArt.images();
+    var c = canvas("blackjack", BlackjackView.data(state), images);
+    present(
+        p,
+        s,
+        c,
+        new ViewModel(Map.of(), images, Map.of(), Map.of()),
+        DialogOptions.notice("dui / Monarch Blackjack", "Leave table", "blackjack_close"),
+        ctx -> {
+          long now = p.getWorld().getGameTime();
+          try {
+            switch (ctx.action()) {
+              case "blackjack_close" -> {
+                return;
+              }
+              case "blackjack_deal" -> state.deal(now, false, random);
+              case "blackjack_demo" -> state.deal(now, true, random);
+              case "blackjack_hit" -> state.move("hit", now);
+              case "blackjack_stand" -> state.move("stand", now);
+              case "blackjack_double" -> state.move("double", now);
+              case "blackjack_split" -> state.move("split", now);
+              case "blackjack_bet" -> state.choose(Integer.parseInt(ctx.value()));
+              case "blackjack_size" -> state.compact = !state.compact;
+              case "blackjack_motion" -> state.toggleMotion(now);
+              case "blackjack_hand" -> {
+                int hand = Integer.parseInt(ctx.value());
+                if (!state.busy()
+                    && state.game.phase == BlackjackGame.Phase.RESULT
+                    && hand >= 0
+                    && hand < state.game.hands.size()) {
+                  state.focus = hand;
+                  state.heroPage = 0;
+                }
+              }
+              case "blackjack_page" -> {
+                if (!state.busy()) {
+                  var parts = ctx.value().split(":");
+                  int dir = Integer.parseInt(parts[1]);
+                  if (parts[0].equals("dealer"))
+                    state.dealerPage =
+                        Math.clamp(
+                            state.dealerPage + dir,
+                            0,
+                            Math.max(0, state.game.visibleDealer().size() - 3));
+                  else
+                    state.heroPage =
+                        Math.clamp(
+                            state.heroPage + dir,
+                            0,
+                            Math.max(0, state.game.hands.get(state.focus).cards.size() - 4));
+                }
+              }
+              default -> {
+                return;
+              }
+            }
+          } catch (IllegalArgumentException e) {
+            p.sendMessage("That blackjack action is no longer available.");
+          }
+          show(p, s);
+        });
+    long token = state.generation;
+    if (state.busy()) {
+      s.expiry =
+          getServer()
+              .getScheduler()
+              .runTaskLater(
+                  this,
+                  () -> {
+                    if (!visible(p, s, "blackjack") || state.generation != token) return;
+                    state.finish(p.getWorld().getGameTime());
+                    show(p, s);
+                  },
+                  Math.max(1, state.duration - (tick - state.startedAt)));
+    }
+    var extra = new HashMap<String, Object>(state.publicState());
+    extra.put("section", "blackjack");
+    export(p, s, c, extra);
+  }
+
   private void roulette(Player p, Session s) {
     if (s.expiry != null) {
       s.expiry.cancel();
@@ -1254,6 +1353,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   private Map<String, Object> auditState(Session s, Map<String, Object> base) {
     var result = new LinkedHashMap<>(base);
     result.put("poker", s.poker);
+    result.put("blackjack", s.blackjack.publicState());
     result.put(
         "roulette",
         Map.of(
@@ -1304,6 +1404,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
           case "dailyrewards" -> "rewards";
           case "advent" -> "advent";
           case "warps" -> "warps";
+          case "blackjack" -> "blackjack";
           case "roulette" -> "roulette";
           case "poker" -> "poker";
           case "slots" -> "slots";
@@ -1349,12 +1450,13 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             "advent",
             "warps",
             "roulette",
+            "blackjack",
             "poker",
             "slots",
             "videos")
         .contains(section)) {
       p.sendMessage(
-          "/dui [components|setup|shop|rewards|advent|warps|poker|roulette|slots|videos|reload]");
+          "/dui [components|setup|shop|rewards|advent|warps|poker|roulette|blackjack|slots|videos|reload]");
       return true;
     }
     var s = session(p);
@@ -1364,6 +1466,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     s.warps.stop();
     s.poker.reset();
     s.roulette.reset();
+    s.blackjack.reset();
     s.section = section.equals("setup") ? "components" : section;
     s.preview = null;
     String option = arguments.isEmpty() ? "" : arguments.getFirst().toLowerCase(Locale.ROOT);
@@ -1376,6 +1479,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       }
       case "advent" -> s.advent.compact = compact;
       case "warps" -> s.warps.compact = compact;
+      case "blackjack" -> s.blackjack.compact = compact;
       case "roulette" -> s.roulette.compact = compact;
       case "poker" -> s.poker.compact = compact;
       case "shop" -> {

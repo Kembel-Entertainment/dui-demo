@@ -88,3 +88,7 @@ Open `/dui poker spacious`, `/dui poker compact`, or `/poker`. [The Hold’em gu
 ## Riviera Roulette
 
 Open `/roulette`, `/dui roulette spacious` or `/dui roulette compact`. [The Roulette guide](docs/roulette.md) covers the illustrated European table, live unbiased spins, straight/dozen/column/outside bets, chip denominations, Undo/Clear/Repeat, result history and exact payouts. Wheel/ball motion uses the public `dui-wheel` preset; hitboxes compose the table independently of its artwork. All balances are transient demo credits. Closing or changing menus resets the table. Compact and Motion/Still controls are included.
+
+## Monarch Blackjack
+
+Open `/blackjack`, `/dui blackjack spacious` or `/dui blackjack compact`. [The Blackjack guide](docs/blackjack.md) explains the original illustrated table, sequential shoe-to-slot card flights, dealer flip, chip settlement, Hit/Stand/Double/Split, exact 3:2 half-credit accounting and transient demo bankroll. Ordinary Deal shuffles six decks; Demo deal explicitly previews scripted examples. Compact and Motion/Still controls are included.

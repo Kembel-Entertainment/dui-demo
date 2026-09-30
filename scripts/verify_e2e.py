@@ -58,7 +58,7 @@ report = dict(result='PASS', scenario=name, client=result, screenshots=screens, 
 cards = ''.join(('<section><h2>' + s.removesuffix('.png') + '</h2><img src="screenshots/' + s + '"></section>' for s in screens))
 (out / 'index.html').write_text('<!doctype html><html lang="en"><meta charset="utf-8"><title>dui demo / ' + name + '</title><style>body{max-width:1100px;margin:40px auto;background:#181c28;color:#edf0f8;font:16px system-ui}img{width:100%}</style><h1>dui demo / ' + name + '</h1>' + cards + '</html>')
 print('PASS', name, 'steps=' + str(result['steps']), 'screenshots=' + str(len(screens)), 'runtimeImageProbes=' + str(image_probes))
-if name in ('slots', 'confetti', 'advent', 'warps', 'poker', 'roulette'):
+if name in ('slots', 'confetti', 'advent', 'warps', 'poker', 'roulette', 'blackjack'):
     import subprocess
     subprocess.run([sys.executable, str(ROOT / 'scripts' / ('verify_' + name + '.py'))], check=True)
 if name == 'shop':

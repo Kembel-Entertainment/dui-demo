@@ -1,0 +1,34 @@
+<!-- Consumer template: public card values, geometry and legality are ordinary bindings. -->
+<dui-menu width="{{width}}" height="{{height}}" motion="{{motion}}" animation-start="{{tick}}">
+ <dui-style id="navy" fill="#213D50" border="#71828A" highlight="#9AAEAD" color="#F1E5CA" disabled-fill="#263845" disabled-color="#72848D" disabled-border="#52636D" bevel="1" />
+ <dui-style id="gold" fill="#D8B976" border="#755A32" highlight="#FFF0CB" color="#192E3D" disabled-fill="#6A644F" disabled-color="#A4997E" disabled-border="#77715E" bevel="2" />
+ <dui-style id="mint" fill="#78BCAA" border="#315C59" highlight="#C7E4CF" color="#162F3D" disabled-fill="#2E494F" disabled-color="#819993" disabled-border="#52636D" bevel="1" />
+ <dui-layer height="fill">
+  <dui-image id="blackjack_art" source="{{art}}" width="fill" height="fill" image-layer="background" pixel-size="{{pixel}}" />
+  <dui-if test="{{wide}}"><dui-image id="monarch_wordmark" source="wordmark" x="16" y="0" width="128" height="27" pixel-size="1" /><dui-text x="154" y="0" width="196" height="18" label="TWENTY ONE / PRIVATE TABLE" color="#304657" /></dui-if>
+  <dui-if test="{{compact}}"><dui-text x="8" y="0" width="186" height="9" label="MONARCH / TWENTY ONE" color="#304657" /></dui-if>
+  <dui-text x="{{balanceX}}" y="{{balanceY}}" width="{{balanceW}}" height="9" label="{{balance}}" color="#716147" />
+  <dui-button class="navy" id="blackjack_motion" action="blackjack_motion" x="{{motionX}}" y="0" width="54" height="18" label="{{motionLabel}}" tooltip="Reduce motion without changing the rules or making your decisions" />
+  <dui-button class="navy" id="blackjack_size" action="blackjack_size" x="{{sizeX}}" y="0" width="54" height="18" label="{{sizeLabel}}" />
+  <dui-text x="16" y="{{dealerY}}" width="{{inner}}" height="9" label="{{dealerLabel}}" align="center" color="#D7C18B" />
+  <dui-if test="{{wide}}"><dui-text x="16" y="135" width="448" height="9" label="BLACKJACK PAYS 3:2 / DEALER STANDS ON ALL 17" color="#B7BAAA" align="center" /></dui-if>
+  <dui-text x="16" y="{{heroY}}" width="{{inner}}" height="9" label="{{heroLabel}}" color="#E7DABB" align="center" />
+  <dui-repeat items="cards" as="c"><dui-playing-card id="{{c.id}}" x="{{c.x}}" y="{{c.y}}" width="{{c.w}}" height="{{c.h}}" value="{{c.value}}" face-down="{{c.down}}" active="{{c.active}}" animation="{{c.mode}}" duration="28" delay="{{c.delay}}" lift="{{c.lift}}" card-height="{{c.faceH}}" palette="classic" /></dui-repeat>
+  <dui-if test="{{payout}}"><dui-chip-stack id="blackjack_payout" x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" count="{{chipCount}}" palette="{{chipPalette}}" animation="transfer" from="{{chipFrom}}" to="{{chipTo}}" duration="26" /></dui-if>
+  <dui-repeat items="tabs" as="h"><dui-button class="navy" disabled-fill="{{h.fill}}" disabled-color="{{h.color}}" disabled-border="#90764E" id="blackjack_hand_{{h.i}}" action="blackjack_hand" payload="{{h.i}}" x="{{h.x}}" y="{{tabsY}}" width="{{h.w}}" height="9" label="{{h.label}}" fill="{{h.fill}}" color="{{h.color}}" bevel="1" locked="{{h.locked}}" tooltip="Inspect this hand after settlement. Split aces receive one card. Split 21 pays 1:1." /></dui-repeat>
+  <dui-repeat items="pages" as="p"><dui-button class="navy" id="blackjack_{{p.id}}" action="blackjack_page" payload="{{p.group}}:{{p.dir}}" x="{{p.x}}" y="{{p.y}}" width="24" height="18" label="{{p.label}}" locked="{{p.locked}}" /></dui-repeat>
+  <dui-text x="16" y="{{statusY}}" width="{{inner}}" height="9" label="{{status}}" align="center" color="{{statusColor}}" />
+  <dui-if test="{{playing}}"><dui-row x="16" y="{{controlY}}" width="{{inner}}" height="{{controlH}}" gap="6">
+   <dui-button class="mint" id="blackjack_hit" action="blackjack_hit" width="{{controlW}}" label="Hit" locked="{{locked}}" />
+   <dui-button class="navy" id="blackjack_stand" action="blackjack_stand" width="{{controlW}}" label="Stand" locked="{{locked}}" />
+   <dui-button class="gold" id="blackjack_double" action="blackjack_double" width="{{controlW}}" label="Double" locked="{{doubleLocked}}" tooltip="Double the stake, take exactly one card, then stand. Allowed after splitting." />
+   <dui-button class="navy" id="blackjack_split" action="blackjack_split" width="{{controlW}}" label="Split" locked="{{splitLocked}}" tooltip="Equal ranks, up to four hands. One extra card per split ace." />
+  </dui-row></dui-if>
+  <dui-if test="{{between}}">
+   <dui-text x="16" y="{{betY}}" width="150" height="9" label="{{betLabel}}" color="#756345" />
+   <dui-repeat items="chips" as="b"><dui-button id="blackjack_bet_{{b.n}}" action="blackjack_bet" payload="{{b.n}}" x="{{b.x}}" y="{{controlY}}" width="{{b.w}}" height="{{controlH}}" label="{{b.n}}" fill="{{b.fill}}" color="{{b.color}}" border="#90764E" bevel="1" locked="{{betLocked}}" /></dui-repeat>
+   <dui-button class="gold" id="blackjack_deal" action="blackjack_deal" x="{{dealX}}" y="{{controlY}}" width="{{dealW}}" height="{{controlH}}" label="Deal" locked="{{dealLocked}}" />
+   <dui-button class="navy" id="blackjack_demo" action="blackjack_demo" x="{{demoX}}" y="{{controlY}}" width="{{demoW}}" height="{{controlH}}" label="{{previewLabel}}" tooltip="{{demoTooltip}}" locked="{{dealLocked}}" />
+  </dui-if>
+ </dui-layer>
+</dui-menu>

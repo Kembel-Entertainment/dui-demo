@@ -91,7 +91,7 @@ def run_e2e(scenario, live):
                 time.sleep(0.5)
             else:
                 raise RuntimeError('Demo server startup timed out')
-            scenarios = ['showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'poker', 'slots', 'confetti', 'videos'] if scenario == 'all' else [scenario]
+            scenarios = ['showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos'] if scenario == 'all' else [scenario]
             for name in scenarios:
                 output = REPORT / name
                 if output.exists():
@@ -128,7 +128,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=['prepare', 'install', 'server', 'e2e', 'client-jar'])
     parser.add_argument('--accept-eula', action='store_true')
-    parser.add_argument('--scenario', default='all', choices=['all', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'poker', 'slots', 'confetti', 'videos'])
+    parser.add_argument('--scenario', default='all', choices=['all', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos'])
     parser.add_argument('--live-videos', action='store_true')
     args = parser.parse_args()
     if args.command == 'prepare':
