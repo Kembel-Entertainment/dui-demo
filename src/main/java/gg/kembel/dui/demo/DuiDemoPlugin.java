@@ -41,6 +41,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     RewardState rewards = new RewardState();
     AdventState advent = new AdventState();
     WarpState warps = new WarpState();
+    RouletteGame roulette = new RouletteGame();
     PokerState poker = new PokerState();
     SlotState slots = new SlotState();
     BukkitTask settlement, expiry;
@@ -64,6 +65,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               "rewards",
               "advent",
               "warps",
+              "roulette",
               "poker",
               "slots",
               "videos",
@@ -119,7 +121,8 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               "uivideos",
               "advent",
               "warps",
-              "poker")) Objects.requireNonNull(getCommand(command)).setExecutor(this);
+              "poker",
+              "roulette")) Objects.requireNonNull(getCommand(command)).setExecutor(this);
       getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.2");
     } catch (Exception e) {
       getLogger()
@@ -150,6 +153,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             "rewards",
             "advent",
             "warps",
+            "roulette",
             "poker",
             "slots",
             "videos",
@@ -198,6 +202,12 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         next.get("warps").render(WarpView.data(warps));
         warps.stop();
       }
+      var roulette = new RouletteGame();
+      roulette.compact = compact;
+      next.get("roulette").render(RouletteView.data(roulette), RouletteArt.images());
+      roulette.place("n:17", 100);
+      roulette.spin(new Random(2), 120);
+      next.get("roulette").render(RouletteView.data(roulette), RouletteArt.images());
       var poker = new PokerState();
       poker.compact = compact;
       next.get("poker").render(PokerView.data(poker), PokerArt.images(poker.game));
@@ -285,6 +295,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
                     s.advent.back();
                     s.warps.stop();
                     s.poker.reset();
+                    s.roulette.reset();
                     if (s.expiry != null) {
                       s.expiry.cancel();
                       s.expiry = null;
@@ -298,6 +309,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       case "rewards" -> rewards(p, s);
       case "advent" -> advent(p, s);
       case "warps" -> warps(p, s);
+      case "roulette" -> roulette(p, s);
       case "poker" -> poker(p, s);
       case "slots" -> slots(p, s);
       case "videos" -> video(p, s);
@@ -773,6 +785,91 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             c.clips));
   }
 
+  private void roulette(Player p, Session s) {
+    if (s.expiry != null) {
+      s.expiry.cancel();
+      s.expiry = null;
+    }
+    var state = s.roulette;
+    long tick = p.getWorld().getGameTime();
+    state.finish(tick);
+    var images = RouletteArt.images();
+    var c = canvas("roulette", RouletteView.data(state), images);
+    present(
+        p,
+        s,
+        c,
+        new ViewModel(Map.of(), images, Map.of(), Map.of()),
+        DialogOptions.notice("dui / Riviera Roulette", "Leave table", "roulette_close"),
+        ctx -> {
+          long now = p.getWorld().getGameTime();
+          try {
+            switch (ctx.action()) {
+              case "roulette_close" -> {
+                return;
+              }
+              case "roulette_bet" -> state.place(ctx.value(), now);
+              case "roulette_chip" -> state.choose(Integer.parseInt(ctx.value()));
+              case "roulette_spin" -> state.spin(random, now);
+              case "roulette_undo" -> state.undo();
+              case "roulette_clear" -> state.clear();
+              case "roulette_repeat" -> state.repeat(now);
+              case "roulette_reset" -> {
+                if (!state.locked()) state.reset();
+              }
+              case "roulette_motion" -> state.toggleMotion(now);
+              case "roulette_size" -> state.compact = !state.compact;
+              default -> {
+                return;
+              }
+            }
+          } catch (IllegalArgumentException e) {
+            p.sendMessage("That roulette action is no longer available.");
+          }
+          show(p, s);
+        });
+    long token = state.generation;
+    if (state.animated()) {
+      long delay = Math.max(1, state.duration() - (tick - state.startedAt));
+      s.expiry =
+          getServer()
+              .getScheduler()
+              .runTaskLater(
+                  this,
+                  () -> {
+                    if (!visible(p, s, "roulette") || state.generation != token) return;
+                    state.finish(p.getWorld().getGameTime());
+                    show(p, s);
+                  },
+                  delay);
+    }
+    export(
+        p,
+        s,
+        c,
+        Map.of(
+            "section",
+            "roulette",
+            "phase",
+            state.phase,
+            "busy",
+            state.locked(),
+            "balance",
+            state.balance,
+            "stake",
+            state.stake(),
+            "result",
+            state.phase == RouletteGame.Phase.SPINNING ? -1 : state.lastResult,
+            "return",
+            state.lastReturn,
+            "rounds",
+            state.rounds,
+            "motion",
+            state.motion,
+            "bets",
+            state.bets));
+  }
+
   private void poker(Player p, Session s) {
     if (s.expiry != null) {
       s.expiry.cancel();
@@ -1157,6 +1254,17 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   private Map<String, Object> auditState(Session s, Map<String, Object> base) {
     var result = new LinkedHashMap<>(base);
     result.put("poker", s.poker);
+    result.put(
+        "roulette",
+        Map.of(
+            "balance",
+            s.roulette.balance,
+            "phase",
+            s.roulette.phase,
+            "stake",
+            s.roulette.stake(),
+            "rounds",
+            s.roulette.rounds));
     return result;
   }
 
@@ -1196,6 +1304,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
           case "dailyrewards" -> "rewards";
           case "advent" -> "advent";
           case "warps" -> "warps";
+          case "roulette" -> "roulette";
           case "poker" -> "poker";
           case "slots" -> "slots";
           case "uivideos" -> "videos";
@@ -1233,9 +1342,19 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       return true;
     }
     if (!Set.of(
-            "components", "setup", "shop", "rewards", "advent", "warps", "poker", "slots", "videos")
+            "components",
+            "setup",
+            "shop",
+            "rewards",
+            "advent",
+            "warps",
+            "roulette",
+            "poker",
+            "slots",
+            "videos")
         .contains(section)) {
-      p.sendMessage("/dui [components|setup|shop|rewards|advent|warps|poker|slots|videos|reload]");
+      p.sendMessage(
+          "/dui [components|setup|shop|rewards|advent|warps|poker|roulette|slots|videos|reload]");
       return true;
     }
     var s = session(p);
@@ -1244,6 +1363,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     s.advent.back();
     s.warps.stop();
     s.poker.reset();
+    s.roulette.reset();
     s.section = section.equals("setup") ? "components" : section;
     s.preview = null;
     String option = arguments.isEmpty() ? "" : arguments.getFirst().toLowerCase(Locale.ROOT);
@@ -1256,6 +1376,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       }
       case "advent" -> s.advent.compact = compact;
       case "warps" -> s.warps.compact = compact;
+      case "roulette" -> s.roulette.compact = compact;
       case "poker" -> s.poker.compact = compact;
       case "shop" -> {
         s.shop.compact = compact;

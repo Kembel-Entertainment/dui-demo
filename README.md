@@ -41,11 +41,12 @@ Connect an unmodified Minecraft **26.2** client to **127.0.0.1:25584** and accep
 | `/dui advent spacious` | Own winter gift wall, 24 replayable gifts, animated lids, native rewards and shader confetti |
 | `/dui warps spacious` | Original pixel landscapes, clipped swipe-like carousel, direct selection and portal preview |
 | `/dui poker spacious` | Velvet Hold’em: one player, three bots, deal/flip/chip animations, real betting and side-pots |
+| `/dui roulette spacious` | Riviera: European wheel, counter-rotating ball, illustrated betting layout, chip animation and demo ledger |
 | `/dui slots spacious` | Shared-shader reels, lever, preview outcomes, demo chips and exactly-once payout |
 | `/dui videos spacious` | Live YouTube feed and runtime RGB thumbnails |
 | `/dui reload` | Validate and reload every template; requires `dui-demo.reload` |
 
-The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots`, `/advent`, `/warps`, `/poker` and `/uivideos` are also available. Reward, Advent, warp, poker, shop, slot and video commands accept `compact`/`spacious`. `/uivideos refresh` checks the feed again.
+The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots`, `/advent`, `/warps`, `/poker`, `/roulette` and `/uivideos` are also available. Reward, Advent, warp, poker, roulette, shop, slot and video commands accept `compact`/`spacious`. `/uivideos refresh` checks the feed again.
 
 Active templates are copied to `run/server/plugins/dui-demo/ui/`. Change those templates and reload; the pack remains unchanged. Java supplies view data, business actions and own artwork only. The QR is generated at runtime and points to the demo YouTube video; it is not a real payment system. Balances and rewards are demo-only and never grant real items.
 
@@ -62,7 +63,7 @@ When `videos.live` is enabled, the service restores its last successful feed and
   -PacceptEula=true -Pscenario=videos -PliveVideos e2e
 ```
 
-Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `slots`, `confetti`, `videos`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
+Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `slots`, `confetti`, `videos`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
 
 By default, E2E videos use deterministic own gradient images and feed entries; the ordinary demo uses the live Minecraft YouTube channel. `liveVideos` opts into real network requests, using the saved snapshot if the upstream feed is unavailable. Temporary test config and operator access are restored after the run.
 
@@ -83,3 +84,7 @@ Open `/dui warps spacious`, `/dui warps compact` or `/warps`. [The warp guide](d
 ## Velvet Hold’em
 
 Open `/dui poker spacious`, `/dui poker compact`, or `/poker`. [The Hold’em guide](docs/poker.md) covers the real four-seat rules, three bots, reusable procedural card/chip components, runtime background artwork, and safe timer lifecycle. Ordinary hands shuffle a full deck; **Showcase hand** explicitly resets the table and scripts a royal-flush demonstration. Every balance is demo chips. Closing or changing menus resets the transient table. Compact and Motion/Still controls are included.
+
+## Riviera Roulette
+
+Open `/roulette`, `/dui roulette spacious` or `/dui roulette compact`. [The Roulette guide](docs/roulette.md) covers the illustrated European table, live unbiased spins, straight/dozen/column/outside bets, chip denominations, Undo/Clear/Repeat, result history and exact payouts. Wheel/ball motion uses the public `dui-wheel` preset; hitboxes compose the table independently of its artwork. All balances are transient demo credits. Closing or changing menus resets the table. Compact and Motion/Still controls are included.

@@ -1,0 +1,46 @@
+<!-- Riviera: declarative table geometry. The shared wheel shader only receives presentation data. -->
+<dui-menu width="{{width}}" height="{{height}}" motion="{{motion}}" animation-start="{{tick}}">
+ <dui-style id="paper" fill="#EAE2CF" border="#AEA184" color="#314C42" bevel="0" disabled-fill="#E0D8C6" disabled-border="#C9BEA5" disabled-color="#9A947F" />
+ <dui-style id="forest" fill="#295A47" border="#163B2D" highlight="#97B397" color="#F4EBD3" bevel="1" disabled-fill="#838E77" disabled-border="#66735F" disabled-color="#DEDCC7" />
+ <dui-layer height="fill">
+  <dui-image id="riviera_table" source="{{table}}" image-layer="background" width="fill" height="fill" pixel-size="{{pixel}}" />
+  <dui-if test="{{compact}}"><dui-text x="12" y="0" width="180" height="18" label="RIVIERA / ROULETTE" color="#264B3D" /></dui-if>
+  <dui-if test="{{wide}}"><dui-image id="riviera_wordmark" source="wordmark" x="12" y="0" width="126" height="27" pixel-size="1" /><dui-text x="148" y="0" width="196" height="18" label="EUROPEAN ROULETTE" color="#264B3D" /></dui-if>
+  <dui-if test="{{wide}}"><dui-text x="148" y="18" width="196" height="9" label="DEMO CREDITS / KEMBEL.GG" color="#857555" /></dui-if>
+  <dui-button class="paper" id="roulette_motion" action="roulette_motion" x="{{motionX}}" y="0" width="53" height="18" label="{{motionLabel}}" tooltip="Toggle ball, wheel and chip animations" />
+  <dui-button class="paper" id="roulette_size" action="roulette_size" x="{{sizeX}}" y="0" width="48" height="18" label="{{sizeLabel}}" />
+  <dui-wheel id="roulette_wheel" variant="european" x="{{wheelX}}" y="{{wheelY}}" width="{{wheelSize}}" height="{{wheelSize}}" value="{{wheelValue}}" previous="{{previous}}" animation="{{spinMode}}" duration="160" turns="4" palette="walnut" />
+  <dui-repeat items="history" as="r">
+   <dui-surface x="{{r.x}}" y="{{r.y}}" width="{{r.w}}" height="{{r.h}}" fill="{{r.fill}}" border="{{r.border}}" bevel="1" />
+   <dui-text x="{{r.x}}" y="{{r.y}}" width="{{r.w}}" height="{{r.h}}" label="{{r.n}}" align="center" color="#F9F0D8" />
+  </dui-repeat>
+  <dui-repeat items="cells" as="b">
+   <dui-surface x="{{b.x}}" y="{{b.y}}" width="{{b.w}}" height="{{b.h}}" fill="{{b.fill}}" border="{{b.border}}" bevel="1" />
+   <dui-text x="{{b.x}}" y="{{b.textY}}" width="{{b.w}}" height="9" label="{{b.label}}" align="center" color="#FFF2D9" />
+   <dui-if test="{{b.hasChip}}"><dui-image id="chip_{{b.id}}" source="{{b.chipImage}}" x="{{b.chipX}}" y="{{b.chipY}}" width="{{b.chipSize}}" height="{{b.chipSize}}" pixel-size="1" /></dui-if>
+   <dui-hitbox id="{{b.id}}" action="roulette_bet" payload="{{b.key}}" x="{{b.x}}" y="{{b.y}}" width="{{b.w}}" height="{{b.h}}" locked="{{locked}}" tooltip="{{b.tooltip}}" />
+  </dui-repeat>
+  <dui-repeat items="chips" as="c">
+   <dui-surface x="{{c.x}}" y="{{c.y}}" width="{{c.w}}" height="{{c.h}}" fill="{{c.fill}}" border="{{c.border}}" bevel="0" />
+   <dui-image id="denomination_{{c.value}}" source="{{c.image}}" x="{{c.iconX}}" y="{{c.iconY}}" width="{{c.iconSize}}" height="{{c.iconSize}}" pixel-size="1" />
+   <dui-text x="{{c.labelX}}" y="{{c.labelY}}" width="{{c.labelW}}" height="9" label="{{c.value}}" color="#33483D" />
+   <dui-hitbox id="chip_{{c.value}}" action="roulette_chip" payload="{{c.value}}" x="{{c.x}}" y="{{c.y}}" width="{{c.w}}" height="{{c.h}}" locked="{{locked}}" tooltip="Choose {{c.value}} credits per click" />
+  </dui-repeat>
+  <dui-text x="{{creditsX}}" y="{{creditsY}}" width="{{creditsW}}" height="9" label="{{balanceLabel}}" color="#295A47" />
+  <dui-if test="{{wide}}"><dui-text x="{{stakeX}}" y="{{stakeY}}" width="{{stakeW}}" height="9" label="{{stakeLabel}}" align="right" color="#857555" /></dui-if>
+  <dui-text x="6" y="{{resultY}}" width="{{resultW}}" height="9" label="{{result}}" align="center" color="{{resultColor}}" />
+  <dui-if test="{{wide}}">
+   <dui-text x="8" y="285" width="220" height="9" label="{{returnLabel}}" align="center" color="#857555" />
+   <dui-text x="232" y="198" width="236" height="9" label="{{status}}" align="center" color="#344E40" />
+   <dui-button class="paper" id="roulette_reset" action="roulette_reset" x="16" y="297" width="214" height="18" label="Reset / 5,000 credits" locked="{{locked}}" tooltip="Reset this transient demo table" />
+  </dui-if>
+  <dui-row x="{{controlX}}" y="{{controlsY}}" width="{{spinW}}" height="{{controlH}}" gap="{{controlGap}}">
+   <dui-button class="paper" id="roulette_undo" action="roulette_undo" width="{{controlW}}" label="Undo" locked="{{undoLocked}}" />
+   <dui-button class="paper" id="roulette_clear" action="roulette_clear" width="{{controlW}}" label="Clear" locked="{{undoLocked}}" />
+   <dui-button class="paper" id="roulette_repeat" action="roulette_repeat" width="{{controlW}}" label="Repeat" locked="{{repeatLocked}}" />
+  </dui-row>
+  <dui-button class="forest" id="roulette_spin" action="roulette_spin" x="{{spinX}}" y="{{spinY}}" width="{{spinW}}" height="18" label="{{spinLabel}}" locked="{{spinLocked}}" tooltip="{{stake}} credits on the table / table limit 5,000" />
+  <dui-if test="{{chipFlight}}"><dui-chip-stack id="placed_chip" x="{{chipX}}" y="{{chipY}}" width="20" height="36" count="1" animation="transfer" from="bottom" to="top" duration="12" palette="gold" /></dui-if>
+  <dui-if test="{{payout}}"><dui-chip-stack id="roulette_payout" x="{{payoutX}}" y="{{payoutY}}" width="{{payoutW}}" height="{{payoutH}}" count="7" animation="transfer" from="top" to="bottom" duration="20" palette="gold" /></dui-if>
+ </dui-layer>
+</dui-menu>

@@ -7,6 +7,7 @@ public final class ScenarioClient implements ClientModInitializer {
     switch (System.getProperty("dui.e2e.scenario", "showcase")) {
       case "showcase" -> new ShowcaseClient().initialize();
       case "shop" -> new ShopClient().initialize();
+      case "roulette" -> new RouletteClient().initialize();
       case "poker" -> new PokerClient().initialize();
       case "warps" -> new WarpClient().initialize();
       case "advent" -> new AdventClient().initialize();
