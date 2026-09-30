@@ -150,16 +150,17 @@ public final class BlackjackView {
     d.put("tabs", tabs);
     var cards = new ArrayList<Map<String, Object>>();
     var dealerCards = g.visibleDealer();
-    int dp = Math.min(s.dealerPage, Math.max(0, dealerCards.size() - 3));
-    addCards(cards, s, dealerCards, dp, 3, c ? 27 : 54, true, 0);
+    int dealerLimit = s.dealerLimit(), heroLimit = s.heroLimit();
+    int dp = Math.min(s.dealerPage, Math.max(0, dealerCards.size() - dealerLimit));
+    addCards(cards, s, dealerCards, dp, dealerLimit, c ? 27 : 54, true, 0);
     if (!g.hands.isEmpty()) {
       if (s.event.equals("split")) {
         addCards(cards, s, g.hands.get(s.splitFocus).cards, 0, 2, c ? 72 : 174, false, 1);
         addCards(cards, s, g.hands.get(s.splitFocus + 1).cards, 0, 2, c ? 72 : 174, false, 2);
       } else {
         var hc = g.hands.get(s.focus).cards;
-        int hp = Math.min(s.heroPage, Math.max(0, hc.size() - 4));
-        addCards(cards, s, hc, hp, 4, c ? 72 : 174, false, 0);
+        int hp = Math.min(s.heroPage, Math.max(0, hc.size() - heroLimit));
+        addCards(cards, s, hc, hp, heroLimit, c ? 72 : 174, false, 0);
       }
     }
     d.put("cards", cards);
@@ -173,19 +174,30 @@ public final class BlackjackView {
     d.put("chipW", c ? 150 : 220);
     d.put("chipH", c ? 60 : 153);
     var pages = new ArrayList<Map<String, Object>>();
-    if (dealerCards.size() > 3) {
+    if (dealerCards.size() > dealerLimit) {
       pages.add(page("dealer", -1, 16, c ? 36 : 81, dp == 0));
-      pages.add(page("dealer", 1, w - 40, c ? 36 : 81, dp + 3 >= dealerCards.size()));
+      pages.add(page("dealer", 1, w - 40, c ? 36 : 81, dp + dealerLimit >= dealerCards.size()));
     }
-    if (!g.hands.isEmpty() && g.hands.get(s.focus).cards.size() > 4 && !s.event.equals("split")) {
-      pages.add(page("hero", -1, 16, c ? 81 : 198, s.heroPage == 0));
+    if (!g.hands.isEmpty()
+        && g.hands.get(s.focus).cards.size() > heroLimit
+        && !s.event.equals("split")) {
+      pages.add(
+          page(
+              "hero",
+              -1,
+              16,
+              c ? 81 : 198,
+              Math.min(s.heroPage, Math.max(0, g.hands.get(s.focus).cards.size() - heroLimit))
+                  == 0));
       pages.add(
           page(
               "hero",
               1,
               w - 40,
               c ? 81 : 198,
-              s.heroPage + 4 >= g.hands.get(s.focus).cards.size()));
+              Math.min(s.heroPage, Math.max(0, g.hands.get(s.focus).cards.size() - heroLimit))
+                      + heroLimit
+                  >= g.hands.get(s.focus).cards.size()));
     }
     d.put("pages", pages);
     return d;

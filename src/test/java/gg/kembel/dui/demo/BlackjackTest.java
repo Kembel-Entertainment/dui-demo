@@ -170,8 +170,45 @@ class BlackjackTest {
     for (boolean c : List.of(false, true)) {
       s.compact = c;
       var cv = BlackjackView.render(s);
-      assertEquals(6, cv.effects.size());
+      assertEquals(8, cv.effects.size());
       assertTrue(cv.hits.stream().anyMatch(h -> h.id().equals("blackjack_hero_prev")));
+    }
+  }
+
+  @Test
+  void dealerUsesFreeSlotsAndPaginatesOnlyAtTheActualBudget() {
+    for (boolean compact : List.of(false, true)) {
+      for (List<Integer> shoe :
+          List.of(List.of(8, 2, 34, 15, 28, 4), List.of(8, 0, 34, 13, 26, 39, 1, 4))) {
+        var g = game(25, shoe.toArray(Integer[]::new));
+        g.stand();
+        settle(g);
+        var s = new BlackjackState();
+        s.game = g;
+        s.compact = compact;
+        var cv = BlackjackView.render(s);
+        assertEquals(g.visibleDealer().size() + 2, cv.effects.size());
+        assertEquals(
+            g.visibleDealer().size(),
+            cv.effects.stream().filter(e -> e.id().startsWith("dealer_")).count());
+        assertFalse(cv.hits.stream().anyMatch(h -> h.id().startsWith("blackjack_dealer_")));
+        s.event = "payout";
+        s.dealerPage = Math.max(0, g.visibleDealer().size() - s.dealerLimit());
+        cv = BlackjackView.render(s);
+        assertTrue(cv.effects.size() <= 8);
+        assertEquals(
+            1,
+            cv.effects.stream()
+                .filter(e -> e.kind() == gg.kembel.dui.core.ShaderEffect.Kind.CHIP_STACK)
+                .count());
+        assertEquals(Math.min(5, g.visibleDealer().size()), s.dealerLimit());
+        if (g.visibleDealer().size() > 5) {
+          assertTrue(cv.effects.stream().anyMatch(e -> e.id().equals("dealer_5")));
+          assertTrue(
+              cv.hits.stream()
+                  .anyMatch(h -> h.id().equals("blackjack_dealer_prev") && !h.action().isEmpty()));
+        }
+      }
     }
   }
 

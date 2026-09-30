@@ -14,7 +14,7 @@ Money is integer **half-credits**. A 25-credit natural reserves 25, returns 62.5
 
 - `BlackjackGame`: pure rules, six-deck shoe, ace totals, legal actions, bankroll and settlement. Dealer hole and shoe are private. `visibleDealer()` returns an unknown `-1` until reveal; no hidden rank enters canvas bindings, client transport or layout diagnostics.
 - `BlackjackState`: transient event sequencing. Opening deal lasts 54 ticks: player/upcard/player/hole leave the shoe in order with 0/8/16/24 tick delays, each flying for 28 ticks. Hit/Double and dealer draws use the same flight; split cards are staggered, reveal flips the hole, settlement transfers chips.
-- `BlackjackView`: public maps, geometry, card windows, legality and result labels. At most three dealer cards + four human cards + one chip stack = eight shared effects, one carrier. No per-frame dialog replacement.
+- `BlackjackView`: public maps, geometry, card windows, legality and result labels. The eight shared effect slots are allocated to actual cards, reserving one slot only during chip payout. Two human cards leave room for six dealer cards (five during payout); shorter dealer hands likewise leave extra slots for human cards. When both hands exceed the budget, the focused human hand retains up to four slots and both rows can paginate. One carrier. No per-frame dialog replacement.
 - `ui/blackjack.html`: styles, conditions/repeats, runtime background image, generic `dui-playing-card` and `dui-chip-stack` components, native text and callback buttons.
 - `BlackjackArt`: original Java2D shapes/gradients, rasterized and supplied at runtime. This is vector illustration style rather than an SVG browser; the static table is not a pack asset. Cards are procedural GLSL rather than 52 baked PNGs.
 

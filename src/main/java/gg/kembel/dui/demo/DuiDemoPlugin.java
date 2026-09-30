@@ -847,13 +847,16 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
                         Math.clamp(
                             state.dealerPage + dir,
                             0,
-                            Math.max(0, state.game.visibleDealer().size() - 3));
+                            Math.max(0, state.game.visibleDealer().size() - state.dealerLimit()));
                   else
                     state.heroPage =
                         Math.clamp(
                             state.heroPage + dir,
                             0,
-                            Math.max(0, state.game.hands.get(state.focus).cards.size() - 4));
+                            Math.max(
+                                0,
+                                state.game.hands.get(state.focus).cards.size()
+                                    - state.heroLimit()));
                 }
               }
               default -> {

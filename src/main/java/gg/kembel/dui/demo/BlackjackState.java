@@ -1,5 +1,6 @@
 package gg.kembel.dui.demo;
 
+import gg.kembel.dui.core.ShaderEffect;
 import java.util.*;
 import java.util.random.RandomGenerator;
 
@@ -21,6 +22,23 @@ public final class BlackjackState {
   private static final String[] NAMES = {
     "Split eights", "Natural blackjack", "Soft seventeen", "Seventeen push", "Hit or hold"
   };
+
+  /** Spend only actual effect slots; reserve one chip slot during payout. */
+  private int[] cardLimits() {
+    int capacity = ShaderEffect.LIMIT - (event.equals("payout") ? 1 : 0);
+    int heroCount =
+        game.hands.isEmpty() ? 0 : event.equals("split") ? 4 : game.hands.get(focus).cards.size();
+    int dealer = Math.min(game.visibleDealer().size(), capacity - Math.min(4, heroCount));
+    return new int[] {dealer, Math.min(heroCount, capacity - dealer)};
+  }
+
+  public int dealerLimit() {
+    return cardLimits()[0];
+  }
+
+  public int heroLimit() {
+    return cardLimits()[1];
+  }
 
   public boolean busy() {
     return !event.isEmpty();
@@ -69,7 +87,7 @@ public final class BlackjackState {
       }
       default -> throw new IllegalArgumentException("Unknown move");
     }
-    heroPage = Math.max(0, game.hands.get(focus).cards.size() - 4);
+    heroPage = Math.max(0, game.hands.get(focus).cards.size() - heroLimit());
     drain(tick);
   }
 
@@ -92,9 +110,14 @@ public final class BlackjackState {
     if (was.equals("deal")) game.finishDeal();
     if (was.equals("reveal") || was.equals("dealer")) {
       if (game.dealerStep()) {
-        dealerPage = Math.max(0, game.visibleDealer().size() - 3);
+        dealerPage = Math.max(0, game.visibleDealer().size() - dealerLimit());
         begin("dealer", 28, tick);
-      } else begin("payout", 32, tick);
+      } else {
+        begin("payout", 32, tick);
+        dealerPage = Math.max(0, game.visibleDealer().size() - dealerLimit());
+        heroPage =
+            Math.min(heroPage, Math.max(0, game.hands.get(focus).cards.size() - heroLimit()));
+      }
     } else if (!was.equals("payout")) progress(tick);
   }
 
@@ -104,7 +127,7 @@ public final class BlackjackState {
       begin("reveal", 30, tick);
     } else if (game.phase == BlackjackGame.Phase.PLAYER) {
       focus = game.active;
-      heroPage = Math.max(0, game.current().cards.size() - 4);
+      heroPage = Math.max(0, game.current().cards.size() - heroLimit());
     }
   }
 
