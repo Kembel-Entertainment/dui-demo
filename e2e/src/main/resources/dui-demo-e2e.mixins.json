@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "gg.kembel.dui.demo.e2e.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "FixtureMouseAccess",
+    "FixtureKeyboardAccess",
+    "FixtureContainerAccess"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

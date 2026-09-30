@@ -1,0 +1,23 @@
+name: check
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: dui-demo
+      - uses: actions/checkout@v7
+        with:
+          repository: Kembel-Entertainment/dui
+          ref: master
+          path: dui
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: gradle
+      - run: ./gradlew -PduiSource=../dui build --console=plain
+        working-directory: dui-demo

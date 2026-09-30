@@ -1,0 +1,53 @@
+<dui-menu width="480" height="270" compact-width="300" compact-height="144" compact="{{compact}}">
+  <dui-style id="shell" fill="#171B27" border="#38445D" bevel="2" />
+  <dui-style id="card" fill="#232B3C" border="#485570" bevel="2" />
+  <dui-style id="button" fill="#BD374E" border="#F78386" color="#FFFFFF" bevel="1" disabled-fill="#293247" disabled-border="#485570" disabled-color="#7B879E" />
+  <dui-style id="secondary" fill="#354463" border="#647DA1" />
+  <dui-layer height="fill">
+    <dui-surface class="shell" width="fill" height="fill" />
+    <dui-if test="{{spacious}}">
+      <dui-layer width="fill" height="fill">
+        <dui-text x="12" y="12" width="300" height="9" label="STREAM / LATEST UPLOADS" color="#FFFFFF" />
+        <dui-text x="12" y="27" width="360" height="9" label="{{channel}}  /  Live YouTube feed" color="#98AFD3" />
+        <dui-button class="button secondary" x="396" y="9" width="72" height="27" id="video_size" action="video_size" tooltip="Change layout" label="{{sizeLabel}}" locked="{{loading}}" />
+        <dui-row x="9" y="45" width="462" height="198" gap="12">
+          <dui-repeat items="videos" as="video">
+            <dui-layer width="225" height="fill">
+              <dui-surface class="card" width="fill" height="fill" />
+              <dui-if test="{{video.hasThumbnail}}"><dui-image id="thumb_{{video.id}}" source="{{video.id}}" x="9" y="9" width="207" height="117" pixel-size="3" action="video_open" locked="{{loading}}" payload="{{video.id}}" tooltip="{{video.title}}" /></dui-if>
+              <dui-if test="{{video.noThumbnail}}"><dui-surface x="9" y="9" width="207" height="117" fill="#101725" border="#485570" /><dui-text x="18" y="54" width="189" height="18" label="{{video.imageStatus}}" /></dui-if>
+              <dui-column x="9" y="135" width="207" height="27"><dui-repeat items="video.titleLines" as="line"><dui-text height="9" label="{{line.label}}" color="#FFFFFF" /></dui-repeat></dui-column>
+              <dui-text x="9" y="171" width="207" height="9" label="Published {{video.published}}" color="#98AFD3" />
+              <dui-button class="button" x="9" y="180" width="207" height="18" id="watch_{{video.id}}" action="video_open" locked="{{loading}}" payload="{{video.id}}" label="Watch on YouTube" tooltip="{{video.title}}" />
+            </dui-layer>
+          </dui-repeat>
+        </dui-row>
+        <dui-if test="{{empty}}"><dui-empty x="12" y="81" width="456" height="99" label="{{emptyTitle}}" detail="{{emptyDetail}}" icon="book" /></dui-if>
+        <dui-button class="button secondary" x="9" y="243" width="45" height="18" id="video_previous" action="video_previous" tooltip="Previous uploads" label="&lt;" locked="{{previousLocked}}" />
+        <dui-button class="button secondary" x="60" y="243" width="45" height="18" id="video_next" action="video_next" tooltip="Next uploads" label="&gt;" locked="{{nextLocked}}" />
+        <dui-text x="114" y="243" width="228" height="18" label="{{pageLabel}}" color="#98AFD3" />
+        <dui-button class="button secondary" x="354" y="243" width="117" height="18" id="video_refresh" action="video_refresh" label="Refresh feed" locked="{{loading}}" tooltip="{{status}}" />
+      </dui-layer>
+    </dui-if>
+    <dui-if test="{{compact}}">
+      <dui-layer width="fill" height="fill">
+        <dui-text x="9" y="9" width="210" height="9" label="STREAM / {{channel}}" color="#FFFFFF" />
+        <dui-button class="button secondary" x="237" y="9" width="54" height="18" id="video_size" action="video_size" tooltip="Change layout" label="{{sizeLabel}}" locked="{{loading}}" />
+        <dui-repeat items="videos" as="video">
+          <dui-layer x="9" y="36" width="282" height="72">
+            <dui-if test="{{video.hasThumbnail}}"><dui-image id="thumb_{{video.id}}" source="{{video.id}}" width="128" height="72" pixel-size="2" action="video_open" locked="{{loading}}" payload="{{video.id}}" tooltip="{{video.title}}" /></dui-if>
+            <dui-if test="{{video.noThumbnail}}"><dui-surface width="128" height="72" fill="#101725" border="#485570" /></dui-if>
+            <dui-column x="141" width="132" height="27"><dui-repeat items="video.titleLines" as="line"><dui-text height="9" label="{{line.label}}" color="#FFFFFF" /></dui-repeat></dui-column>
+            <dui-text x="141" y="36" width="132" height="9" label="{{video.published}}" color="#98AFD3" />
+            <dui-button class="button" x="141" y="54" width="132" height="18" id="watch_{{video.id}}" action="video_open" locked="{{loading}}" payload="{{video.id}}" label="Watch video" tooltip="{{video.title}}" />
+          </dui-layer>
+        </dui-repeat>
+        <dui-if test="{{empty}}"><dui-text x="12" y="54" width="276" height="18" label="{{emptyTitle}}" /></dui-if>
+        <dui-button class="button secondary" x="9" y="117" width="27" height="18" id="video_previous" action="video_previous" tooltip="Previous uploads" label="&lt;" locked="{{previousLocked}}" />
+        <dui-button class="button secondary" x="42" y="117" width="27" height="18" id="video_next" action="video_next" tooltip="Next uploads" label="&gt;" locked="{{nextLocked}}" />
+        <dui-text x="78" y="117" width="135" height="18" label="{{pageLabel}}" color="#98AFD3" />
+        <dui-button class="button secondary" x="219" y="117" width="72" height="18" id="video_refresh" action="video_refresh" label="Refresh" locked="{{loading}}" tooltip="{{status}}" />
+      </dui-layer>
+    </dui-if>
+  </dui-layer>
+</dui-menu>

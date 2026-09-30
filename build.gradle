@@ -1,0 +1,65 @@
+plugins { id 'java' }
+group = 'gg.kembel.dui'
+version = '0.1.0-SNAPSHOT'
+repositories { mavenLocal(); mavenCentral(); maven { url = 'https://repo.papermc.io/repository/maven-public/' } }
+configurations { packTools }
+dependencies {
+    implementation 'gg.kembel.dui:dui-paper:0.1.0-SNAPSHOT'
+    implementation 'com.google.code.gson:gson:2.13.2'
+    implementation 'com.google.zxing:core:3.5.4'
+    packTools 'gg.kembel.dui:dui-pack:0.1.0-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:26.2.build.129-stable'
+    testImplementation 'io.papermc.paper:paper-api:26.2.build.129-stable'
+    testImplementation platform('org.junit:junit-bom:5.14.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
+tasks.withType(JavaCompile).configureEach { options.release = 25 }
+test { useJUnitPlatform() }
+jar {
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    exclude 'META-INF/*.SF', 'META-INF/*.RSA', 'META-INF/*.DSA', 'module-info.class'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.register('demoArt', JavaExec) {
+ dependsOn classes; classpath=sourceSets.main.runtimeClasspath; mainClass='gg.kembel.dui.demo.DemoArt'
+ args layout.buildDirectory.dir('pack-additions').get().asFile.absolutePath
+}
+tasks.register('buildPack', JavaExec) {
+ dependsOn demoArt; classpath=configurations.packTools; mainClass='gg.kembel.dui.pack.PackGenerator'
+ doFirst { if(!project.hasProperty('minecraftJar'))throw new GradleException('Pass -PminecraftJar=/path/to/verified/26.2-client.jar'); args project.property('minecraftJar'),layout.buildDirectory.dir('pack').get().asFile.absolutePath,layout.buildDirectory.dir('pack-additions').get().asFile.absolutePath }
+}
+tasks.register('installDemo', Exec) {
+ dependsOn jar, buildPack
+ commandLine 'python3','scripts/demo.py','install'
+}
+
+tasks.register('prepareDemo', Exec) {
+ doFirst { def command=['python3','scripts/demo.py','prepare']; if(providers.gradleProperty('acceptEula').getOrElse('false')=='true')command+='--accept-eula'; commandLine command }
+}
+tasks.register('runDemo', Exec) {
+ dependsOn prepareDemo, installDemo
+ commandLine 'python3','scripts/demo.py','server'
+ standardInput=System.in
+}
+tasks.register('e2e', Exec) {
+ dependsOn prepareDemo, installDemo
+ doFirst {
+  def scenario=providers.gradleProperty('scenario').getOrElse('all')
+  def args=['python3','scripts/demo.py','e2e','--scenario',scenario]
+  if(project.hasProperty('liveVideos'))args+='--live-videos'
+  commandLine args
+ }
+}
+
+tasks.withType(Exec).configureEach { environment "JAVA_HOME",System.getProperty("java.home") }
+tasks.named('jar') { from('LICENSE') { into 'META-INF/dui-demo' }; from('THIRD_PARTY_NOTICES.md') { into 'META-INF/dui-demo' } }
+
+tasks.register('verifyShopScreenshots', JavaExec) {
+ dependsOn testClasses
+ classpath=sourceSets.test.runtimeClasspath
+ mainClass='gg.kembel.dui.demo.ShopScreenshotCheck'
+ args layout.buildDirectory.dir('reports/e2e/shop').get().asFile.absolutePath
+}

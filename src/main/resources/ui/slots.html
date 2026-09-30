@@ -1,0 +1,97 @@
+<!-- Layout and shader geometry are authored here. The controller supplies values and action state. -->
+<dui-menu width="480" height="270" compact-width="300" compact-height="144" compact="{{compact}}" animation-start="{{startedAt}}" motion="{{motion}}">
+  <dui-style id="shell" fill="#211429" border="#F1BF68" bevel="2" />
+  <dui-style id="cabinet" fill="#842E45" border="#F1BF68" bevel="2" />
+  <dui-style id="reel-frame" fill="#291628" border="#F1BF68" bevel="2" />
+  <dui-style id="wallet" fill="#332034" border="#9C6B63" bevel="2" />
+  <dui-style id="button" fill="#842E45" border="#F1BF68" color="#FFF0C9" bevel="2" highlight="#EFABA5" disabled-fill="#403041" disabled-border="#725260" disabled-color="#A08494" />
+  <dui-style id="spin" fill="#BF4A51" />
+  <dui-style id="secondary" fill="#513853" />
+  <dui-style id="refill" fill="#365657" />
+  <dui-style id="cream" color="#FFF0C9" />
+  <dui-style id="gold" color="#F1BF68" />
+
+  <dui-layer height="fill">
+    <dui-surface class="shell" width="fill" height="fill" />
+    <dui-if test="{{spacious}}">
+      <dui-layer width="fill" height="fill">
+        <dui-surface class="cabinet" x="9" y="9" width="462" height="36" />
+        <dui-text class="cream" x="21" y="18" width="276" height="9" label="DUI ARCADE / 777" />
+        <dui-text color="#EAAFBE" x="21" y="31" width="264" height="9" label="THE POCKET ARCADE / DEMO CHIPS" />
+        <dui-button class="button" x="351" y="18" width="54" height="18" id="slot_motion" action="slot_motion" locked="{{controlsLocked}}" label="{{motionLabel}}" />
+        <dui-button class="button" x="411" y="18" width="51" height="18" id="slot_size" action="slot_size" locked="{{controlsLocked}}" label="Compact" />
+        <dui-surface class="cabinet" x="12" y="54" width="321" height="171" />
+        <dui-surface class="reel-frame" x="21" y="72" width="258" height="108" />
+        <dui-row x="30" y="81" width="240" height="90" gap="12">
+          <dui-repeat items="reels" as="reel">
+            <dui-reel id="reel_{{reel.index}}" width="72" symbols="arcade" value="{{reel.value}}" previous="{{reel.previous}}" sequence="{{reel.index}}" />
+          </dui-repeat>
+        </dui-row>
+        <dui-lights id="marquee" x="28" y="58" width="247" height="9" count="12" radius="3" />
+        <dui-lever id="slot_lever" x="288" y="63" width="39" height="117" action="slot_spin" locked="{{spinLocked}}" tooltip="Pull the lever" />
+        <dui-text x="27" y="186" width="252" height="9" align="center" color="{{statusColor}}" label="{{message}}" />
+        <dui-rect x="84" y="207" width="174" height="10" fill="#100E19" />
+        <dui-rect x="84" y="216" width="174" height="2" fill="#C9A26B" />
+        <dui-text x="127" y="201" width="102" height="9" color="#CE8B9C" label="PAYOUT TRAY" />
+        <dui-surface class="wallet" x="345" y="54" width="123" height="171" />
+        <dui-text x="357" y="63" width="99" height="9" color="#BB9BAF" label="DEMO WALLET" />
+        <dui-text class="cream" x="357" y="81" width="102" height="9" label="Chips: {{chips}}" />
+        <dui-rect x="354" y="98" width="105" height="1" fill="#805B63" />
+        <dui-text class="gold" x="357" y="108" width="99" height="9" label="PAYOUT / STAKE" />
+        <dui-column x="357" y="123" width="102" height="63">
+          <dui-repeat items="payouts" as="payout">
+            <dui-text class="cream" height="9" label="{{payout.label}}" />
+          </dui-repeat>
+        </dui-column>
+        <dui-button class="button refill" x="354" y="198" width="105" height="18" id="slot_refill" action="slot_refill" locked="{{refillLocked}}" label="Refill chips" tooltip="Restore a low demo wallet to 1,000 chips" />
+        <dui-text class="gold" x="15" y="225" width="78" height="9" label="Bet: {{bet}}" />
+        <dui-button class="button" x="12" y="234" width="27" height="27" id="slot_bet_less" action="slot_bet_less" locked="{{controlsLocked}}" label="-" />
+        <dui-button class="button" x="48" y="234" width="27" height="27" id="slot_bet_more" action="slot_bet_more" locked="{{controlsLocked}}" label="+" />
+        <dui-button class="button spin" x="87" y="234" width="153" height="27" id="slot_spin" action="slot_spin" locked="{{spinLocked}}" label="{{spinLabel}}" />
+        <dui-button class="button secondary" x="252" y="234" width="216" height="27" id="slot_mode" action="slot_mode" locked="{{controlsLocked}}" label="{{modeLabel}}" tooltip="Random stakes demo chips. Previews change no balance." />
+        <dui-particles id="payout_coins" effect="coins" x="27" y="54" width="252" height="171" origin-x="144" origin-y="159" count="{{coinCount}}" delay="70" />
+      </dui-layer>
+    </dui-if>
+    <dui-if test="{{compact}}">
+      <dui-layer width="fill" height="fill">
+        <dui-text class="gold" x="12" y="9" width="222" height="9" label="DUI ARCADE / 777" />
+        <dui-text class="cream" x="12" y="27" width="120" height="9" label="Chips: {{chips}}" />
+        <dui-text x="141" y="27" width="102" height="9" color="#7CE3D0" label="Bet: {{bet}}" />
+        <dui-button class="button" x="249" y="18" width="39" height="18" id="slot_size" action="slot_size" locked="{{controlsLocked}}" label="Wide" />
+        <dui-if test="{{paytable}}">
+          <dui-layer width="fill" height="fill">
+            <dui-surface class="wallet" x="9" y="39" width="282" height="87" border="#F1BF68" />
+            <dui-text class="gold" x="18" y="45" width="264" height="9" label="TOTAL PAYOUT / STAKE INCLUDED" />
+            <dui-text class="cream" x="18" y="63" width="264" height="9" label="777: 25x  Diamond: 12x  Bell: 8x" />
+            <dui-text class="cream" x="18" y="81" width="264" height="9" label="BAR: 6x   Cherries: 5x   Lemon: 4x" />
+            <dui-text class="cream" x="18" y="99" width="264" height="9" label="Any pair: 1x   No match: 0" />
+            <dui-button class="button" x="12" y="126" width="276" height="18" id="slot_paytable" action="slot_paytable" label="&lt; Back to machine" />
+          </dui-layer>
+        </dui-if>
+        <dui-if test="{{machine}}">
+          <dui-layer width="fill" height="fill">
+            <dui-surface class="cabinet" x="9" y="39" width="228" height="66" />
+            <dui-surface class="reel-frame" x="14" y="43" width="218" height="50" />
+            <dui-row x="18" y="45" width="210" height="45" gap="6">
+              <dui-repeat items="reels" as="reel">
+                <dui-reel id="reel_{{reel.index}}" width="66" symbols="arcade" value="{{reel.value}}" previous="{{reel.previous}}" sequence="{{reel.index}}" />
+              </dui-repeat>
+            </dui-row>
+            <dui-lights id="marquee" x="21" y="39" width="204" height="6" count="12" radius="1" />
+            <dui-lever id="slot_lever" x="243" y="45" width="45" height="54" action="slot_spin" locked="{{spinLocked}}" tooltip="Pull the lever" />
+            <dui-text x="12" y="95" width="276" height="9" align="center" color="{{statusColor}}" label="{{compactMessage}}" />
+            <dui-rect x="90" y="104" width="120" height="2" fill="#F0BF6B" />
+            <dui-button class="button" x="12" y="108" width="21" height="18" id="slot_bet_less" action="slot_bet_less" locked="{{controlsLocked}}" label="-" />
+            <dui-button class="button" x="39" y="108" width="21" height="18" id="slot_bet_more" action="slot_bet_more" locked="{{controlsLocked}}" label="+" />
+            <dui-button class="button spin" x="66" y="108" width="126" height="18" id="slot_spin" action="slot_spin" locked="{{spinLocked}}" label="{{spinLabel}}" />
+            <dui-button class="button secondary" x="198" y="108" width="90" height="18" id="slot_paytable" action="slot_paytable" locked="{{controlsLocked}}" label="Payouts" tooltip="All multipliers include the original stake. Six equally likely symbols per reel." />
+            <dui-button class="button secondary" x="12" y="126" width="150" height="18" id="slot_mode" action="slot_mode" locked="{{controlsLocked}}" label="{{modeLabel}}" tooltip="Random stakes demo chips. Previews change no balance." />
+            <dui-button class="button refill" x="168" y="126" width="66" height="18" id="slot_refill" action="slot_refill" locked="{{refillLocked}}" label="Refill" />
+            <dui-button class="button" x="240" y="126" width="48" height="18" id="slot_motion" action="slot_motion" locked="{{controlsLocked}}" label="{{motionLabel}}" />
+            <dui-particles id="payout_coins" effect="coins" x="12" y="9" width="276" height="99" origin-x="138" origin-y="95" count="{{coinCount}}" delay="70" />
+          </dui-layer>
+        </dui-if>
+      </dui-layer>
+    </dui-if>
+  </dui-layer>
+</dui-menu>

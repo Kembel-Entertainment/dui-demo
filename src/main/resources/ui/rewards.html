@@ -1,0 +1,47 @@
+<dui-menu width="{{width}}" height="{{height}}">
+<dui-style id="box" fill="#FFF9ED" border="#322647" bevel="3" />
+<dui-style id="button" fill="#FFF9ED" border="#322647" color="#322647" bevel="2" highlight="#FFFFFF" />
+<dui-layer height="fill"><dui-surface class="box" fill="#EDE2FF" height="fill" />
+<dui-if test="{{spacious}}">
+ <dui-surface class="box" x="9" y="9" width="462" height="45" />
+ <dui-heading x="20" y="18" width="290" height="9" label="DUI / DAILY REWARDS" color="#322647" />
+ <dui-text x="20" y="39" width="290" height="9" label="A LITTLE JOY. EVERY DAY." color="#8061CD" />
+ <dui-surface class="box" x="351" y="18" width="108" height="27" fill="#FFDF75" />
+ <dui-text x="357" y="18" width="96" height="27" label="{{stars}} stars" align="center" color="#322647" />
+ <dui-surface class="box" x="12" y="63" width="456" height="135" />
+ <dui-surface class="box" x="21" y="72" width="144" height="117" fill="{{light}}" />
+ <dui-item id="reward_mascot" x="45" y="75" width="96" height="96" size="96" burst-start="{{burstTick}}" />
+ <dui-text x="27" y="171" width="132" height="9" label="{{giftLabel}}" align="center" color="#322647" />
+ <dui-text x="180" y="81" width="66" height="9" label="DAY {{day}} / 7" color="#322647" />
+ <dui-heading x="180" y="99" width="219" height="9" label="{{name}}" color="#322647" />
+ <dui-text x="180" y="117" width="270" height="9" label="{{description}}" color="#706681" />
+ <dui-item id="reward_preview" x="418" y="87" width="27" height="27" size="27" />
+ <dui-text x="180" y="135" width="270" height="9" label="{{detail}}" color="#8061CD" />
+ <dui-button class="button" id="reward_claim" action="{{claimAction}}" locked="{{claimLocked}}" fill="{{claimColor}}" label="{{claimLabel}}" tooltip="{{claimTooltip}}" x="180" y="153" width="273" height="36" />
+ <dui-heading x="15" y="207" width="250" height="9" label="SEVEN DAYS OF LITTLE SURPRISES" color="#322647" />
+ <dui-text x="351" y="207" width="114" height="9" label="{{completed}} / 7 collected" color="#8061CD" />
+ <dui-grid columns="7" gap="6" x="12" y="225" width="456" height="45"><dui-repeat items="days" as="d"><dui-layer height="45">
+  <dui-surface class="box" fill="{{d.fill}}" height="fill" />
+  <dui-text x="7" y="7" width="46" height="9" label="DAY {{d.day}}" color="#322647" />
+  <dui-button class="button" id="reward_day_{{d.index}}" action="reward_select" value="{{d.index}}" fill="{{d.fill}}" label="{{d.symbol}} +{{d.stars}}" tooltip="{{d.tooltip}}" y="18" height="27" />
+ </dui-layer></dui-repeat></dui-grid>
+ <dui-button class="button" id="reward_next" action="reward_next" label="Next day &gt;" x="12" y="279" width="108" height="18" />
+ <dui-button class="button" id="reward_reset" action="reward_reset" label="Reset" x="129" y="279" width="75" height="18" />
+ <dui-button class="button" id="reward_motion" action="reward_motion" label="{{motionLabel}}" x="213" y="279" width="135" height="18" />
+ <dui-button class="button" id="reward_size" action="reward_size" label="Compact" x="357" y="279" width="111" height="18" />
+ </dui-if>
+<dui-if test="{{compact}}">
+ <dui-heading x="12" y="9" width="204" height="18" label="DUI / DAILY REWARDS" color="#322647" />
+ <dui-text x="220" y="9" width="71" height="9" label="{{stars}} stars" color="#322647" />
+ <dui-text x="12" y="30" width="276" height="9" label="A LITTLE JOY. EVERY DAY." color="#8061CD" />
+ <dui-grid columns="7" gap="3" x="12" y="45" width="270" height="18"><dui-repeat items="days" as="d"><dui-button class="button" fill="{{d.fill}}" id="reward_day_{{d.index}}" action="reward_select" value="{{d.index}}" label="{{d.day}} {{d.symbol}}" tooltip="{{d.tooltip}}" height="18" /></dui-repeat></dui-grid>
+ <dui-surface class="box" x="9" y="72" width="84" height="54" fill="{{light}}" />
+ <dui-item id="reward_mascot" x="27" y="74" size="48" width="48" height="48" burst-start="{{burstTick}}" />
+ <dui-text x="105" y="72" width="183" height="9" label="{{name}}" color="#322647" />
+ <dui-text x="105" y="90" width="183" height="9" label="{{description}}" color="#706681" />
+ <dui-button class="button" id="reward_claim" action="{{claimAction}}" locked="{{claimLocked}}" fill="{{claimColor}}" label="{{claimLabel}}" tooltip="{{claimTooltip}}" x="105" y="99" width="183" height="27" />
+ <dui-button class="button" id="reward_next" action="reward_next" label="Next day &gt;" x="9" y="126" width="81" height="18" />
+ <dui-button class="button" id="reward_reset" action="reward_reset" label="Reset" x="96" y="126" width="48" height="18" />
+ <dui-button class="button" id="reward_motion" action="reward_motion" label="{{motionLabel}}" x="150" y="126" width="78" height="18" />
+ <dui-button class="button" id="reward_size" action="reward_size" label="Wide" x="234" y="126" width="57" height="18" />
+ </dui-if></dui-layer></dui-menu>

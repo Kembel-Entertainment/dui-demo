@@ -1,0 +1,111 @@
+<dui-menu width="{{width}}" height="{{height}}">
+  <dui-style id="panel" fill="#DEE5DB" border="#F7F5E9" bevel="3" />
+  <dui-style id="button" fill="#667A75" border="#151D28" color="#FFFFFF" highlight="#B9D1C2" disabled-fill="#8A909B" disabled-border="#151D28" disabled-color="#C7CDD6" bevel="1" />
+  <dui-style id="buy" fill="#3E816F" border="#151D28" color="#FFFFFF" highlight="#A9D5AC" disabled-fill="#8A909B" disabled-border="#151D28" disabled-color="#C7CDD6" bevel="1" />
+
+<dui-layer height="fill">
+<dui-if test="{{browsing}}">
+    <dui-button class="button" id="shop_objects" label="Objects" action="shop_category" value="objects" width="63" height="18" />
+    <dui-button class="button" id="shop_kits" label="Kits" action="shop_category" value="kits" x="69" width="63" height="18" />
+    <dui-if test="{{compact}}"><dui-head x="141" width="12" height="18" /><dui-text x="153" width="84" height="9" label="{{player}}" color="#FFFFFF" /><dui-button class="button" id="shop_size" label="Wide" action="shop_size" x="243" width="57" height="18" /></dui-if>
+    <dui-if test="{{spacious}}"><dui-text x="150" width="192" height="18" label="DUI / DEMO STORE" color="#FFFFFF" /><dui-button class="button" id="shop_size" label="Compact" action="shop_size" x="414" width="66" height="18" /></dui-if>
+<dui-if test="{{compact}}"><dui-layer x="0" y="27" width="144" height="99"><dui-repeat items="selectedProducts" as="p"><dui-layer width="144" height="99">
+        <dui-surface class="panel" height="fill" />
+        <dui-rect x="5" y="5" width="134" height="48" fill="#AABAB0" />
+        <dui-item id="product_{{p.id}}" x="54" y="9" size="36" width="36" height="36" />
+        <dui-text x="6" y="54" width="132" height="9" label="{{p.label}}" color="#396860" />
+        <dui-button class="buy" id="shop_add_{{p.id}}" action="shop_add" value="{{p.id}}" locked="{{p.full}}" x="6" y="72" width="132" height="18" label="{{p.price}}" tooltip="Add {{p.label}} to your sample cart" />
+      </dui-layer></dui-repeat></dui-layer><dui-button class="button" id="shop_prev" label="&lt;" action="shop_product_page" value="-1" y="126" width="27" height="18" /><dui-text x="33" y="126" width="78" height="18" label="{{productPage}}" align="center" color="#FFFFFF" /><dui-button class="button" id="shop_next" label="&gt;" action="shop_product_page" value="1" x="117" y="126" width="27" height="18" /><dui-layer x="153" y="27" width="147" height="99"><dui-layer height="99" width="147">
+      <dui-surface class="panel" height="fill" />
+      <dui-text x="6" y="9" width="99" height="9" label="YOUR CART {{cartPage}}" color="#283A35" />
+      <dui-if test="{{cartPagination}}">
+        <dui-button class="button" id="shop_cart_prev" label="&lt;" action="shop_cart_page" value="-1" x="105" width="18" height="18" />
+        <dui-button class="button" id="shop_cart_next" label="&gt;" action="shop_cart_page" value="1" x="126" width="18" height="18" />
+      </dui-if>
+      <dui-column x="6" y="18" width="135" height="36">
+        <dui-if test="{{empty}}"><dui-text height="18" label="Your cart is empty." color="#5B6B64" /></dui-if>
+        <dui-repeat items="cart" as="entry"><dui-layer height="18">
+          <dui-text width="87" height="18" label="{{entry.label}}" color="#5B6B64" />
+          <dui-text x="42" width="72" height="18" label="{{entry.price}}" align="center" color="#283A35" />
+          <dui-button class="button" id="shop_remove_{{entry.id}}" label="-" action="shop_remove" value="{{entry.id}}" x="114" width="18" height="18" />
+        </dui-layer></dui-repeat>
+      </dui-column>
+      <dui-rect x="6" y="51" width="135" height="1" fill="#99ACA1" />
+      <dui-text x="6" y="54" width="60" height="9" label="Total" color="#283A35" />
+      <dui-text x="54" y="54" width="87" height="9" label="{{total}}" align="center" color="#283A35" />
+      <dui-button class="buy" id="shop_checkout" label="Checkout &gt;" action="shop_checkout" locked="{{empty}}" x="6" y="72" width="135" height="18" />
+    </dui-layer></dui-layer></dui-if>
+<dui-if test="{{spacious}}"><dui-grid columns="3" gap="6" y="36" width="300" height="108"><dui-repeat items="topProducts" as="p"><dui-layer width="96" height="108">
+        <dui-surface class="panel" height="fill" />
+        <dui-rect x="5" y="5" width="86" height="57" fill="#AABAB0" />
+        <dui-item id="product_{{p.id}}" x="24" y="9" size="48" width="48" height="48" />
+        <dui-text x="6" y="63" width="84" height="9" label="{{p.label}}" color="#396860" />
+        <dui-button class="buy" id="shop_add_{{p.id}}" action="shop_add" value="{{p.id}}" locked="{{p.full}}" x="6" y="81" width="84" height="18" label="{{p.price}}" tooltip="Add {{p.label}} to your sample cart" />
+      </dui-layer></dui-repeat></dui-grid><dui-grid columns="2" gap="6" y="153" width="300" height="108"><dui-repeat items="bottomProducts" as="p"><dui-layer width="147" height="108">
+        <dui-surface class="panel" height="fill" />
+        <dui-rect x="5" y="5" width="137" height="57" fill="#AABAB0" />
+        <dui-item id="product_{{p.id}}" x="49" y="9" size="48" width="48" height="48" />
+        <dui-text x="6" y="63" width="135" height="9" label="{{p.label}}" color="#396860" />
+        <dui-button class="buy" id="shop_add_{{p.id}}" action="shop_add" value="{{p.id}}" locked="{{p.full}}" x="6" y="81" width="135" height="18" label="{{p.price}}" tooltip="Add {{p.label}} to your sample cart" />
+      </dui-layer></dui-repeat></dui-grid><dui-surface class="panel" x="309" y="36" width="171" height="81" /><dui-head x="321" y="45" width="144" height="18" label="{{player}}" /><dui-item id="shop_profile" x="324" y="66" width="36" height="36" size="36" /><dui-text x="372" y="63" width="99" height="9" label="EXPLORER" color="#396860" /><dui-text x="372" y="81" width="99" height="9" label="Demo profile" color="#5B6B64" /><dui-layer x="309" y="126" width="171" height="135"><dui-layer height="135" width="171">
+      <dui-surface class="panel" height="fill" />
+      <dui-text x="6" y="9" width="123" height="9" label="YOUR CART {{cartPage}}" color="#283A35" />
+      <dui-if test="{{cartPagination}}">
+        <dui-button class="button" id="shop_cart_prev" label="&lt;" action="shop_cart_page" value="-1" x="129" width="18" height="18" />
+        <dui-button class="button" id="shop_cart_next" label="&gt;" action="shop_cart_page" value="1" x="150" width="18" height="18" />
+      </dui-if>
+      <dui-column x="6" y="27" width="159" height="63">
+        <dui-if test="{{empty}}"><dui-text height="18" label="Your cart is empty." color="#5B6B64" /></dui-if>
+        <dui-repeat items="cart" as="entry"><dui-layer height="18">
+          <dui-text width="111" height="18" label="{{entry.label}}" color="#5B6B64" />
+          <dui-text x="66" width="72" height="18" label="{{entry.price}}" align="center" color="#283A35" />
+          <dui-button class="button" id="shop_remove_{{entry.id}}" label="-" action="shop_remove" value="{{entry.id}}" x="138" width="18" height="18" />
+        </dui-layer></dui-repeat>
+      </dui-column>
+      <dui-rect x="6" y="87" width="159" height="1" fill="#99ACA1" />
+      <dui-text x="6" y="90" width="60" height="9" label="Total" color="#283A35" />
+      <dui-text x="78" y="90" width="87" height="9" label="{{total}}" align="center" color="#283A35" />
+      <dui-button class="buy" id="shop_checkout" label="Checkout &gt;" action="shop_checkout" locked="{{empty}}" x="6" y="108" width="159" height="18" />
+    </dui-layer></dui-layer><dui-text y="270" height="9" label="Demo store / Explore products, build a cart, scan the code." color="#FFFFFF" /></dui-if></dui-if>
+<dui-if test="{{checkout}}"><dui-button class="button" id="shop_back" label="&lt; Go back" action="shop_back" width="90" height="18" /><dui-text x="108" height="18" label="DUI / DEMO CHECKOUT" color="#FFFFFF" />
+<dui-if test="{{compact}}"><dui-surface class="panel" y="27" width="135" height="126" /><dui-image id="checkout_qr" source="checkout_qr" x="13" y="36" width="108" height="108" pixel-size="2" /><dui-layer x="144" y="27" width="156" height="126"><dui-layer height="126" width="156">
+      <dui-surface class="panel" height="fill" />
+      <dui-text x="6" y="9" width="108" height="9" label="YOUR CART {{cartPage}}" color="#283A35" />
+      <dui-if test="{{cartPagination}}">
+        <dui-button class="button" id="shop_cart_prev" label="&lt;" action="shop_cart_page" value="-1" x="114" width="18" height="18" />
+        <dui-button class="button" id="shop_cart_next" label="&gt;" action="shop_cart_page" value="1" x="135" width="18" height="18" />
+      </dui-if>
+      <dui-column x="6" y="18" width="144" height="54">
+        <dui-if test="{{empty}}"><dui-text height="18" label="Your cart is empty." color="#5B6B64" /></dui-if>
+        <dui-repeat items="cart" as="entry"><dui-layer height="18">
+          <dui-text width="96" height="18" label="{{entry.label}}" color="#5B6B64" />
+          <dui-text x="51" width="72" height="18" label="{{entry.price}}" align="center" color="#283A35" />
+          <dui-button class="button" id="shop_remove_{{entry.id}}" label="-" action="shop_remove" value="{{entry.id}}" x="123" width="18" height="18" />
+        </dui-layer></dui-repeat>
+      </dui-column>
+      <dui-rect x="6" y="78" width="144" height="1" fill="#99ACA1" />
+      <dui-text x="6" y="81" width="60" height="9" label="Total" color="#283A35" />
+      <dui-text x="63" y="81" width="87" height="9" label="{{total}}" align="center" color="#283A35" />
+      <dui-button class="buy" id="shop_link" label="Open link &gt;" action="shop_link" locked="{{empty}}" x="6" y="99" width="144" height="18" />
+    </dui-layer></dui-layer></dui-if>
+<dui-if test="{{spacious}}"><dui-surface class="panel" y="27" width="180" height="225" /><dui-image id="checkout_qr" source="checkout_qr" x="12" y="54" width="156" height="156" pixel-size="3" /><dui-layer x="189" y="27" width="291" height="225"><dui-layer height="225" width="291">
+      <dui-surface class="panel" height="fill" />
+      <dui-text x="6" y="9" width="243" height="9" label="YOUR CART {{cartPage}}" color="#283A35" />
+      <dui-if test="{{cartPagination}}">
+        <dui-button class="button" id="shop_cart_prev" label="&lt;" action="shop_cart_page" value="-1" x="249" width="18" height="18" />
+        <dui-button class="button" id="shop_cart_next" label="&gt;" action="shop_cart_page" value="1" x="270" width="18" height="18" />
+      </dui-if>
+      <dui-column x="6" y="27" width="279" height="153">
+        <dui-if test="{{empty}}"><dui-text height="18" label="Your cart is empty." color="#5B6B64" /></dui-if>
+        <dui-repeat items="cart" as="entry"><dui-layer height="18">
+          <dui-text width="231" height="18" label="{{entry.label}}" color="#5B6B64" />
+          <dui-text x="186" width="72" height="18" label="{{entry.price}}" align="center" color="#283A35" />
+          <dui-button class="button" id="shop_remove_{{entry.id}}" label="-" action="shop_remove" value="{{entry.id}}" x="258" width="18" height="18" />
+        </dui-layer></dui-repeat>
+      </dui-column>
+      <dui-rect x="6" y="177" width="279" height="1" fill="#99ACA1" />
+      <dui-text x="6" y="180" width="60" height="9" label="Total" color="#283A35" />
+      <dui-text x="198" y="180" width="87" height="9" label="{{total}}" align="center" color="#283A35" />
+      <dui-button class="buy" id="shop_link" label="Open link &gt;" action="shop_link" locked="{{empty}}" x="6" y="198" width="279" height="18" />
+    </dui-layer></dui-layer></dui-if>
+</dui-if></dui-layer></dui-menu>

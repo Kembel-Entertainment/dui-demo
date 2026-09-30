@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "dui_demo_e2e",
+  "version": "0.1.0-SNAPSHOT",
+  "name": "dui demo test client",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "gg.kembel.dui.demo.e2e.ScenarioClient"
+    ]
+  },
+  "mixins": [
+    "dui-demo-e2e.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "26.2",
+    "fabric-api": "*"
+  }
+}

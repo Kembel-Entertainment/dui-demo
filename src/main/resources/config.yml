@@ -1,0 +1,6 @@
+pack:
+  bind-address: 127.0.0.1
+  port: 25585
+  public-url: http://127.0.0.1:25585/dui.zip
+videos:
+  live: true
