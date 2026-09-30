@@ -1,0 +1,40 @@
+<dui-menu width="{{width}}" height="{{height}}" animation-start="{{tick}}" motion="{{motion}}">
+ <dui-style id="frame" fill="#203E47" border="#0A202A" bevel="3" highlight="#446873" />
+ <dui-style id="button" fill="#77EAC5" border="#0A202A" bevel="2" highlight="#FFF5DA" color="#142F38" />
+ <dui-layer height="fill">
+  <dui-surface class="frame" fill="#142F38" height="fill" />
+  <dui-image id="wordmark" source="title" x="{{titleX}}" y="{{titleY}}" width="{{titleW}}" height="{{titleH}}" pixel-size="2" />
+  <dui-button class="button" id="advent_size" action="advent_size" fill="#FF679A" label="{{sizeLabel}}" x="{{motionX}}" y="9" width="99" height="18" />
+  <dui-if test="{{wide}}"><dui-text x="18" y="{{subtitleY}}" width="{{inner}}" height="9" label="24 GIFTS. ZERO WAITING. ALL YOURS TO REPLAY." color="#FFF1D0" /></dui-if>
+  <dui-if test="{{board}}">
+   <dui-surface class="frame" fill="#79504F" x="12" y="{{shelfY}}" width="{{inner}}" height="{{shelfH}}" />
+   <dui-image id="roof" source="roof" x="12" y="{{roofY}}" width="{{inner}}" height="{{roofH}}" pixel-size="4" />
+   <dui-if test="{{wide}}"><dui-lights id="fairy_lights" x="21" y="{{lightsY}}" width="{{lightsW}}" height="9" count="{{lightsCount}}" radius="2" /></dui-if>
+   <dui-repeat items="parcels" as="g">
+    <dui-button class="frame" id="gift_{{g.day}}" action="advent_open" value="{{g.day}}" x="{{g.x}}" y="{{g.y}}" width="{{g.w}}" height="{{g.h}}" label="" tooltip="Gift {{g.day}} / Unwrap a little surprise" />
+    <dui-image id="art_{{g.day}}" source="{{g.key}}" x="{{g.ix}}" y="{{g.iy}}" width="{{g.iw}}" height="{{g.ih}}" pixel-size="2" />
+    <dui-text x="{{g.x}}" y="{{g.ny}}" width="{{g.w}}" height="9" align="center" label="{{g.day}}" color="{{g.color}}" />
+   </dui-repeat>
+   <dui-text x="18" y="{{footer}}" width="198" height="18" label="PICK ANY BOX &gt;" color="#FFF1D0" />
+  </dui-if>
+  <dui-if test="{{scene}}">
+   <dui-surface class="frame" x="9" y="{{sceneY}}" width="{{inner}}" height="{{shelfH}}" />
+   <dui-if test="{{parcelVisible}}"><dui-item id="parcel_body" x="{{itemX}}" y="{{itemY}}" size="{{itemSize}}" width="{{itemSize}}" height="{{itemSize}}" transition="bounce" transition-start="{{tick}}" transition-duration="24" transition-distance="18" />
+   <dui-item id="parcel_lid" x="{{itemX}}" y="{{itemY}}" size="{{itemSize}}" width="{{itemSize}}" height="{{itemSize}}" transition="lift" transition-start="{{tick}}" transition-duration="24" transition-distance="{{lift}}" /></dui-if>
+   <dui-text x="{{textX}}" y="{{textY}}" width="{{textW}}" height="9" label="GIFT {{selected}} / 24" color="{{accent}}" />
+   <dui-if test="{{opening}}">
+    <dui-heading x="{{textX}}" y="{{copyY}}" width="{{textW}}" height="18" label="UNWRAPPING..." color="#FFF1D0" />
+    <dui-text x="{{textX}}" y="{{tagY}}" width="{{textW}}" height="9" label="Tiny box. Big energy." color="#A9C8C9" />
+   </dui-if>
+   <dui-if test="{{revealed}}">
+    <dui-item id="advent_reward" x="{{rewardX}}" y="{{rewardY}}" size="{{rewardSize}}" width="{{rewardSize}}" height="{{rewardSize}}" transition="pop" transition-start="{{rewardTick}}" transition-duration="18" transition-distance="18" />
+    <dui-heading x="{{textX}}" y="{{copyY}}" width="{{textW}}" height="18" label="{{name}}" color="#FFF1D0" />
+    <dui-text x="{{textX}}" y="{{tagY}}" width="{{textW}}" height="18" label="{{caption}}" color="#A9C8C9" />
+   </dui-if>
+   <dui-particles id="gift_confetti" effect="confetti" x="0" y="0" width="{{width}}" height="{{height}}" origin-x="{{originX}}" origin-y="{{originY}}" count="52" delay="24" />
+   <dui-button class="button" id="advent_back" action="advent_back" label="&lt; Calendar" x="12" y="{{footer}}" width="{{buttonW}}" height="18" />
+   <dui-button class="button" id="advent_again" action="advent_again" locked="{{opening}}" fill="#FF679A" label="Again, please" x="{{againX}}" y="{{footer}}" width="{{buttonW}}" height="18" />
+  </dui-if>
+  <dui-button class="button" id="advent_motion" action="advent_motion" fill="#FFF1D0" label="{{motionLabel}}" x="{{motionX}}" y="{{footer}}" width="99" height="18" />
+ </dui-layer>
+</dui-menu>

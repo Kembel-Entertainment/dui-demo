@@ -11,6 +11,7 @@ public final class DemoArt {
     var bytes = new ByteArrayOutputStream();
     try (var zip = new ZipOutputStream(bytes)) {
       RewardArt.write(zip);
+      AdventArt.write(zip);
       for (String id : RewardArt.MODELS) {
         var e = new ZipEntry("assets/dui_demo/items/" + id + ".json");
         e.setTime(0);

@@ -1,0 +1,112 @@
+package gg.kembel.dui.demo;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import gg.kembel.dui.core.*;
+import java.util.*;
+import org.junit.jupiter.api.Test;
+
+class AdventTest {
+  @Test
+  void everyGiftCanBeOpenedRepeatedlyWithoutAClaimLedger() {
+    var s = new AdventState();
+    long tick = 0;
+    for (int round = 0; round < 2; round++)
+      for (int day = 1; day <= 24; day++) {
+        s.open(day, tick);
+        assertEquals(AdventState.Phase.OPENING, s.phase);
+        assertEquals(day, s.selected);
+        assertFalse(s.reveal(s.generation, tick + 23));
+        assertTrue(s.reveal(s.generation, tick + 24));
+        assertFalse(s.gift().name().isBlank());
+        s.back();
+        assertEquals(0, s.selected);
+        assertEquals(-1, s.startedAt);
+        tick += 30;
+      }
+  }
+
+  @Test
+  void cancellationAndReplayRejectStaleCallbacks() {
+    var s = new AdventState();
+    s.open(5, 100);
+    long old = s.generation;
+    s.back();
+    assertFalse(s.reveal(old, 124));
+    s.open(5, 200);
+    assertFalse(s.reveal(old, 224));
+    assertTrue(s.reveal(s.generation, 224));
+    s.open(5, 250);
+    assertEquals(AdventState.Phase.OPENING, s.phase);
+    assertEquals(-1, s.rewardAt);
+    s.motion = false;
+    s.open(1, 300);
+    assertEquals(AdventState.Phase.REVEALED, s.phase);
+    assertEquals(300, s.rewardAt);
+    assertThrows(IllegalArgumentException.class, () -> s.open(0, 0));
+    assertThrows(IllegalArgumentException.class, () -> s.open(25, 0));
+  }
+
+  @Test
+  void shelfHasAll24DistinctNonoverlappingHitRegionsAndFitsImageBudget() {
+    for (boolean compact : List.of(false, true)) {
+      var s = new AdventState();
+      s.compact = compact;
+      var c = AdventView.render(s, 100);
+      var gifts = c.hits.stream().filter(h -> h.action().equals("advent_open")).toList();
+      assertEquals(24, gifts.size());
+      assertEquals(24, gifts.stream().map(Canvas.Hit::value).distinct().count());
+      for (var a : gifts)
+        for (var b : gifts)
+          if (a != b)
+            assertFalse(
+                a.x() < b.x() + b.width()
+                    && a.x() + a.width() > b.x()
+                    && a.y() < b.y() + b.height()
+                    && a.y() + a.height() > b.y());
+      assertEquals(26, c.images.size());
+      assertEquals(compact ? 0 : 1, c.items.size());
+      assertTrue(
+          c.images.stream().mapToInt(i -> i.raster().width * i.raster().height).sum() <= 16384);
+      for (var hit : gifts)
+        assertEquals(hit.id(), c.at(hit.x() + hit.width() / 2, hit.y() + hit.height() / 2).id());
+    }
+  }
+
+  @Test
+  void openingSceneUsesReusableTransitionsAndRealRewardCarrier() {
+    for (boolean compact : List.of(false, true))
+      for (boolean motion : List.of(false, true))
+        for (int day = 1; day <= 24; day++) {
+          var s = new AdventState();
+          s.compact = compact;
+          s.motion = motion;
+          s.open(day, 23990);
+          var opening = AdventView.render(s, 23990);
+          assertEquals(motion ? 2 : (compact ? 1 : 3), opening.transitions.size());
+          assertEquals(ShaderEffect.Kind.CONFETTI, opening.effects.getFirst().kind());
+          if (motion) {
+            assertEquals(
+                "",
+                opening.hits.stream()
+                    .filter(h -> h.id().equals("advent_again"))
+                    .findFirst()
+                    .orElseThrow()
+                    .action());
+            s.reveal(s.generation, 24014);
+          }
+          var reveal = AdventView.render(s, 24014);
+          assertEquals(compact ? 1 : 3, reveal.transitions.size());
+          assertEquals(compact ? 2 : 4, reveal.items.size());
+          assertEquals(ItemTransition.Kind.POP, reveal.transitions.get("advent_reward").kind());
+          if (!compact) assertEquals(motion, reveal.transitions.get("parcel_lid").motion());
+          assertEquals(
+              "advent_again",
+              reveal.hits.stream()
+                  .filter(h -> h.id().equals("advent_again"))
+                  .findFirst()
+                  .orElseThrow()
+                  .action());
+        }
+  }
+}

@@ -39,6 +39,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     DisplayPreferences display = new DisplayPreferences(), preview;
     ShopState shop = new ShopState();
     RewardState rewards = new RewardState();
+    AdventState advent = new AdventState();
     SlotState slots = new SlotState();
     BukkitTask settlement, expiry;
     int videoPage;
@@ -59,6 +60,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               "showcase-compact",
               "shop",
               "rewards",
+              "advent",
               "slots",
               "videos",
               "setup",
@@ -103,7 +105,8 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               : new FixtureVideos();
       videos.refresh(false);
       getServer().getPluginManager().registerEvents(this, this);
-      for (String command : List.of("dui", "uikit", "uishop", "dailyrewards", "slots", "uivideos"))
+      for (String command :
+          List.of("dui", "uikit", "uishop", "dailyrewards", "slots", "uivideos", "advent"))
         Objects.requireNonNull(getCommand(command)).setExecutor(this);
       getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.2");
     } catch (Exception e) {
@@ -133,6 +136,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             "showcase-compact",
             "shop",
             "rewards",
+            "advent",
             "slots",
             "videos",
             "setup",
@@ -161,6 +165,13 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       var reward = new RewardState();
       reward.compact = compact;
       next.get("rewards").render(RewardView.data(reward, LocalDate.of(2026, 9, 30)));
+      var advent = new AdventState();
+      advent.compact = compact;
+      next.get("advent").render(AdventView.data(advent, 100), AdventView.images(advent));
+      advent.open(24, 100);
+      next.get("advent").render(AdventView.data(advent, 100), AdventView.images(advent));
+      advent.reveal(advent.generation, 124);
+      next.get("advent").render(AdventView.data(advent, 124), AdventView.images(advent));
       var slots = new SlotState();
       slots.compact = compact;
       next.get("slots").render(SlotView.data(slots));
@@ -240,6 +251,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
                   () -> {
                     s.request++;
                     s.rewards.burstStarted = -1;
+                    s.advent.back();
                     if (s.expiry != null) {
                       s.expiry.cancel();
                       s.expiry = null;
@@ -251,6 +263,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     switch (s.section) {
       case "shop" -> shop(p, s);
       case "rewards" -> rewards(p, s);
+      case "advent" -> advent(p, s);
       case "slots" -> slots(p, s);
       case "videos" -> video(p, s);
       default -> components(p, s);
@@ -559,6 +572,84 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     export(p, s, c, extra);
   }
 
+  private void advent(Player p, Session s) {
+    if (s.expiry != null) {
+      s.expiry.cancel();
+      s.expiry = null;
+    }
+    long tick = p.getWorld().getGameTime();
+    var state = s.advent;
+    if (state.phase == AdventState.Phase.OPENING) state.reveal(state.generation, tick);
+    if (state.phase == AdventState.Phase.REVEALED && tick - state.startedAt >= 120)
+      state.effectsFinished = true;
+    var c = canvas("advent", AdventView.data(state, tick), AdventView.images(state));
+    present(
+        p,
+        s,
+        c,
+        new ViewModel(Map.of(), Map.of(), AdventItems.stacks(state), Map.of()),
+        DialogOptions.notice("dui / Gift drop", "Close calendar", "advent_close"),
+        ctx -> {
+          if (ctx.action().equals("advent_close")) return;
+          long now = p.getWorld().getGameTime();
+          switch (ctx.action()) {
+            case "advent_open" -> state.open(Integer.parseInt(ctx.value()), now);
+            case "advent_back" -> state.back();
+            case "advent_again" -> {
+              if (state.phase == AdventState.Phase.REVEALED) state.open(state.selected, now);
+            }
+            case "advent_size" -> state.compact = !state.compact;
+            case "advent_motion" -> {
+              state.motion = !state.motion;
+              if (!state.motion && state.phase == AdventState.Phase.OPENING) {
+                state.phase = AdventState.Phase.REVEALED;
+                state.rewardAt = now;
+              }
+            }
+            default -> {
+              return;
+            }
+          }
+          show(p, s);
+        });
+    if (state.phase == AdventState.Phase.OPENING) {
+      long token = state.generation;
+      s.expiry =
+          getServer()
+              .getScheduler()
+              .runTaskLater(
+                  this,
+                  () -> {
+                    if (visible(p, s, "advent") && state.reveal(token, p.getWorld().getGameTime()))
+                      show(p, s);
+                  },
+                  Math.max(1, AdventState.OPEN_TICKS - (tick - state.startedAt)));
+    } else if (state.phase == AdventState.Phase.REVEALED
+        && state.motion
+        && !state.effectsFinished) {
+      long token = state.generation;
+      s.expiry =
+          getServer()
+              .getScheduler()
+              .runTaskLater(
+                  this,
+                  () -> {
+                    if (visible(p, s, "advent") && state.generation == token) {
+                      state.effectsFinished = true;
+                      show(p, s);
+                    }
+                  },
+                  Math.max(1, 120 - (tick - state.startedAt)));
+    }
+    var extra = new HashMap<String, Object>();
+    extra.put("section", "advent");
+    extra.put("state", state);
+    extra.put("phase", state.phase);
+    extra.put("selected", state.selected);
+    extra.put("effects", c.effects);
+    export(p, s, c, extra);
+  }
+
   private SlotState copySlots(SlotState value) {
     var next = JSON.fromJson(JSON.toJson(value), SlotState.class);
     next.compact = value.compact;
@@ -758,6 +849,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       data.put("height", c.height);
       data.put("hits", c.hits);
       data.put("items", c.items);
+      data.put("transitions", c.transitions);
       data.put("heads", c.heads);
       data.put("packSha1", metadata.sha1());
       var images = new ArrayList<Map<String, Object>>();
@@ -825,6 +917,8 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
                       s.shop,
                       "rewards",
                       s.rewards,
+                      "advent",
+                      s.advent,
                       "slots",
                       s.slots))
               + "\n",
@@ -869,6 +963,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         switch (name) {
           case "uishop" -> "shop";
           case "dailyrewards" -> "rewards";
+          case "advent" -> "advent";
           case "slots" -> "slots";
           case "uivideos" -> "videos";
           default -> "components";
@@ -897,13 +992,15 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       sender.sendMessage("Run /dui as a player.");
       return true;
     }
-    if (!Set.of("components", "setup", "shop", "rewards", "slots", "videos").contains(section)) {
-      p.sendMessage("/dui [components|setup|shop|rewards|slots|videos|reload]");
+    if (!Set.of("components", "setup", "shop", "rewards", "advent", "slots", "videos")
+        .contains(section)) {
+      p.sendMessage("/dui [components|setup|shop|rewards|advent|slots|videos|reload]");
       return true;
     }
     var s = session(p);
     s.request++;
     if (s.expiry != null) s.expiry.cancel();
+    s.advent.back();
     s.section = section.equals("setup") ? "components" : section;
     s.preview = null;
     String option = arguments.isEmpty() ? "" : arguments.getFirst().toLowerCase(Locale.ROOT);
@@ -914,6 +1011,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         setup(p, s);
         return true;
       }
+      case "advent" -> s.advent.compact = compact;
       case "shop" -> {
         s.shop.compact = compact;
         s.shop.checkout = false;

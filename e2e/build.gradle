@@ -6,7 +6,7 @@ dependencies { minecraft 'com.mojang:minecraft:26.2'; implementation 'net.fabric
 java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
 tasks.withType(JavaCompile).configureEach { options.release = 25 }
 def scenario=providers.gradleProperty('scenario').getOrElse('showcase')
-def names=[showcase:'ShowcaseTest',shop:'ShopTest',rewards:'RewardTest',slots:'SlotTest',confetti:'ConfettiTest',videos:'VideoTest']
+def names=[showcase:'ShowcaseTest',shop:'ShopTest',advent:'AdventTest',rewards:'RewardTest',slots:'SlotTest',confetti:'ConfettiTest',videos:'VideoTest']
 if(!names.containsKey(scenario))throw new GradleException('Unknown E2E scenario: '+scenario)
 loom {
  mods { dui_demo_e2e { sourceSet sourceSets.main } }

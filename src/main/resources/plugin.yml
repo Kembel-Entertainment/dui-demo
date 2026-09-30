@@ -7,13 +7,15 @@ description: Work in progress examples for the embedded dui library
 commands:
   dui:
     description: Explore the dui demo
-    usage: /dui [components|setup|shop|rewards|slots|videos|reload] [compact|spacious|refresh]
+    usage: /dui [components|setup|shop|rewards|advent|slots|videos|reload] [compact|spacious|refresh]
   uikit:
     description: Open the component catalogue
   uishop:
     description: Open the demo shop
   dailyrewards:
     description: Open the daily rewards demo
+  advent:
+    description: Open the animated 24-gift Advent playground
   slots:
     description: Open the 777 demo arcade
   uivideos:
