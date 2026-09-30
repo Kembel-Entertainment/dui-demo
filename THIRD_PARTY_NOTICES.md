@@ -8,3 +8,5 @@ The MIT license applies to original dui sources and original procedural assets. 
 - **Minecraft**: client JARs, font artwork and vanilla item definitions are external, versioned build inputs. They are not licensed under dui's MIT license and are not checked into these repositories. The generated local pack derives shifted fonts and item wrappers from those inputs; do not treat generated game-derived material as original MIT artwork.
 - **ZXing core 3.5.4**: Apache License 2.0, https://github.com/zxing/zxing. The demo bundles its QR encoder; its license is retained under `META-INF/licenses/ZXing/LICENSE`.
 - **Fabric tooling and API**: development-only input automation; not part of the Paper plugin. See https://github.com/FabricMC.
+
+- **Velvet Hold’em illustration**: original asset generated for this demo with the built-in imagegen tool, not extracted from another server or game. The saved source and exact art brief are in `docs/holdem-art.md`. Original demo artwork is supplied under this repository’s MIT license.

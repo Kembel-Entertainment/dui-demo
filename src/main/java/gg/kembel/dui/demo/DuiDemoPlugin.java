@@ -41,6 +41,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     RewardState rewards = new RewardState();
     AdventState advent = new AdventState();
     WarpState warps = new WarpState();
+    PokerState poker = new PokerState();
     SlotState slots = new SlotState();
     BukkitTask settlement, expiry;
     int videoPage;
@@ -63,6 +64,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               "rewards",
               "advent",
               "warps",
+              "poker",
               "slots",
               "videos",
               "setup",
@@ -108,8 +110,16 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       videos.refresh(false);
       getServer().getPluginManager().registerEvents(this, this);
       for (String command :
-          List.of("dui", "uikit", "uishop", "dailyrewards", "slots", "uivideos", "advent", "warps"))
-        Objects.requireNonNull(getCommand(command)).setExecutor(this);
+          List.of(
+              "dui",
+              "uikit",
+              "uishop",
+              "dailyrewards",
+              "slots",
+              "uivideos",
+              "advent",
+              "warps",
+              "poker")) Objects.requireNonNull(getCommand(command)).setExecutor(this);
       getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.2");
     } catch (Exception e) {
       getLogger()
@@ -140,6 +150,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             "rewards",
             "advent",
             "warps",
+            "poker",
             "slots",
             "videos",
             "setup",
@@ -187,6 +198,11 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         next.get("warps").render(WarpView.data(warps));
         warps.stop();
       }
+      var poker = new PokerState();
+      poker.compact = compact;
+      next.get("poker").render(PokerView.data(poker), PokerArt.images(poker.game));
+      poker.deal(100, true);
+      next.get("poker").render(PokerView.data(poker), PokerArt.images(poker.game));
       var slots = new SlotState();
       slots.compact = compact;
       next.get("slots").render(SlotView.data(slots));
@@ -268,6 +284,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
                     s.rewards.burstStarted = -1;
                     s.advent.back();
                     s.warps.stop();
+                    s.poker.reset();
                     if (s.expiry != null) {
                       s.expiry.cancel();
                       s.expiry = null;
@@ -281,6 +298,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       case "rewards" -> rewards(p, s);
       case "advent" -> advent(p, s);
       case "warps" -> warps(p, s);
+      case "poker" -> poker(p, s);
       case "slots" -> slots(p, s);
       case "videos" -> video(p, s);
       default -> components(p, s);
@@ -755,6 +773,90 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             c.clips));
   }
 
+  private void poker(Player p, Session s) {
+    if (s.expiry != null) {
+      s.expiry.cancel();
+      s.expiry = null;
+    }
+    var state = s.poker;
+    long tick = p.getWorld().getGameTime();
+    state.finish(tick);
+    var images = PokerArt.images(state.game);
+    var c = canvas("poker", PokerView.data(state), images);
+    present(
+        p,
+        s,
+        c,
+        new ViewModel(Map.of(), images, Map.of(), Map.of()),
+        DialogOptions.notice("dui / Velvet Hold'em", "Leave table", "poker_close"),
+        ctx -> {
+          long now = p.getWorld().getGameTime();
+          try {
+            switch (ctx.action()) {
+              case "poker_close" -> {
+                return;
+              }
+              case "poker_deal" -> state.deal(now, false);
+              case "poker_showcase" -> state.deal(now, true);
+              case "poker_fold" -> state.human(HoldemGame.Move.FOLD, now);
+              case "poker_call" -> state.human(HoldemGame.Move.CHECK_CALL, now);
+              case "poker_raise" -> state.human(HoldemGame.Move.RAISE, now);
+              case "poker_allin" -> state.human(HoldemGame.Move.ALL_IN, now);
+              case "poker_minus" -> state.adjustRaise(-20);
+              case "poker_plus" -> state.adjustRaise(20);
+              case "poker_reset" -> state.reset();
+              case "poker_size" -> {
+                state.stop();
+                state.compact = !state.compact;
+              }
+              case "poker_motion" -> {
+                state.stop();
+                state.motion = !state.motion;
+              }
+              default -> {
+                return;
+              }
+            }
+          } catch (IllegalArgumentException e) {
+            p.sendMessage("That action is no longer available. The table has refreshed.");
+          }
+          show(p, s);
+        });
+    long token = state.generation;
+    if (state.busy() || state.game.playing() && state.game.actor > 0) {
+      long delay = state.busy() ? Math.max(1, state.duration - (tick - state.startedAt)) : 12;
+      s.expiry =
+          getServer()
+              .getScheduler()
+              .runTaskLater(
+                  this,
+                  () -> {
+                    if (!visible(p, s, "poker") || state.generation != token) return;
+                    if (state.busy()) state.settle();
+                    else state.bot(p.getWorld().getGameTime());
+                    show(p, s);
+                  },
+                  delay);
+    }
+    export(
+        p,
+        s,
+        c,
+        Map.of(
+            "section",
+            "poker",
+            "state",
+            state,
+            "street",
+            state.game.street,
+            "actor",
+            state.game.actor,
+            "busy",
+            state.busy(),
+            "board",
+            state.game.board));
+  }
+
   private SlotState copySlots(SlotState value) {
     var next = JSON.fromJson(JSON.toJson(value), SlotState.class);
     next.compact = value.compact;
@@ -956,6 +1058,8 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       data.put("items", c.items);
       data.put("transitions", c.transitions);
       data.put("heads", c.heads);
+      data.put("paints", c.paints);
+      data.put("effects", c.effects);
       data.put("packSha1", metadata.sha1());
       var images = new ArrayList<Map<String, Object>>();
       for (var i : c.images) {
@@ -963,34 +1067,46 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         for (int y = 0; y < i.raster().height; y++)
           for (int x = 0; x < i.raster().width; x++) rgb.add(i.raster().rgb(x, y));
         images.add(
-            Map.of(
-                "id",
-                i.id(),
-                "x",
-                i.x(),
-                "y",
-                i.y(),
-                "width",
-                i.width(),
-                "height",
-                i.height(),
-                "pixelSize",
-                i.pixelSize(),
-                "columns",
-                i.raster().width,
-                "rows",
-                i.raster().height,
-                "rgb",
-                rgb));
+            new LinkedHashMap<>(
+                Map.of(
+                    "id",
+                    i.id(),
+                    "x",
+                    i.x(),
+                    "y",
+                    i.y(),
+                    "width",
+                    i.width(),
+                    "height",
+                    i.height(),
+                    "pixelSize",
+                    i.pixelSize(),
+                    "columns",
+                    i.raster().width,
+                    "rows",
+                    i.raster().height,
+                    "rgb",
+                    rgb)));
+        images.getLast().put("background", i.background());
       }
       data.put("images", images);
-      if (s.ui.component() != null)
+      if (s.ui.component() != null) {
+        String plain =
+            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                .serialize(s.ui.component());
+        data.put(
+            "componentTextHash",
+            HexFormat.of()
+                .formatHex(
+                    MessageDigest.getInstance("SHA-256")
+                        .digest(plain.getBytes(StandardCharsets.UTF_8))));
         data.put(
             "componentBytes",
             net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson()
                 .serialize(s.ui.component())
                 .getBytes(StandardCharsets.UTF_8)
                 .length);
+      }
       var target = directory.resolve("layouts/" + p.getName() + ".json");
       var staging = target.resolveSibling(target.getFileName() + ".tmp");
       Files.writeString(staging, JSON.toJson(data));
@@ -1007,33 +1123,41 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       Files.writeString(
           directory.resolve("actions.jsonl"),
           JSON.toJson(
-                  Map.of(
-                      "time",
-                      Instant.now().toString(),
-                      "player",
-                      p.getName(),
-                      "action",
-                      action,
-                      "display",
-                      s.display,
-                      "showcase",
-                      s.kit,
-                      "shop",
-                      s.shop,
-                      "rewards",
-                      s.rewards,
-                      "advent",
-                      s.advent,
-                      "warps",
-                      s.warps,
-                      "slots",
-                      s.slots))
+                  auditState(
+                      s,
+                      Map.of(
+                          "time",
+                          Instant.now().toString(),
+                          "player",
+                          p.getName(),
+                          "action",
+                          action,
+                          "display",
+                          s.display,
+                          "showcase",
+                          s.kit,
+                          "shop",
+                          s.shop,
+                          "rewards",
+                          s.rewards,
+                          "advent",
+                          s.advent,
+                          "warps",
+                          s.warps,
+                          "slots",
+                          s.slots)))
               + "\n",
           StandardOpenOption.CREATE,
           StandardOpenOption.APPEND);
     } catch (Exception e) {
       getLogger().warning("Demo action report failed: " + e.getMessage());
     }
+  }
+
+  private Map<String, Object> auditState(Session s, Map<String, Object> base) {
+    var result = new LinkedHashMap<>(base);
+    result.put("poker", s.poker);
+    return result;
   }
 
   @EventHandler
@@ -1072,6 +1196,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
           case "dailyrewards" -> "rewards";
           case "advent" -> "advent";
           case "warps" -> "warps";
+          case "poker" -> "poker";
           case "slots" -> "slots";
           case "uivideos" -> "videos";
           default -> "components";
@@ -1107,9 +1232,10 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       sender.sendMessage("Run /dui as a player.");
       return true;
     }
-    if (!Set.of("components", "setup", "shop", "rewards", "advent", "warps", "slots", "videos")
+    if (!Set.of(
+            "components", "setup", "shop", "rewards", "advent", "warps", "poker", "slots", "videos")
         .contains(section)) {
-      p.sendMessage("/dui [components|setup|shop|rewards|advent|warps|slots|videos|reload]");
+      p.sendMessage("/dui [components|setup|shop|rewards|advent|warps|poker|slots|videos|reload]");
       return true;
     }
     var s = session(p);
@@ -1117,6 +1243,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     if (s.expiry != null) s.expiry.cancel();
     s.advent.back();
     s.warps.stop();
+    s.poker.reset();
     s.section = section.equals("setup") ? "components" : section;
     s.preview = null;
     String option = arguments.isEmpty() ? "" : arguments.getFirst().toLowerCase(Locale.ROOT);
@@ -1129,6 +1256,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       }
       case "advent" -> s.advent.compact = compact;
       case "warps" -> s.warps.compact = compact;
+      case "poker" -> s.poker.compact = compact;
       case "shop" -> {
         s.shop.compact = compact;
         s.shop.checkout = false;

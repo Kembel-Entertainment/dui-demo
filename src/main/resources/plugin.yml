@@ -7,7 +7,7 @@ description: Work in progress examples for the embedded dui library
 commands:
   dui:
     description: Explore the dui demo
-    usage: /dui [components|setup|shop|rewards|advent|warps|slots|videos|reload] [compact|spacious|refresh]
+    usage: /dui [components|setup|shop|rewards|advent|warps|poker|slots|videos|reload] [compact|spacious|refresh]
   uikit:
     description: Open the component catalogue
   uishop:
@@ -20,6 +20,9 @@ commands:
     description: Open the animated Wayfarer warp atlas
   slots:
     description: Open the 777 demo arcade
+  poker:
+    description: Open the Velvet Holdem table (demo chips, three bots)
+    usage: /poker [compact|spacious]
   uivideos:
     description: Open runtime video thumbnails
 permissions:

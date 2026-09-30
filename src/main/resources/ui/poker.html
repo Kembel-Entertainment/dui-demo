@@ -1,0 +1,57 @@
+<!-- Public data binds into reusable dui card/chip primitives. No game rules or opponent secrets here. -->
+<dui-menu width="{{width}}" height="{{height}}" motion="{{motion}}" animation-start="{{tick}}">
+ <dui-style id="ink" fill="#152630" border="#53615F" highlight="#6E8077" color="#F6E8CC" bevel="1" disabled-fill="#1C2A32" disabled-color="#748B85" disabled-border="#3B4E4D" />
+ <dui-style id="mint" fill="#79D8B4" border="#203F3A" highlight="#D0F4DF" color="#152F32" disabled-fill="#324D49" disabled-color="#809E91" disabled-border="#3B4E4D" bevel="2" />
+ <dui-style id="coral" fill="#713C49" border="#A9787D" highlight="#F7B3A1" color="#FFE8CF" bevel="1" disabled-fill="#2D2C35" disabled-color="#81787F" disabled-border="#48464F" />
+ <dui-style id="gold" fill="#D9B56D" border="#594831" highlight="#F7E5B7" color="#292C2C" disabled-fill="#494333" disabled-color="#998D6C" disabled-border="#5F5845" bevel="2" />
+ <dui-layer height="fill">
+  <dui-image id="table_art" source="table" image-layer="background" width="fill" height="fill" pixel-size="{{pixel}}" />
+  <dui-surface x="8" y="0" width="{{inner}}" height="{{headerH}}" fill="#111E2A" border="#111E2A" bevel="0" />
+  <dui-if test="{{compact}}"><dui-text x="16" y="0" width="160" height="18" label="VELVET / HOLD'EM" color="#E9BE70" /></dui-if>
+  <dui-if test="{{wide}}"><dui-image id="velvet_wordmark" source="wordmark" x="16" y="2" width="108" height="27" pixel-size="2" /><dui-text x="136" y="0" width="174" height="18" label="HOLD'EM / AFTER HOURS" color="#E9BE70" /></dui-if>
+  <dui-if test="{{wide}}"><dui-text x="136" y="18" width="174" height="9" label="DEMO CHIPS / BLINDS 10:20" color="#8DB5A9" /></dui-if>
+  <dui-button class="ink" id="poker_motion" action="poker_motion" x="{{motionX}}" y="0" width="{{motionW}}" height="18" label="{{motionLabel}}" tooltip="Toggle all card and chip animations" />
+  <dui-button class="ink" id="poker_size" action="poker_size" x="{{sizeX}}" y="0" width="54" height="18" label="{{sizeLabel}}" />
+  <dui-repeat items="seats" as="s">
+   <dui-surface x="{{s.x}}" y="{{s.y}}" width="{{s.w}}" height="{{s.h}}" fill="{{s.fill}}" border="{{s.border}}" bevel="1" />
+   <dui-image id="portrait_{{s.seat}}" source="{{s.portrait}}" x="{{s.portraitX}}" y="{{s.portraitY}}" width="{{s.portraitSize}}" height="{{s.portraitSize}}" pixel-size="1" />
+   <dui-text x="{{s.nameX}}" y="{{s.nameY}}" width="{{s.nameW}}" height="9" label="{{s.name}}" color="{{s.color}}" />
+   <dui-text x="{{s.nameX}}" y="{{s.stackY}}" width="{{s.nameW}}" height="9" label="{{s.stack}}" color="#F6E8CC" />
+   <dui-if test="{{hasCards}}"><dui-image id="hole_{{s.seat}}" source="{{s.holes}}" x="{{s.holeX}}" y="{{s.holeY}}" width="{{s.holeW}}" height="{{s.holeH}}" pixel-size="1" /></dui-if>
+   <dui-text x="{{s.x}}" y="{{s.betY}}" width="{{s.w}}" height="9" label="{{s.bet}}" align="center" color="#E9BE70" />
+  </dui-repeat>
+  <dui-text x="{{phaseX}}" y="{{phaseY}}" width="152" height="9" label="{{phase}}" align="center" color="#87B7A8" />
+  <dui-if test="{{wide}}"><dui-text x="164" y="90" width="152" height="9" label="{{potLabel}} / {{pot}}" align="center" color="#F0D393" /></dui-if>
+  <dui-if test="{{compact}}"><dui-text x="90" y="27" width="140" height="9" label="POT {{pot}}" align="center" color="#F0D393" /></dui-if>
+  <dui-if test="{{lobby}}">
+   <dui-text x="10" y="{{lobbyTitleY}}" width="{{inner}}" height="18" label="{{lobbyTitle}}" align="center" color="#FFE7B9" />
+   <dui-text x="10" y="{{lobbySubY}}" width="{{inner}}" height="9" label="ONE PLAYER. THREE PERSONALITIES." align="center" color="#C6DAC9" />
+  </dui-if>
+  <dui-if test="{{hasCards}}">
+   <dui-repeat items="cards" as="c">
+    <dui-playing-card id="{{c.id}}" x="{{c.x}}" y="{{c.y}}" width="{{c.w}}" height="{{c.h}}" lift="{{c.lift}}" value="{{c.value}}" face-down="{{c.down}}" active="{{c.active}}" animation="{{c.mode}}" duration="28" delay="{{c.delay}}" palette="mint" />
+   </dui-repeat>
+   <dui-chip-stack id="pot_chips" x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" count="{{chipCount}}" animation="{{chipMode}}" duration="18" palette="gold" from="{{chipFrom}}" to="{{chipTo}}" />
+   <dui-text x="{{heroNameX}}" y="{{heroNameY}}" width="{{heroNameW}}" height="9" label="{{playerLabel}}" color="#7DE5C4" />
+   <dui-text x="{{heroNameX}}" y="{{stackY}}" width="{{heroNameW}}" height="9" label="{{heroStack}}" color="#F6E8CC" />
+   <dui-text x="{{bestX}}" y="{{bestY}}" width="{{bestW}}" height="9" label="{{best}}" color="#E9BE70" />
+  </dui-if>
+  <dui-text x="{{statusX}}" y="{{statusY}}" width="{{statusW}}" height="9" label="{{status}}" align="center" color="#F6E8CC" />
+  <dui-if test="{{playing}}">
+   <dui-row x="{{controlsX}}" y="{{controlsY}}" width="{{inner}}" height="18" gap="{{controlsGap}}">
+    <dui-button class="coral" id="poker_fold" action="poker_fold" width="{{controlsW}}" label="Fold" locked="{{heroLocked}}" />
+    <dui-button class="mint" id="poker_call" action="poker_call" width="{{controlsW}}" label="{{call}}" locked="{{heroLocked}}" />
+    <dui-button class="ink" id="poker_raise" action="poker_raise" width="{{controlsW}}" label="Raise" locked="{{raiseLocked}}" />
+    <dui-button class="gold" id="poker_allin" action="poker_allin" width="{{controlsW}}" label="All-in" locked="{{allinLocked}}" />
+   </dui-row>
+   <dui-button class="ink" id="poker_minus" action="poker_minus" x="{{raiseX}}" y="{{raiseY}}" width="21" height="9" label="-" locked="{{raiseLocked}}" />
+   <dui-text x="{{raiseLabelX}}" y="{{raiseY}}" width="{{raiseLabelW}}" height="9" label="RAISE TO {{raise}}" align="center" color="#CFDACA" />
+   <dui-button class="ink" id="poker_plus" action="poker_plus" x="{{plusX}}" y="{{raiseY}}" width="21" height="9" label="+" locked="{{raiseLocked}}" />
+  </dui-if>
+  <dui-if test="{{canDeal}}">
+   <dui-button class="mint" id="poker_deal" action="poker_deal" x="{{dealX}}" y="{{controlsY}}" width="{{dealW}}" height="18" label="Deal a hand" locked="{{noDeal}}" />
+   <dui-button class="gold" id="poker_showcase" action="poker_showcase" x="{{showcaseX}}" y="{{controlsY}}" width="{{showcaseW}}" height="18" label="Showcase hand" tooltip="Scripted royal-flush demonstration. Resets demo stacks." />
+  </dui-if>
+  <dui-button class="ink" id="poker_reset" action="poker_reset" x="{{refillX}}" y="{{refillY}}" width="{{refillW}}" height="9" label="Reset table" tooltip="Discard this transient hand and refill 4 x 1,000 demo chips" />
+ </dui-layer>
+</dui-menu>
