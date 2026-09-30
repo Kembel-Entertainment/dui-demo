@@ -40,6 +40,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     ShopState shop = new ShopState();
     RewardState rewards = new RewardState();
     AdventState advent = new AdventState();
+    WarpState warps = new WarpState();
     SlotState slots = new SlotState();
     BukkitTask settlement, expiry;
     int videoPage;
@@ -61,6 +62,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               "shop",
               "rewards",
               "advent",
+              "warps",
               "slots",
               "videos",
               "setup",
@@ -106,7 +108,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       videos.refresh(false);
       getServer().getPluginManager().registerEvents(this, this);
       for (String command :
-          List.of("dui", "uikit", "uishop", "dailyrewards", "slots", "uivideos", "advent"))
+          List.of("dui", "uikit", "uishop", "dailyrewards", "slots", "uivideos", "advent", "warps"))
         Objects.requireNonNull(getCommand(command)).setExecutor(this);
       getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.2");
     } catch (Exception e) {
@@ -137,6 +139,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             "shop",
             "rewards",
             "advent",
+            "warps",
             "slots",
             "videos",
             "setup",
@@ -172,6 +175,18 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       next.get("advent").render(AdventView.data(advent, 100), AdventView.images(advent));
       advent.reveal(advent.generation, 124);
       next.get("advent").render(AdventView.data(advent, 124), AdventView.images(advent));
+      var warps = new WarpState();
+      warps.compact = compact;
+      for (int i = 0; i < 4; i++) {
+        warps.jump(i);
+        next.get("warps").render(WarpView.data(warps));
+        warps.step(1, 100);
+        next.get("warps").render(WarpView.data(warps));
+        warps.stop();
+        warps.step(-1, 100);
+        next.get("warps").render(WarpView.data(warps));
+        warps.stop();
+      }
       var slots = new SlotState();
       slots.compact = compact;
       next.get("slots").render(SlotView.data(slots));
@@ -252,6 +267,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
                     s.request++;
                     s.rewards.burstStarted = -1;
                     s.advent.back();
+                    s.warps.stop();
                     if (s.expiry != null) {
                       s.expiry.cancel();
                       s.expiry = null;
@@ -264,6 +280,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       case "shop" -> shop(p, s);
       case "rewards" -> rewards(p, s);
       case "advent" -> advent(p, s);
+      case "warps" -> warps(p, s);
       case "slots" -> slots(p, s);
       case "videos" -> video(p, s);
       default -> components(p, s);
@@ -650,6 +667,94 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     export(p, s, c, extra);
   }
 
+  private void warps(Player p, Session s) {
+    if (s.expiry != null) {
+      s.expiry.cancel();
+      s.expiry = null;
+    }
+    var state = s.warps;
+    long tick = p.getWorld().getGameTime();
+    state.finish(state.generation, tick);
+    var c = canvas("warps", WarpView.data(state), Map.of());
+    present(
+        p,
+        s,
+        c,
+        new ViewModel(Map.of(), Map.of(), WarpItems.stacks(state, c), Map.of()),
+        DialogOptions.notice("dui / Wayfarer atlas", "Close atlas", "warp_close"),
+        ctx -> {
+          long now = p.getWorld().getGameTime();
+          switch (ctx.action()) {
+            case "warp_close" -> {
+              return;
+            }
+            case "warp_next" -> state.step(1, now);
+            case "warp_previous" -> state.step(-1, now);
+            case "warp_select" -> {
+              if (state.moving) return;
+              int slot = Integer.parseInt(ctx.value());
+              if (slot == 0) state.preview(now);
+              else state.step(slot, now);
+            }
+            case "warp_jump" -> {
+              if (state.moving) return;
+              int target = Integer.parseInt(ctx.value());
+              int delta = Math.floorMod(target - state.selected, 4);
+              if (delta == 1) state.step(1, now);
+              else if (delta == 3) state.step(-1, now);
+              else state.jump(target);
+            }
+            case "warp_travel" -> {
+              if (!state.moving) state.preview(now);
+            }
+            case "warp_size" -> {
+              state.stop();
+              state.compact = !state.compact;
+            }
+            case "warp_motion" -> {
+              state.motion = !state.motion;
+              state.stop();
+            }
+            default -> {
+              return;
+            }
+          }
+          show(p, s);
+        });
+    if (state.startedAt >= 0) {
+      long token = state.generation;
+      s.expiry =
+          getServer()
+              .getScheduler()
+              .runTaskLater(
+                  this,
+                  () -> {
+                    if (visible(p, s, "warps") && state.generation == token) {
+                      state.stop();
+                      show(p, s);
+                    }
+                  },
+                  Math.max(1, WarpState.SLIDE_TICKS - (tick - state.startedAt)));
+    }
+    export(
+        p,
+        s,
+        c,
+        Map.of(
+            "section",
+            "warps",
+            "state",
+            state,
+            "selected",
+            state.selected,
+            "moving",
+            state.moving,
+            "arrived",
+            state.arrived,
+            "clips",
+            c.clips));
+  }
+
   private SlotState copySlots(SlotState value) {
     var next = JSON.fromJson(JSON.toJson(value), SlotState.class);
     next.compact = value.compact;
@@ -919,6 +1024,8 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
                       s.rewards,
                       "advent",
                       s.advent,
+                      "warps",
+                      s.warps,
                       "slots",
                       s.slots))
               + "\n",
@@ -964,6 +1071,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
           case "uishop" -> "shop";
           case "dailyrewards" -> "rewards";
           case "advent" -> "advent";
+          case "warps" -> "warps";
           case "slots" -> "slots";
           case "uivideos" -> "videos";
           default -> "components";
@@ -988,19 +1096,27 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       }
       return true;
     }
-    if (!(sender instanceof Player p)) {
+    Player p =
+        sender instanceof Player player
+            ? player
+            : sender instanceof ProxiedCommandSender proxy
+                    && proxy.getCallee() instanceof Player callee
+                ? callee
+                : null;
+    if (p == null) {
       sender.sendMessage("Run /dui as a player.");
       return true;
     }
-    if (!Set.of("components", "setup", "shop", "rewards", "advent", "slots", "videos")
+    if (!Set.of("components", "setup", "shop", "rewards", "advent", "warps", "slots", "videos")
         .contains(section)) {
-      p.sendMessage("/dui [components|setup|shop|rewards|advent|slots|videos|reload]");
+      p.sendMessage("/dui [components|setup|shop|rewards|advent|warps|slots|videos|reload]");
       return true;
     }
     var s = session(p);
     s.request++;
     if (s.expiry != null) s.expiry.cancel();
     s.advent.back();
+    s.warps.stop();
     s.section = section.equals("setup") ? "components" : section;
     s.preview = null;
     String option = arguments.isEmpty() ? "" : arguments.getFirst().toLowerCase(Locale.ROOT);
@@ -1012,6 +1128,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         return true;
       }
       case "advent" -> s.advent.compact = compact;
+      case "warps" -> s.warps.compact = compact;
       case "shop" -> {
         s.shop.compact = compact;
         s.shop.checkout = false;

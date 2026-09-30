@@ -1,0 +1,33 @@
+<dui-menu width="{{width}}" height="{{height}}" motion="{{motion}}">
+ <dui-style id="wood" fill="#51353A" border="#291F2B" highlight="#896052" bevel="2" />
+ <dui-style id="brass" fill="#EAC477" border="#35262D" highlight="#FFF1CE" color="#35262D" disabled-fill="#866D50" disabled-color="#CFB994" bevel="2" />
+ <dui-style id="ribbon" fill="#765059" border="#35262D" highlight="#C19478" color="#FFF1CE" bevel="2" />
+ <dui-layer height="fill">
+  <dui-surface class="wood" height="fill" />
+  <dui-repeat items="planks" as="p"><dui-rect x="2" y="{{p.y}}" width="{{p.w}}" height="1" fill="{{p.color}}" /></dui-repeat>
+  <dui-heading x="12" y="{{titleY}}" width="{{titleW}}" height="18" label="{{title}}" color="#EAC477" />
+  <dui-button class="ribbon" id="warp_size" action="warp_size" x="{{sizeX}}" y="0" width="{{sizeW}}" height="18" label="{{sizeLabel}}" />
+  <dui-if test="{{wide}}"><dui-text x="24" y="27" width="408" height="9" label="FOUR REALMS. ONE LITTLE ESCAPE." color="#D0AD95" /></dui-if>
+  <dui-surface fill="#EBC99F" border="#B78361" highlight="#FFF1CE" bevel="3" x="12" y="{{paperY}}" width="{{inner}}" height="{{paperH}}" />
+  <dui-rect x="{{viewportX}}" y="{{viewportY}}" width="{{viewportW}}" height="{{viewportH}}" fill="#DDB388" />
+  <dui-repeat items="cards" as="card">
+   <dui-item id="{{card.id}}" x="{{card.x}}" y="{{card.y}}" width="{{card.size}}" height="{{card.size}}" size="{{card.size}}"
+     clip-x="{{viewportX}}" clip-y="{{viewportY}}" clip-width="{{viewportW}}" clip-height="{{viewportH}}"
+     transition="{{card.transition}}" transition-start="{{tick}}" transition-duration="{{duration}}" transition-distance="{{distance}}" />
+  </dui-repeat>
+  <dui-repeat items="cardHits" as="h"><dui-button id="warp_card_{{h.slot}}" action="warp_select" value="{{h.slot}}" locked="{{moving}}" x="{{h.x}}" y="{{viewportY}}" width="{{h.w}}" height="{{viewportH}}" label="" fill="#DDB388" border="#DDB388" disabled-fill="#DDB388" disabled-border="#DDB388" tooltip="{{h.name}}" /></dui-repeat>
+  <dui-button class="brass" id="warp_previous" action="warp_previous" locked="{{moving}}" x="{{navX}}" y="{{navY}}" width="{{navW}}" height="27" label="&lt;" tooltip="Previous realm / Slide the atlas right" />
+  <dui-button class="brass" id="warp_next" action="warp_next" locked="{{moving}}" x="{{navR}}" y="{{navY}}" width="{{navW}}" height="27" label="&gt;" tooltip="Next realm / Slide the atlas left" />
+  <dui-if test="{{wide}}">
+   <dui-heading x="24" y="{{nameY}}" width="300" height="18" label="{{name}}" color="{{accent}}" />
+   <dui-text x="348" y="189" width="108" height="9" label="{{counter}}" align="right" color="#EAC477" />
+   <dui-text x="24" y="207" width="{{textW}}" height="9" label="{{subtitle}}" color="#F1DCC4" />
+   <dui-repeat items="tabs" as="t">
+    <dui-button class="ribbon" id="warp_tab_{{t.index}}" action="warp_jump" value="{{t.index}}" locked="{{moving}}" x="{{t.x}}" y="225" width="27" height="18" label="{{t.label}}" fill="{{t.fill}}" color="{{t.color}}" tooltip="{{t.name}}" />
+   </dui-repeat>
+  </dui-if>
+  <dui-if test="{{compact}}"><dui-text x="12" y="{{nameY}}" width="{{textW}}" height="9" label="{{counter}} / {{name}}" align="center" color="{{accent}}" /></dui-if>
+  <dui-button class="brass" id="warp_travel" action="warp_travel" locked="{{moving}}" x="12" y="{{footer}}" width="{{travelW}}" height="18" label="{{travelLabel}}" tooltip="Preview only / No teleport or item grants" />
+  <dui-button class="ribbon" id="warp_motion" action="warp_motion" x="{{motionX}}" y="{{footer}}" width="{{motionW}}" height="18" label="{{motionLabel}}" />
+ </dui-layer>
+</dui-menu>
