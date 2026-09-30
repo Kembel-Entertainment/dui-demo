@@ -46,6 +46,8 @@ The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots` and `/uivideos
 
 Active templates are copied to `run/server/plugins/dui-demo/ui/`. Change those templates and reload; the pack remains unchanged. Java supplies view data, business actions and own artwork only. The QR is generated at runtime and points to the demo YouTube video; it is not a real payment system. Balances and rewards are demo-only and never grant real items.
 
+When `videos.live` is enabled, the service restores its last successful feed and thumbnails from `run/server/plugins/dui-demo/videos-cache/` before requesting updates. HTTP errors retain that snapshot and show a cached-results status; the saved check time is preserved. Disk reads, decoding and network requests run outside Paper's main thread. Successful downloads replace the cache atomically. The downloaded media is ignored by Git and never added to the resource pack.
+
 ## Real-client tests
 
 ```sh
@@ -59,7 +61,7 @@ Active templates are copied to `run/server/plugins/dui-demo/ui/`. Change those t
 
 Scenarios: `showcase`, `shop`, `rewards`, `slots`, `confetti`, `videos`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
 
-By default, E2E videos use deterministic own gradient images and feed entries; the ordinary demo uses the live Minecraft YouTube channel. `liveVideos` opts into the real network test. Temporary test config and operator access are restored after the run.
+By default, E2E videos use deterministic own gradient images and feed entries; the ordinary demo uses the live Minecraft YouTube channel. `liveVideos` opts into real network requests, using the saved snapshot if the upstream feed is unavailable. Temporary test config and operator access are restored after the run.
 
 Reports, screenshots, layout metadata and galleries are under `build/reports/e2e/<scenario>/`. Tests inspect received vanilla widgets, click actual coordinates, compare runtime image pixels, verify animation/focus behaviour and exercise application state.
 
