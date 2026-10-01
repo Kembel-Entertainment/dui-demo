@@ -3,6 +3,14 @@
   <dui-style id="button" fill="#667A75" border="#151D28" color="#FFFFFF" highlight="#B9D1C2" disabled-fill="#8A909B" disabled-border="#151D28" disabled-color="#C7CDD6" bevel="1" />
   <dui-style id="buy" fill="#3E816F" border="#151D28" color="#FFFFFF" highlight="#A9D5AC" disabled-fill="#8A909B" disabled-border="#151D28" disabled-color="#C7CDD6" bevel="1" />
 
+  <dui-component name="demo-cart-entry" props="entry">
+    <dui-layer height="18">
+      <dui-text width="fill-48" height="18" label="{{props.entry.label}}" color="#5B6B64" />
+      <dui-text anchor-x="right" x="21" width="72" height="18" label="{{props.entry.price}}" align="center" color="#283A35" />
+      <dui-button class="button" id="shop_remove_{{props.entry.id}}" label="-" action="shop_remove" value="{{props.entry.id}}" anchor-x="right" x="3" width="18" height="18" />
+    </dui-layer>
+  </dui-component>
+
 <dui-layer height="fill">
 <dui-if test="{{browsing}}">
     <dui-button class="button" id="shop_objects" label="Objects" action="shop_category" value="objects" width="63" height="18" />
@@ -24,11 +32,7 @@
       </dui-if>
       <dui-column x="6" y="18" width="135" height="36">
         <dui-if test="{{empty}}"><dui-text height="18" label="Your cart is empty." color="#5B6B64" /></dui-if>
-        <dui-repeat items="cart" as="entry"><dui-layer height="18">
-          <dui-text width="87" height="18" label="{{entry.label}}" color="#5B6B64" />
-          <dui-text x="42" width="72" height="18" label="{{entry.price}}" align="center" color="#283A35" />
-          <dui-button class="button" id="shop_remove_{{entry.id}}" label="-" action="shop_remove" value="{{entry.id}}" x="114" width="18" height="18" />
-        </dui-layer></dui-repeat>
+        <dui-repeat items="cart" as="entry"><dui-demo-cart-entry entry="{{entry}}" /></dui-repeat>
       </dui-column>
       <dui-rect x="6" y="51" width="135" height="1" fill="#99ACA1" />
       <dui-text x="6" y="54" width="60" height="9" label="Total" color="#283A35" />
@@ -56,11 +60,7 @@
       </dui-if>
       <dui-column x="6" y="27" width="159" height="63">
         <dui-if test="{{empty}}"><dui-text height="18" label="Your cart is empty." color="#5B6B64" /></dui-if>
-        <dui-repeat items="cart" as="entry"><dui-layer height="18">
-          <dui-text width="111" height="18" label="{{entry.label}}" color="#5B6B64" />
-          <dui-text x="66" width="72" height="18" label="{{entry.price}}" align="center" color="#283A35" />
-          <dui-button class="button" id="shop_remove_{{entry.id}}" label="-" action="shop_remove" value="{{entry.id}}" x="138" width="18" height="18" />
-        </dui-layer></dui-repeat>
+        <dui-repeat items="cart" as="entry"><dui-demo-cart-entry entry="{{entry}}" /></dui-repeat>
       </dui-column>
       <dui-rect x="6" y="87" width="159" height="1" fill="#99ACA1" />
       <dui-text x="6" y="90" width="60" height="9" label="Total" color="#283A35" />
@@ -77,11 +77,7 @@
       </dui-if>
       <dui-column x="6" y="18" width="144" height="54">
         <dui-if test="{{empty}}"><dui-text height="18" label="Your cart is empty." color="#5B6B64" /></dui-if>
-        <dui-repeat items="cart" as="entry"><dui-layer height="18">
-          <dui-text width="96" height="18" label="{{entry.label}}" color="#5B6B64" />
-          <dui-text x="51" width="72" height="18" label="{{entry.price}}" align="center" color="#283A35" />
-          <dui-button class="button" id="shop_remove_{{entry.id}}" label="-" action="shop_remove" value="{{entry.id}}" x="123" width="18" height="18" />
-        </dui-layer></dui-repeat>
+        <dui-repeat items="cart" as="entry"><dui-demo-cart-entry entry="{{entry}}" /></dui-repeat>
       </dui-column>
       <dui-rect x="6" y="78" width="144" height="1" fill="#99ACA1" />
       <dui-text x="6" y="81" width="60" height="9" label="Total" color="#283A35" />
@@ -97,11 +93,7 @@
       </dui-if>
       <dui-column x="6" y="27" width="279" height="153">
         <dui-if test="{{empty}}"><dui-text height="18" label="Your cart is empty." color="#5B6B64" /></dui-if>
-        <dui-repeat items="cart" as="entry"><dui-layer height="18">
-          <dui-text width="231" height="18" label="{{entry.label}}" color="#5B6B64" />
-          <dui-text x="186" width="72" height="18" label="{{entry.price}}" align="center" color="#283A35" />
-          <dui-button class="button" id="shop_remove_{{entry.id}}" label="-" action="shop_remove" value="{{entry.id}}" x="258" width="18" height="18" />
-        </dui-layer></dui-repeat>
+        <dui-repeat items="cart" as="entry"><dui-demo-cart-entry entry="{{entry}}" /></dui-repeat>
       </dui-column>
       <dui-rect x="6" y="177" width="279" height="1" fill="#99ACA1" />
       <dui-text x="6" y="180" width="60" height="9" label="Total" color="#283A35" />

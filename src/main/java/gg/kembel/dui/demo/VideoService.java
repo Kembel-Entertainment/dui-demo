@@ -1,6 +1,6 @@
 package gg.kembel.dui.demo;
 
-import gg.kembel.dui.core.RasterImage;
+import gg.kembel.dui.core.*;
 import java.io.*;
 import java.net.URI;
 import java.net.http.*;
@@ -34,7 +34,7 @@ public final class VideoService implements VideoProvider {
 
   private record Image(Instant at, CompletableFuture<RasterImage> value, RasterImage fallback) {}
 
-  private final Map<URI, Image> images = new ConcurrentHashMap<>();
+  private final BoundedCache<URI, Image> images = new BoundedCache<>(64, 64, i -> 1);
 
   public VideoService(Path cache) {
     this(
@@ -131,7 +131,7 @@ public final class VideoService implements VideoProvider {
                   modified = response.modified;
                   var active = new HashSet<URI>();
                   for (var video : feed.videos()) active.add(video.thumbnail());
-                  images.keySet().retainAll(active);
+                  images.retain(active);
                 }
                 error = "";
               } catch (Exception e) {
@@ -146,6 +146,16 @@ public final class VideoService implements VideoProvider {
             },
             worker);
     return refresh;
+  }
+
+  private record ResourceKey(YouTubeFeed.Video video, Instant version) {}
+
+  private final CachedResourceProvider<ResourceKey, RasterImage> resources =
+      new CachedResourceProvider<>(
+          64, 64, key -> 1, key -> thumbnail(key.video()), key -> cached(key.video()));
+
+  public ResourceHandle<RasterImage> resource(YouTubeFeed.Video video) {
+    return resources.resolve(new ResourceKey(video, feed.checkedAt()));
   }
 
   public CompletableFuture<RasterImage> thumbnail(YouTubeFeed.Video video) {

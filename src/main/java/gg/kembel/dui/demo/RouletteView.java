@@ -126,7 +126,7 @@ public final class RouletteView {
     String[] keys = {"low", "even", "red", "black", "odd", "high"};
     String[] labels =
         c
-            ? new String[] {"LOW", "EVEN", "RED", "BLK", "ODD", "HIGH"}
+            ? new String[] {"LO", "EV", "R", "B", "OD", "HI"}
             : new String[] {"1-18", "EVEN", "RED", "BLACK", "ODD", "19-36"};
     for (int i = 0; i < 6; i++)
       cells.add(
@@ -173,15 +173,19 @@ public final class RouletteView {
       chips.add(item);
     }
     d.put("chips", chips);
-    boolean chip = s.event.equals("chip") && !s.chipBet.isBlank();
+    boolean chip = s.motion && s.animated() && s.event.equals("chip") && !s.chipBet.isBlank();
     var target =
         cells.stream()
             .filter(v -> v.get("key").equals(s.chipBet))
             .findFirst()
             .orElse(cells.getFirst());
     d.put("chipFlight", chip);
-    d.put("chipX", Math.max(0, (int) target.get("x") + (int) target.get("w") / 2 - 10));
-    d.put("chipY", Math.min(height - 36, (int) target.get("y") + (int) target.get("h") / 2 - 5));
+    // The shared transfer's top anchor is (width * .5, height * .14).
+    // Land on the actual marker, including short-row and zero-field placements.
+    double markerX = (int) target.get("chipX") + (int) target.get("chipSize") / 2.0;
+    double markerY = (int) target.get("chipY") + (int) target.get("chipSize") / 2.0;
+    d.put("chipX", (int) Math.round(markerX - 10));
+    d.put("chipY", (int) Math.round(markerY - 36 * .14));
     d.put("payout", s.phase == RouletteGame.Phase.PAYOUT && s.lastReturn > 0);
     d.put("payoutX", c ? 7 : 22);
     d.put("payoutY", c ? 103 : 245);
@@ -236,10 +240,18 @@ public final class RouletteView {
                 : fill.equals("#357660") ? "chip_bet_green" : "chip_bet_outside");
     d.put("border", win ? "#F3D68F" : "#A7AC83");
     d.put("hasChip", amount > 0);
-    d.put("textY", y + (h > (c ? 18 : 27) ? (h - 9) / 2 : 1));
-    d.put("chipX", x + w - (c ? 5 : 10));
-    d.put("chipY", y + h - (c ? 5 : 10));
-    d.put("chipSize", c ? 5 : 9);
+    // Tall cells reserve a centred label/marker stack. Nine-pixel Compact rows
+    // place the marker beside a concise label, with both inside the felt border.
+    int chipSize = c ? 5 : h == 18 ? 7 : 9;
+    boolean inline = h == 9;
+    int gap = c ? 2 : h == 18 ? 0 : 3;
+    int blockY = y + (h - 9 - gap - chipSize) / 2;
+    d.put("textX", inline ? x + 1 : x);
+    d.put("textW", inline ? w - chipSize - 5 : w);
+    d.put("textY", inline ? y : blockY);
+    d.put("chipX", inline ? x + w - chipSize - 2 : x + (w - chipSize) / 2);
+    d.put("chipY", inline ? y + (h - chipSize) / 2 : blockY + 9 + gap);
+    d.put("chipSize", chipSize);
     d.put(
         "tooltip",
         RouletteGame.label(key)
@@ -254,7 +266,10 @@ public final class RouletteView {
   public static Canvas render(RouletteGame s) {
     try (var in = RouletteView.class.getResourceAsStream("/ui/roulette.html")) {
       return MenuTemplate.parse(
-              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8))
+              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+              new gg.kembel.dui.core.GlyphFont(),
+              gg.kembel.dui.components.VisualComponents.registry(),
+              "demo template")
           .render(data(s), RouletteArt.images());
     } catch (Exception e) {
       throw new IllegalStateException(e);

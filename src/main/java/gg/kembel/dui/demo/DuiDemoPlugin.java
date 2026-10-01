@@ -4,26 +4,23 @@ import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpServer;
 import gg.kembel.dui.core.*;
 import gg.kembel.dui.paper.*;
-import io.papermc.paper.registry.data.dialog.input.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.security.*;
 import java.time.*;
 import java.util.*;
-import net.kyori.adventure.text.Component;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 /** An ordinary consumer of dui. Business rules, files and background work live here. */
 public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   private static final Gson JSON = new Gson();
-  private final Map<UUID, Session> sessions = new HashMap<>();
+  private final Map<UUID, DemoSession> sessions = new HashMap<>();
   private final SecureRandom random = new SecureRandom();
   private final Map<String, MenuTemplate> templates = new HashMap<>();
   private Dui dui;
@@ -31,24 +28,26 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   private PackMetadata metadata;
   private Path directory;
   private VideoProvider videos;
+  private MenuCatalogue<java.util.function.Function<DemoServices, DemoMenu>> catalogue;
 
-  private static final class Session {
-    String section = "components";
-    DialogSession ui;
-    ShowcaseState kit = new ShowcaseState();
-    DisplayPreferences display = new DisplayPreferences(), preview;
-    ShopState shop = new ShopState();
-    RewardState rewards = new RewardState();
-    AdventState advent = new AdventState();
-    WarpState warps = new WarpState();
-    RouletteGame roulette = new RouletteGame();
-    BlackjackState blackjack = new BlackjackState();
-    PokerState poker = new PokerState();
-    SlotState slots = new SlotState();
-    BukkitTask settlement, expiry;
-    int videoPage;
-    long request;
-    boolean videoLoading, videoCompact;
+  private void configureMenus() {
+    var entries =
+        new ArrayList<
+            MenuCatalogue.Definition<java.util.function.Function<DemoServices, DemoMenu>>>();
+    for (var factory : DemoMenus.factories()) {
+      var menu = factory.apply(services(null, null));
+      entries.add(
+          new MenuCatalogue.Definition<>(
+              menu.id(),
+              menu.aliases(),
+              menu.templates(),
+              factory,
+              () -> {
+                menu.validate(false);
+                menu.validate(true);
+              }));
+    }
+    catalogue = new MenuCatalogue<>(entries);
   }
 
   @Override
@@ -58,22 +57,8 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       directory = getDataFolder().toPath();
       for (String name : List.of("layouts", "display", "rewards", "slots", "ui"))
         Files.createDirectories(directory.resolve(name));
-      for (String name :
-          List.of(
-              "showcase",
-              "showcase-compact",
-              "shop",
-              "rewards",
-              "advent",
-              "warps",
-              "roulette",
-              "blackjack",
-              "poker",
-              "slots",
-              "videos",
-              "setup",
-              "form",
-              "confirm"))
+      configureMenus();
+      for (String name : catalogue.templates())
         if (!Files.exists(directory.resolve("ui/" + name + ".html")))
           try (var in = getResource("ui/" + name + ".html")) {
             Files.copy(Objects.requireNonNull(in), directory.resolve("ui/" + name + ".html"));
@@ -113,19 +98,12 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               : new FixtureVideos();
       videos.refresh(false);
       getServer().getPluginManager().registerEvents(this, this);
-      for (String command :
-          List.of(
-              "dui",
-              "uikit",
-              "uishop",
-              "dailyrewards",
-              "slots",
-              "uivideos",
-              "advent",
-              "warps",
-              "poker",
-              "roulette",
-              "blackjack")) Objects.requireNonNull(getCommand(command)).setExecutor(this);
+      var commands = new HashSet<String>();
+      for (var entry : catalogue.definitions()) {
+        commands.addAll(entry.aliases());
+        if (getCommand(entry.id()) != null) commands.add(entry.id());
+      }
+      for (String command : commands) Objects.requireNonNull(getCommand(command)).setExecutor(this);
       getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.2");
     } catch (Exception e) {
       getLogger()
@@ -148,96 +126,30 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
 
   private void reloadTemplates() throws Exception {
     var next = new HashMap<String, MenuTemplate>();
-    for (String name :
-        List.of(
-            "showcase",
-            "showcase-compact",
-            "shop",
-            "rewards",
-            "advent",
-            "warps",
-            "roulette",
-            "blackjack",
-            "poker",
-            "slots",
-            "videos",
-            "setup",
-            "form",
-            "confirm"))
-      next.put(name, dui.compile(Files.readString(directory.resolve("ui/" + name + ".html"))));
-    for (boolean compact : List.of(false, true)) {
-      var kit = new ShowcaseState();
-      kit.layout = compact ? "compact" : "spacious";
-      for (var page : ShowcaseState.PAGES) {
-        kit.page = page.id();
-        for (int part = 0; part < (compact ? kit.partCount() : 1); part++) {
-          kit.part = part;
-          for (boolean popup : List.of(false, true)) {
-            kit.dropdownOpen = popup;
-            next.get(compact ? "showcase-compact" : "showcase").render(kit.data());
-          }
-        }
-      }
-      var shop = new ShopState();
-      shop.compact = compact;
-      shop.cart.put("lantern", 1);
-      next.get("shop").render(ShopView.data(shop, "Example"));
-      shop.checkout = true;
-      next.get("shop").render(ShopView.data(shop, "Example"), ShopView.images(shop));
-      var reward = new RewardState();
-      reward.compact = compact;
-      next.get("rewards").render(RewardView.data(reward, LocalDate.of(2026, 9, 30)));
-      var advent = new AdventState();
-      advent.compact = compact;
-      next.get("advent").render(AdventView.data(advent, 100), AdventView.images(advent));
-      advent.open(24, 100);
-      next.get("advent").render(AdventView.data(advent, 100), AdventView.images(advent));
-      advent.reveal(advent.generation, 124);
-      next.get("advent").render(AdventView.data(advent, 124), AdventView.images(advent));
-      var warps = new WarpState();
-      warps.compact = compact;
-      for (int i = 0; i < 4; i++) {
-        warps.jump(i);
-        next.get("warps").render(WarpView.data(warps));
-        warps.step(1, 100);
-        next.get("warps").render(WarpView.data(warps));
-        warps.stop();
-        warps.step(-1, 100);
-        next.get("warps").render(WarpView.data(warps));
-        warps.stop();
-      }
-      var roulette = new RouletteGame();
-      roulette.compact = compact;
-      next.get("roulette").render(RouletteView.data(roulette), RouletteArt.images());
-      roulette.place("n:17", 100);
-      roulette.spin(new Random(2), 120);
-      next.get("roulette").render(RouletteView.data(roulette), RouletteArt.images());
-      var blackjack = new BlackjackState();
-      blackjack.compact = compact;
-      next.get("blackjack").render(BlackjackView.data(blackjack), BlackjackArt.images());
-      blackjack.deal(100, true, new Random(1));
-      next.get("blackjack").render(BlackjackView.data(blackjack), BlackjackArt.images());
-      var poker = new PokerState();
-      poker.compact = compact;
-      next.get("poker").render(PokerView.data(poker), PokerArt.images(poker.game));
-      poker.deal(100, true);
-      next.get("poker").render(PokerView.data(poker), PokerArt.images(poker.game));
-      var slots = new SlotState();
-      slots.compact = compact;
-      next.get("slots").render(SlotView.data(slots));
-      next.get("videos")
-          .render(
-              VideoView.model(new FixtureVideos().feed(), 0, compact, false, "", Map.of()).data());
-    }
+    for (String name : catalogue.templates())
+      next.put(
+          name,
+          dui.compile(
+              "ui/" + name + ".html",
+              Files.readString(directory.resolve("ui/" + name + ".html")),
+              gg.kembel.dui.components.VisualComponents.registry()));
+    var old = new HashMap<>(templates);
     templates.clear();
     templates.putAll(next);
+    try {
+      catalogue.validate();
+    } catch (Exception e) {
+      templates.clear();
+      templates.putAll(old);
+      throw e;
+    }
   }
 
-  private Session session(Player player) {
+  private DemoSession session(Player player) {
     return sessions.computeIfAbsent(
         player.getUniqueId(),
         id -> {
-          var s = new Session();
+          var s = new DemoSession();
           s.display = read("display", id, DisplayPreferences.class, s.display);
           if (!s.display.valid()) s.display = new DisplayPreferences();
           s.kit.layout = s.display.layout;
@@ -273,787 +185,115 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     }
   }
 
-  private String theme(Session s) {
-    return s.kit.dark ? "studio_dark" : "studio";
+  private DemoServices services(Player player, DemoSession state) {
+    return new DemoServices() {
+      public MenuTemplate template(String name) {
+        return Objects.requireNonNull(templates.get(name), name);
+      }
+
+      public String viewerName() {
+        return player.getName();
+      }
+
+      public long tick() {
+        return player.getWorld().getGameTime();
+      }
+
+      public LocalDate date() {
+        return LocalDate.now(ZoneOffset.UTC);
+      }
+
+      public java.util.random.RandomGenerator random() {
+        return random;
+      }
+
+      public Map<String, ItemStack> viewerItems(
+          java.util.function.Function<Player, Map<String, ItemStack>> factory) {
+        return factory.apply(player);
+      }
+
+      public void message(String text) {
+        player.sendMessage(text);
+      }
+
+      public void save(String collection, Object value) {
+        DuiDemoPlugin.this.save(collection, player.getUniqueId(), value);
+      }
+
+      public SlotState copySlots(SlotState value) {
+        return DuiDemoPlugin.this.copySlots(value);
+      }
+
+      public void settleAfter(long ticks) {
+        if (state.settlement != null) state.settlement.cancel();
+        state.settlement =
+            getServer()
+                .getScheduler()
+                .runTaskLater(
+                    DuiDemoPlugin.this,
+                    () -> {
+                      settle(player.getUniqueId(), state);
+                      state.settlement = null;
+                      if (visible(player, state, "slots")) show(player, state);
+                    },
+                    ticks);
+      }
+
+      public VideoProvider videos() {
+        return videos;
+      }
+
+      public TaskScope viewTasks() {
+        return state.controller.viewTasks();
+      }
+
+      public TaskScope tasks() {
+        return state.controller.tasks();
+      }
+
+      public void refresh() {
+        if (visible(player, state, state.section)) show(player, state);
+      }
+    };
   }
 
-  private Canvas canvas(String name, Map<String, Object> data, Map<String, RasterImage> images) {
-    return templates.get(name).render(data, images);
-  }
-
-  private void present(
-      Player p,
-      Session s,
-      Canvas c,
-      ViewModel model,
-      DialogOptions options,
-      ActionHandler handler) {
-    ActionHandler audited =
-        ctx -> {
-          handler.handle(ctx);
-          audit(p, s, ctx.action());
-        };
-    if (s.ui != null && s.ui.isActive()) s.ui.update(c, model, options, audited);
-    else
-      s.ui =
-          dui.open(p, c, model, options, audited)
-              .onClose(
-                  () -> {
-                    s.request++;
-                    s.rewards.burstStarted = -1;
-                    s.advent.back();
-                    s.warps.stop();
-                    s.poker.reset();
-                    s.roulette.reset();
-                    s.blackjack.reset();
-                    if (s.expiry != null) {
-                      s.expiry.cancel();
-                      s.expiry = null;
-                    }
+  private void show(Player player, DemoSession state) {
+    if (state.menu == null) {
+      state.menu =
+          catalogue.find(state.section).orElseThrow().factory().apply(services(player, state));
+      state.menu.prepare(state, state.display.layout.equals("compact"));
+    }
+    var menu = state.menu;
+    menu.capture(state);
+    if (state.controller == null || !state.controller.active()) {
+      state.controller =
+          new MenuController<>(
+                  dui,
+                  player,
+                  state,
+                  new MenuDefinition<>(
+                      menu.id(),
+                      menu::project,
+                      (s, ctx) -> {
+                        s.tick = player.getWorld().getGameTime();
+                        s.date = LocalDate.now(ZoneOffset.UTC);
+                        s.reopenRequested = false;
+                        menu.dispatch(s, ctx.action(), ctx.value(), ctx.response());
+                        audit(player, s, ctx.action());
+                        if (s.reopenRequested && !ctx.session().isActive()) {
+                          s.controller = null;
+                          show(player, s);
+                        } else if (ctx.session().isActive()) menu.capture(s);
+                      },
+                      menu::closed))
+              .onPresented(
+                  view -> {
+                    state.ui = view;
+                    export(player, state, view.canvas(), menu.report(state, view.canvas()));
+                    menu.presented(state, view.canvas());
                   });
-  }
-
-  private void show(Player p, Session s) {
-    switch (s.section) {
-      case "shop" -> shop(p, s);
-      case "rewards" -> rewards(p, s);
-      case "advent" -> advent(p, s);
-      case "warps" -> warps(p, s);
-      case "blackjack" -> blackjack(p, s);
-      case "roulette" -> roulette(p, s);
-      case "poker" -> poker(p, s);
-      case "slots" -> slots(p, s);
-      case "videos" -> video(p, s);
-      default -> components(p, s);
     }
-  }
-
-  private void components(Player p, Session s) {
-    if (!s.display.configured && s.preview == null) {
-      setup(p, s);
-      return;
-    }
-    var c = canvas(s.kit.compact() ? "showcase-compact" : "showcase", s.kit.data(), Map.of());
-    var items =
-        s.kit.page.equals("media") ? ShowcaseItems.stacks(p, s.kit) : Map.<String, ItemStack>of();
-    var options =
-        s.preview == null
-            ? DialogOptions.notice("dui / Component showcase", "Close showcase", "kit_close")
-            : new DialogOptions(
-                Component.text("dui / Layout preview"),
-                List.of(),
-                List.of(
-                    new DialogOptions.Button("Use this layout", "kit_display_keep", 128),
-                    new DialogOptions.Button("Change size", "kit_display_change", 128)),
-                null,
-                2,
-                true);
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), Map.of(), items, Map.of()),
-        options,
-        ctx -> {
-          switch (ctx.action()) {
-            case "kit_close" -> {}
-            case "kit_form" -> form(p, s);
-            case "kit_reset" -> confirm(p, s);
-            case "kit_setup", "kit_display_change" -> setup(p, s);
-            case "kit_display_keep" -> {
-              if (s.preview != null) {
-                s.display = s.preview;
-                s.preview = null;
-                save("display", p.getUniqueId(), s.display);
-                s.kit.notice = "Layout saved. Change it with the settings icon.";
-                show(p, s);
-              }
-            }
-            default -> {
-              s.kit.apply(ctx.action(), ctx.value());
-              show(p, s);
-            }
-          }
-        });
-    export(
-        p,
-        s,
-        c,
-        Map.of(
-            "section",
-            "showcase",
-            "page",
-            s.kit.page,
-            "state",
-            s.kit,
-            "display",
-            s.display,
-            "preview",
-            s.preview != null));
-  }
-
-  private void setup(Player p, Session s) {
-    var initial = s.preview != null ? s.preview : s.display;
-    s.preview = null;
-    s.kit.layout = s.display.layout;
-    s.kit.dropdownOpen = false;
-    var c = canvas("setup", Map.of("theme", theme(s)), Map.of());
-    var input =
-        DialogInput.singleOption(
-                "gui_scale",
-                Component.text("Which GUI scale do you use?"),
-                List.of("auto", "1", "2", "3", "4", "5+").stream()
-                    .map(
-                        v ->
-                            SingleOptionDialogInput.OptionEntry.create(
-                                v,
-                                Component.text(v.equals("auto") ? "Auto / not sure" : v),
-                                v.equals(initial.guiScale)))
-                    .toList())
-            .width(260)
-            .build();
-    var options =
-        new DialogOptions(
-            Component.text("dui / Display setup"),
-            List.of(input),
-            List.of(
-                new DialogOptions.Button("Compact preview", "kit_display_compact", 128),
-                new DialogOptions.Button("Spacious preview", "kit_display_spacious", 128)),
-            new DialogOptions.Button("Cancel", "kit_display_cancel", 128),
-            2,
-            false);
-    present(
-        p,
-        s,
-        c,
-        ViewModel.data(Map.of()),
-        options,
-        ctx -> {
-          if (ctx.action().equals("kit_display_cancel")) {
-            s.preview = null;
-            s.kit.layout = s.display.layout;
-            if (s.display.configured) show(p, s);
-            return;
-          }
-          String scale = ctx.response() == null ? null : ctx.response().getText("gui_scale");
-          if (!DisplayPreferences.SCALES.contains(scale)) {
-            setup(p, s);
-            return;
-          }
-          String layout = ctx.action().equals("kit_display_compact") ? "compact" : "spacious";
-          s.preview = DisplayPreferences.selection(scale, layout);
-          s.kit.layout = layout;
-          s.kit.part = 0;
-          show(p, s);
-        });
-    export(p, s, c, Map.of("section", "showcase", "page", "setup", "display", s.display));
-  }
-
-  private void form(Player p, Session s) {
-    int width = s.kit.compact() ? 260 : 320;
-    var state = s.kit;
-    var c = canvas("form", Map.of("width", width + 24, "theme", theme(s)), Map.of());
-    var inputs =
-        List.<DialogInput>of(
-            DialogInput.text("sample_text", Component.text("Text / sample title"))
-                .initial(state.formName)
-                .maxLength(24)
-                .width(width)
-                .build(),
-            DialogInput.bool("sample_check", Component.text("Checkbox / example enabled"))
-                .initial(state.formChecked)
-                .build(),
-            DialogInput.singleOption(
-                    "sample_option",
-                    Component.text("Option picker / sample variant"),
-                    List.of("Option A", "Option B", "Option C").stream()
-                        .map(
-                            v ->
-                                SingleOptionDialogInput.OptionEntry.create(
-                                    v, Component.text(v), v.equals(state.formStyle)))
-                        .toList())
-                .width(width)
-                .build(),
-            DialogInput.numberRange(
-                    "sample_amount", Component.text("Slider / sample amount"), 0, 100)
-                .initial((float) state.formAmount)
-                .step(5f)
-                .width(width)
-                .build());
-    var options =
-        new DialogOptions(
-            Component.text("dui / Sample form"),
-            inputs,
-            List.of(new DialogOptions.Button("Save example", "kit_save")),
-            new DialogOptions.Button("Cancel", "kit_cancel"),
-            1,
-            false);
-    present(
-        p,
-        s,
-        c,
-        ViewModel.data(Map.of()),
-        options,
-        ctx -> {
-          if (ctx.action().equals("kit_cancel")) {
-            state.notice = "Edit cancelled. Previous values kept.";
-            show(p, s);
-            return;
-          }
-          var response = ctx.response();
-          String name = response == null ? null : response.getText("sample_text"),
-              option = response == null ? null : response.getText("sample_option");
-          Boolean checked = response == null ? null : response.getBoolean("sample_check");
-          Float amount = response == null ? null : response.getFloat("sample_amount");
-          if (name == null
-              || name.length() > 24
-              || name.codePoints().anyMatch(Character::isISOControl)
-              || option == null
-              || !List.of("Option A", "Option B", "Option C").contains(option)
-              || checked == null
-              || amount == null
-              || !Float.isFinite(amount)
-              || amount < 0
-              || amount > 100) {
-            form(p, s);
-            return;
-          }
-          state.formName = name.strip();
-          state.formStyle = option;
-          state.formChecked = checked;
-          state.formAmount = Math.round(amount);
-          state.page = "forms";
-          state.notice = "Saved. Your sample values are shown on the cards.";
-          show(p, s);
-        });
-    export(p, s, c, Map.of("section", "showcase", "page", "input", "state", s.kit));
-  }
-
-  private void confirm(Player p, Session s) {
-    var c =
-        canvas(
-            "confirm", Map.of("width", s.kit.compact() ? 284 : 344, "theme", theme(s)), Map.of());
-    present(
-        p,
-        s,
-        c,
-        ViewModel.data(Map.of()),
-        DialogOptions.notice("dui / Reset examples", "Back to showcase", "kit_cancel"),
-        ctx -> {
-          if (ctx.action().equals("kit_reset_yes")) {
-            String page = s.kit.page, layout = s.kit.layout;
-            int part = s.kit.part;
-            boolean dark = s.kit.dark;
-            s.kit = new ShowcaseState();
-            s.kit.page = page;
-            s.kit.layout = layout;
-            s.kit.part = part;
-            s.kit.dark = dark;
-          }
-          show(p, s);
-        });
-    export(p, s, c, Map.of("section", "showcase", "page", "confirm", "state", s.kit));
-  }
-
-  private void shop(Player p, Session s) {
-    var images = ShopView.images(s.shop);
-    var c = canvas("shop", ShopView.data(s.shop, p.getName()), images);
-    var links =
-        s.shop.checkout
-            ? Map.of("shop_link", URI.create(ShopState.DEMO_URL))
-            : Map.<String, URI>of();
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), images, ShopItems.stacks(p), links),
-        DialogOptions.notice("dui / Demo store", "Close store", "shop_close"),
-        ctx -> {
-          if (ctx.action().equals("shop_close")) return;
-          s.shop.apply(ctx.action(), ctx.value());
-          show(p, s);
-        });
-    var extra = new HashMap<String, Object>();
-    extra.put("section", "shop");
-    extra.put("state", s.shop);
-    extra.put("total", s.shop.total());
-    if (s.shop.checkout) {
-      var i = c.images.getFirst();
-      extra.put("qr", QrCode.region(ShopState.DEMO_URL, i.x(), i.y(), i.width(), i.pixelSize()));
-    }
-    export(p, s, c, extra);
-  }
-
-  private void rewards(Player p, Session s) {
-    if (s.expiry != null) s.expiry.cancel();
-    long age = p.getWorld().getGameTime() - s.rewards.burstStarted;
-    if (age < 0 || age >= ItemTransport.BURST_TICKS) s.rewards.burstStarted = -1;
-    var date = LocalDate.now(ZoneOffset.UTC);
-    var c = canvas("rewards", RewardView.data(s.rewards, date), Map.of());
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), Map.of(), RewardItems.stacks(s.rewards, date), Map.of()),
-        DialogOptions.notice("dui / Daily rewards", "Close rewards", "reward_close"),
-        ctx -> {
-          if (ctx.action().equals("reward_close")) return;
-          long before = s.rewards.stars;
-          s.rewards.apply(ctx.action(), ctx.value(), LocalDate.now(ZoneOffset.UTC));
-          if (ctx.action().equals("reward_claim") && s.rewards.stars > before && s.rewards.motion)
-            s.rewards.burstStarted = p.getWorld().getGameTime();
-          save("rewards", p.getUniqueId(), s.rewards);
-          show(p, s);
-        });
-    if (c.confetti != null) {
-      long revision = s.ui.revision();
-      s.expiry =
-          getServer()
-              .getScheduler()
-              .runTaskLater(
-                  this,
-                  () -> {
-                    if (visible(p, s, "rewards") && s.ui.revision() == revision) {
-                      s.rewards.burstStarted = -1;
-                      show(p, s);
-                    }
-                  },
-                  Math.max(1, ItemTransport.BURST_TICKS + 40 - age));
-    }
-    var extra = new HashMap<String, Object>();
-    extra.put("section", "rewards");
-    extra.put("state", s.rewards);
-    extra.put("celebrating", s.rewards.celebrating);
-    extra.put("selected", s.rewards.selection(date));
-    extra.put("today", s.rewards.today(date).toString());
-    extra.put("confetti", c.confetti);
-    export(p, s, c, extra);
-  }
-
-  private void advent(Player p, Session s) {
-    if (s.expiry != null) {
-      s.expiry.cancel();
-      s.expiry = null;
-    }
-    long tick = p.getWorld().getGameTime();
-    var state = s.advent;
-    if (state.phase == AdventState.Phase.OPENING) state.reveal(state.generation, tick);
-    if (state.phase == AdventState.Phase.REVEALED && tick - state.startedAt >= 120)
-      state.effectsFinished = true;
-    var c = canvas("advent", AdventView.data(state, tick), AdventView.images(state));
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), Map.of(), AdventItems.stacks(state), Map.of()),
-        DialogOptions.notice("dui / Gift drop", "Close calendar", "advent_close"),
-        ctx -> {
-          if (ctx.action().equals("advent_close")) return;
-          long now = p.getWorld().getGameTime();
-          switch (ctx.action()) {
-            case "advent_open" -> state.open(Integer.parseInt(ctx.value()), now);
-            case "advent_back" -> state.back();
-            case "advent_again" -> {
-              if (state.phase == AdventState.Phase.REVEALED) state.open(state.selected, now);
-            }
-            case "advent_size" -> state.compact = !state.compact;
-            case "advent_motion" -> {
-              state.motion = !state.motion;
-              if (!state.motion && state.phase == AdventState.Phase.OPENING) {
-                state.phase = AdventState.Phase.REVEALED;
-                state.rewardAt = now;
-              }
-            }
-            default -> {
-              return;
-            }
-          }
-          show(p, s);
-        });
-    if (state.phase == AdventState.Phase.OPENING) {
-      long token = state.generation;
-      s.expiry =
-          getServer()
-              .getScheduler()
-              .runTaskLater(
-                  this,
-                  () -> {
-                    if (visible(p, s, "advent") && state.reveal(token, p.getWorld().getGameTime()))
-                      show(p, s);
-                  },
-                  Math.max(1, AdventState.OPEN_TICKS - (tick - state.startedAt)));
-    } else if (state.phase == AdventState.Phase.REVEALED
-        && state.motion
-        && !state.effectsFinished) {
-      long token = state.generation;
-      s.expiry =
-          getServer()
-              .getScheduler()
-              .runTaskLater(
-                  this,
-                  () -> {
-                    if (visible(p, s, "advent") && state.generation == token) {
-                      state.effectsFinished = true;
-                      show(p, s);
-                    }
-                  },
-                  Math.max(1, 120 - (tick - state.startedAt)));
-    }
-    var extra = new HashMap<String, Object>();
-    extra.put("section", "advent");
-    extra.put("state", state);
-    extra.put("phase", state.phase);
-    extra.put("selected", state.selected);
-    extra.put("effects", c.effects);
-    export(p, s, c, extra);
-  }
-
-  private void warps(Player p, Session s) {
-    if (s.expiry != null) {
-      s.expiry.cancel();
-      s.expiry = null;
-    }
-    var state = s.warps;
-    long tick = p.getWorld().getGameTime();
-    state.finish(state.generation, tick);
-    var c = canvas("warps", WarpView.data(state), Map.of());
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), Map.of(), WarpItems.stacks(state, c), Map.of()),
-        DialogOptions.notice("dui / Wayfarer atlas", "Close atlas", "warp_close"),
-        ctx -> {
-          long now = p.getWorld().getGameTime();
-          switch (ctx.action()) {
-            case "warp_close" -> {
-              return;
-            }
-            case "warp_next" -> state.step(1, now);
-            case "warp_previous" -> state.step(-1, now);
-            case "warp_select" -> {
-              if (state.moving) return;
-              int slot = Integer.parseInt(ctx.value());
-              if (slot == 0) state.preview(now);
-              else state.step(slot, now);
-            }
-            case "warp_jump" -> {
-              if (state.moving) return;
-              int target = Integer.parseInt(ctx.value());
-              int delta = Math.floorMod(target - state.selected, 4);
-              if (delta == 1) state.step(1, now);
-              else if (delta == 3) state.step(-1, now);
-              else state.jump(target);
-            }
-            case "warp_travel" -> {
-              if (!state.moving) state.preview(now);
-            }
-            case "warp_size" -> {
-              state.stop();
-              state.compact = !state.compact;
-            }
-            case "warp_motion" -> {
-              state.motion = !state.motion;
-              state.stop();
-            }
-            default -> {
-              return;
-            }
-          }
-          show(p, s);
-        });
-    if (state.startedAt >= 0) {
-      long token = state.generation;
-      s.expiry =
-          getServer()
-              .getScheduler()
-              .runTaskLater(
-                  this,
-                  () -> {
-                    if (visible(p, s, "warps") && state.generation == token) {
-                      state.stop();
-                      show(p, s);
-                    }
-                  },
-                  Math.max(1, WarpState.SLIDE_TICKS - (tick - state.startedAt)));
-    }
-    export(
-        p,
-        s,
-        c,
-        Map.of(
-            "section",
-            "warps",
-            "state",
-            state,
-            "selected",
-            state.selected,
-            "moving",
-            state.moving,
-            "arrived",
-            state.arrived,
-            "clips",
-            c.clips));
-  }
-
-  private void blackjack(Player p, Session s) {
-    if (s.expiry != null) {
-      s.expiry.cancel();
-      s.expiry = null;
-    }
-    var state = s.blackjack;
-    long tick = p.getWorld().getGameTime();
-    state.finish(tick);
-    var images = BlackjackArt.images();
-    var c = canvas("blackjack", BlackjackView.data(state), images);
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), images, Map.of(), Map.of()),
-        DialogOptions.notice("dui / Monarch Blackjack", "Leave table", "blackjack_close"),
-        ctx -> {
-          long now = p.getWorld().getGameTime();
-          try {
-            switch (ctx.action()) {
-              case "blackjack_close" -> {
-                return;
-              }
-              case "blackjack_deal" -> state.deal(now, false, random);
-              case "blackjack_demo" -> state.deal(now, true, random);
-              case "blackjack_hit" -> state.move("hit", now);
-              case "blackjack_stand" -> state.move("stand", now);
-              case "blackjack_double" -> state.move("double", now);
-              case "blackjack_split" -> state.move("split", now);
-              case "blackjack_bet" -> state.choose(Integer.parseInt(ctx.value()));
-              case "blackjack_size" -> state.compact = !state.compact;
-              case "blackjack_motion" -> state.toggleMotion(now);
-              case "blackjack_hand" -> {
-                int hand = Integer.parseInt(ctx.value());
-                if (!state.busy()
-                    && state.game.phase == BlackjackGame.Phase.RESULT
-                    && hand >= 0
-                    && hand < state.game.hands.size()) {
-                  state.focus = hand;
-                  state.heroPage = 0;
-                }
-              }
-              case "blackjack_page" -> {
-                if (!state.busy()) {
-                  var parts = ctx.value().split(":");
-                  int dir = Integer.parseInt(parts[1]);
-                  if (parts[0].equals("dealer"))
-                    state.dealerPage =
-                        Math.clamp(
-                            state.dealerPage + dir,
-                            0,
-                            Math.max(0, state.game.visibleDealer().size() - state.dealerLimit()));
-                  else
-                    state.heroPage =
-                        Math.clamp(
-                            state.heroPage + dir,
-                            0,
-                            Math.max(
-                                0,
-                                state.game.hands.get(state.focus).cards.size()
-                                    - state.heroLimit()));
-                }
-              }
-              default -> {
-                return;
-              }
-            }
-          } catch (IllegalArgumentException e) {
-            p.sendMessage("That blackjack action is no longer available.");
-          }
-          show(p, s);
-        });
-    long token = state.generation;
-    if (state.busy()) {
-      s.expiry =
-          getServer()
-              .getScheduler()
-              .runTaskLater(
-                  this,
-                  () -> {
-                    if (!visible(p, s, "blackjack") || state.generation != token) return;
-                    state.finish(p.getWorld().getGameTime());
-                    show(p, s);
-                  },
-                  Math.max(1, state.duration - (tick - state.startedAt)));
-    }
-    var extra = new HashMap<String, Object>(state.publicState());
-    extra.put("section", "blackjack");
-    export(p, s, c, extra);
-  }
-
-  private void roulette(Player p, Session s) {
-    if (s.expiry != null) {
-      s.expiry.cancel();
-      s.expiry = null;
-    }
-    var state = s.roulette;
-    long tick = p.getWorld().getGameTime();
-    state.finish(tick);
-    var images = RouletteArt.images();
-    var c = canvas("roulette", RouletteView.data(state), images);
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), images, Map.of(), Map.of()),
-        DialogOptions.notice("dui / Riviera Roulette", "Leave table", "roulette_close"),
-        ctx -> {
-          long now = p.getWorld().getGameTime();
-          try {
-            switch (ctx.action()) {
-              case "roulette_close" -> {
-                return;
-              }
-              case "roulette_bet" -> state.place(ctx.value(), now);
-              case "roulette_chip" -> state.choose(Integer.parseInt(ctx.value()));
-              case "roulette_spin" -> state.spin(random, now);
-              case "roulette_undo" -> state.undo();
-              case "roulette_clear" -> state.clear();
-              case "roulette_repeat" -> state.repeat(now);
-              case "roulette_reset" -> {
-                if (!state.locked()) state.reset();
-              }
-              case "roulette_motion" -> state.toggleMotion(now);
-              case "roulette_size" -> state.compact = !state.compact;
-              default -> {
-                return;
-              }
-            }
-          } catch (IllegalArgumentException e) {
-            p.sendMessage("That roulette action is no longer available.");
-          }
-          show(p, s);
-        });
-    long token = state.generation;
-    if (state.animated()) {
-      long delay = Math.max(1, state.duration() - (tick - state.startedAt));
-      s.expiry =
-          getServer()
-              .getScheduler()
-              .runTaskLater(
-                  this,
-                  () -> {
-                    if (!visible(p, s, "roulette") || state.generation != token) return;
-                    state.finish(p.getWorld().getGameTime());
-                    show(p, s);
-                  },
-                  delay);
-    }
-    export(
-        p,
-        s,
-        c,
-        Map.of(
-            "section",
-            "roulette",
-            "phase",
-            state.phase,
-            "busy",
-            state.locked(),
-            "balance",
-            state.balance,
-            "stake",
-            state.stake(),
-            "result",
-            state.phase == RouletteGame.Phase.SPINNING ? -1 : state.lastResult,
-            "return",
-            state.lastReturn,
-            "rounds",
-            state.rounds,
-            "motion",
-            state.motion,
-            "bets",
-            state.bets));
-  }
-
-  private void poker(Player p, Session s) {
-    if (s.expiry != null) {
-      s.expiry.cancel();
-      s.expiry = null;
-    }
-    var state = s.poker;
-    long tick = p.getWorld().getGameTime();
-    state.finish(tick);
-    var images = PokerArt.images(state.game);
-    var c = canvas("poker", PokerView.data(state), images);
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), images, Map.of(), Map.of()),
-        DialogOptions.notice("dui / Velvet Hold'em", "Leave table", "poker_close"),
-        ctx -> {
-          long now = p.getWorld().getGameTime();
-          try {
-            switch (ctx.action()) {
-              case "poker_close" -> {
-                return;
-              }
-              case "poker_deal" -> state.deal(now, false);
-              case "poker_showcase" -> state.deal(now, true);
-              case "poker_fold" -> state.human(HoldemGame.Move.FOLD, now);
-              case "poker_call" -> state.human(HoldemGame.Move.CHECK_CALL, now);
-              case "poker_raise" -> state.human(HoldemGame.Move.RAISE, now);
-              case "poker_allin" -> state.human(HoldemGame.Move.ALL_IN, now);
-              case "poker_minus" -> state.adjustRaise(-20);
-              case "poker_plus" -> state.adjustRaise(20);
-              case "poker_reset" -> state.reset();
-              case "poker_size" -> {
-                state.stop();
-                state.compact = !state.compact;
-              }
-              case "poker_motion" -> {
-                state.stop();
-                state.motion = !state.motion;
-              }
-              default -> {
-                return;
-              }
-            }
-          } catch (IllegalArgumentException e) {
-            p.sendMessage("That action is no longer available. The table has refreshed.");
-          }
-          show(p, s);
-        });
-    long token = state.generation;
-    if (state.busy() || state.game.playing() && state.game.actor > 0) {
-      long delay = state.busy() ? Math.max(1, state.duration - (tick - state.startedAt)) : 12;
-      s.expiry =
-          getServer()
-              .getScheduler()
-              .runTaskLater(
-                  this,
-                  () -> {
-                    if (!visible(p, s, "poker") || state.generation != token) return;
-                    if (state.busy()) state.settle();
-                    else state.bot(p.getWorld().getGameTime());
-                    show(p, s);
-                  },
-                  delay);
-    }
-    export(
-        p,
-        s,
-        c,
-        Map.of(
-            "section",
-            "poker",
-            "state",
-            state,
-            "street",
-            state.game.street,
-            "actor",
-            state.game.actor,
-            "busy",
-            state.busy(),
-            "board",
-            state.game.board));
+    state.controller.refresh();
   }
 
   private SlotState copySlots(SlotState value) {
@@ -1064,7 +304,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     return next;
   }
 
-  private void settle(UUID id, Session s) {
+  private void settle(UUID id, DemoSession s) {
     var next = copySlots(s.slots);
     if (next.settle()) {
       save("slots", id, next);
@@ -1072,13 +312,12 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     }
   }
 
-  private void finishSlots(UUID id, Session s) {
+  private void finishSlots(UUID id, DemoSession s) {
     if (s.settlement != null) s.settlement.cancel();
-    if (s.expiry != null) s.expiry.cancel();
     settle(id, s);
   }
 
-  private boolean visible(Player p, Session s, String section) {
+  private boolean visible(Player p, DemoSession s, String section) {
     return p.isOnline()
         && sessions.get(p.getUniqueId()) == s
         && s.section.equals(section)
@@ -1087,175 +326,21 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         && dui.packLoaded(p);
   }
 
-  private void slots(Player p, Session s) {
-    if (s.expiry != null) s.expiry.cancel();
-    long age = p.getWorld().getGameTime() - s.slots.startedAt;
-    var c = canvas("slots", SlotView.data(s.slots), Map.of());
-    if (!s.slots.pending
-        && c.animation != null
-        && (age < 0 || age >= c.animation.durationTicks() + 20)) {
-      s.slots.startedAt = -1;
-      c = canvas("slots", SlotView.data(s.slots), Map.of());
-    }
-    present(
-        p,
-        s,
-        c,
-        ViewModel.data(Map.of()),
-        DialogOptions.notice("dui / Demo arcade", "Leave arcade", "slot_close"),
-        ctx -> {
-          if (ctx.action().equals("slot_close")) return;
-          var next = copySlots(s.slots);
-          boolean spin = ctx.action().equals("slot_spin");
-          if (spin) {
-            if (!next.spin(p.getWorld().getGameTime(), random)) {
-              show(p, s);
-              return;
-            }
-          } else next.apply(ctx.action());
-          save("slots", p.getUniqueId(), next);
-          s.slots = next;
-          show(p, s);
-          if (spin)
-            s.settlement =
-                getServer()
-                    .getScheduler()
-                    .runTaskLater(
-                        this,
-                        () -> {
-                          settle(p.getUniqueId(), s);
-                          s.settlement = null;
-                          if (visible(p, s, "slots")) show(p, s);
-                        },
-                        next.motion ? SlotState.SPIN_TICKS : 1);
-        });
-    if (!s.slots.pending && s.slots.startedAt >= 0 && c.animation != null) {
-      long revision = s.ui.revision();
-      s.expiry =
-          getServer()
-              .getScheduler()
-              .runTaskLater(
-                  this,
-                  () -> {
-                    if (visible(p, s, "slots") && s.ui.revision() == revision) {
-                      s.slots.startedAt = -1;
-                      show(p, s);
-                    }
-                  },
-                  Math.max(1, c.animation.durationTicks() + 20 - age));
-    }
-    var extra = new HashMap<String, Object>();
-    extra.put("section", "slots");
-    extra.put("state", s.slots);
-    extra.put("effect", c.animation);
-    extra.put("effects", c.effects);
-    extra.put("focusOutlineHidden", c.hideFocusOutline);
-    export(p, s, c, extra);
-  }
-
-  private void requestVideos(Player p, Session s, boolean force) {
-    s.videoLoading = true;
-    long guard = ++s.request;
-    int page = s.videoPage;
-    boolean compact = s.videoCompact;
-    show(p, s);
-    videos
-        .refresh(force)
-        .thenCompose(
-            feed ->
-                java.util.concurrent.CompletableFuture.allOf(
-                    VideoView.model(feed, page, compact, true, "", Map.of()).visible().stream()
-                        .map(v -> videos.thumbnail(v).handle((image, error) -> null))
-                        .toArray(java.util.concurrent.CompletableFuture[]::new)))
-        .whenComplete(
-            (value, error) -> {
-              if (!isEnabled()) return;
-              getServer()
-                  .getScheduler()
-                  .runTask(
-                      this,
-                      () -> {
-                        if (visible(p, s, "videos") && s.request == guard) {
-                          s.videoLoading = false;
-                          show(p, s);
-                        }
-                      });
-            });
-  }
-
-  private void video(Player p, Session s) {
-    var images = new HashMap<String, RasterImage>();
-    for (var v : videos.feed().videos()) {
-      var image = videos.cached(v);
-      if (image != null) images.put(v.id(), image);
-    }
-    var model =
-        VideoView.model(
-            videos.feed(), s.videoPage, s.videoCompact, s.videoLoading, videos.error(), images);
-    s.videoPage = model.page();
-    var c = canvas("videos", model.data(), model.images());
-    var links = new HashMap<String, URI>();
-    for (var v : model.visible()) {
-      links.put("watch_" + v.id(), URI.create(v.watchUrl()));
-      links.put("thumb_" + v.id(), URI.create(v.watchUrl()));
-    }
-    present(
-        p,
-        s,
-        c,
-        new ViewModel(Map.of(), model.images(), Map.of(), links),
-        DialogOptions.notice("dui / YouTube uploads", "Close videos", "video_close"),
-        ctx -> {
-          switch (ctx.action()) {
-            case "video_close" -> {
-              return;
-            }
-            case "video_previous" -> s.videoPage = Math.max(0, s.videoPage - 1);
-            case "video_next" -> s.videoPage++;
-            case "video_size" -> {
-              s.videoCompact = !s.videoCompact;
-              s.videoPage = 0;
-            }
-            case "video_refresh" -> {}
-            default -> throw new IllegalArgumentException("Unknown video action");
-          }
-          requestVideos(p, s, ctx.action().equals("video_refresh"));
-        });
-    var extra = new HashMap<String, Object>();
-    extra.put("section", "videos");
-    extra.put("page", model.page());
-    extra.put("pages", model.pages());
-    extra.put("loading", s.videoLoading);
-    extra.put("error", videos.error());
-    extra.put("checkedAt", videos.feed().checkedAt().toString());
-    extra.put(
-        "videos",
-        model.visible().stream()
-            .map(
-                v ->
-                    Map.of(
-                        "id",
-                        v.id(),
-                        "title",
-                        v.title(),
-                        "published",
-                        v.published().toString(),
-                        "thumbnail",
-                        v.thumbnail().toString(),
-                        "url",
-                        v.watchUrl()))
-            .toList());
-    export(p, s, c, extra);
-  }
-
-  private void export(Player p, Session s, Canvas c, Map<String, Object> extra) {
+  private void export(Player p, DemoSession s, Canvas c, Map<String, Object> extra) {
+    c = c.renderPlan();
     try {
       var data = new LinkedHashMap<String, Object>(extra);
+      data.put("renderReport", RenderReport.of(c));
+      data.put("renderNanos", s.ui.renderNanos());
+      data.put("bodyCount", s.ui.bodyCount());
       data.put("width", c.width);
       data.put("height", c.height);
       data.put("hits", c.hits);
       data.put("items", c.items);
       data.put("transitions", c.transitions);
+      data.put("motions", c.motions);
+      data.put("effectMotions", c.effectMotions);
+      data.put("coverage", c.coverage);
       data.put("heads", c.heads);
       data.put("paints", c.paints);
       data.put("effects", c.effects);
@@ -1317,7 +402,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     }
   }
 
-  private void audit(Player p, Session s, String action) {
+  private void audit(Player p, DemoSession s, String action) {
     try {
       Files.writeString(
           directory.resolve("actions.jsonl"),
@@ -1353,7 +438,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     }
   }
 
-  private Map<String, Object> auditState(Session s, Map<String, Object> base) {
+  private Map<String, Object> auditState(DemoSession s, Map<String, Object> base) {
     var result = new LinkedHashMap<>(base);
     result.put("poker", s.poker);
     result.put("blackjack", s.blackjack.publicState());
@@ -1395,25 +480,16 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   @EventHandler
   public void quit(PlayerQuitEvent e) {
     var s = sessions.remove(e.getPlayer().getUniqueId());
-    if (s != null) finishSlots(e.getPlayer().getUniqueId(), s);
+    if (s != null) {
+      if (s.controller != null) s.controller.close();
+      finishSlots(e.getPlayer().getUniqueId(), s);
+    }
   }
 
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     String name = command.getName();
-    String section =
-        switch (name) {
-          case "uishop" -> "shop";
-          case "dailyrewards" -> "rewards";
-          case "advent" -> "advent";
-          case "warps" -> "warps";
-          case "blackjack" -> "blackjack";
-          case "roulette" -> "roulette";
-          case "poker" -> "poker";
-          case "slots" -> "slots";
-          case "uivideos" -> "videos";
-          default -> "components";
-        };
+    String section = catalogue.find(name).map(MenuCatalogue.Definition::id).orElse("components");
     var arguments = new ArrayList<>(List.of(args));
     if (name.equals("dui") && !arguments.isEmpty())
       section = arguments.removeFirst().toLowerCase(Locale.ROOT);
@@ -1445,78 +521,34 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       sender.sendMessage("Run /dui as a player.");
       return true;
     }
-    if (!Set.of(
-            "components",
-            "setup",
-            "shop",
-            "rewards",
-            "advent",
-            "warps",
-            "roulette",
-            "blackjack",
-            "poker",
-            "slots",
-            "videos")
-        .contains(section)) {
+    if (!section.equals("setup") && catalogue.find(section).isEmpty()) {
       p.sendMessage(
-          "/dui [components|setup|shop|rewards|advent|warps|poker|roulette|blackjack|slots|videos|reload]");
+          "/dui ["
+              + String.join(
+                  "|", catalogue.definitions().stream().map(MenuCatalogue.Definition::id).toList())
+              + "|setup|reload]");
       return true;
     }
     var s = session(p);
-    s.request++;
-    if (s.expiry != null) s.expiry.cancel();
-    s.advent.back();
-    s.warps.stop();
-    s.poker.reset();
-    s.roulette.reset();
-    s.blackjack.reset();
+    if (s.controller != null) s.controller.close();
     s.section = section.equals("setup") ? "components" : section;
     s.preview = null;
     String option = arguments.isEmpty() ? "" : arguments.getFirst().toLowerCase(Locale.ROOT);
     boolean compact =
         option.isEmpty() ? s.display.layout.equals("compact") : option.equals("compact");
-    switch (section) {
-      case "setup" -> {
-        setup(p, s);
-        return true;
-      }
-      case "advent" -> s.advent.compact = compact;
-      case "warps" -> s.warps.compact = compact;
-      case "blackjack" -> s.blackjack.compact = compact;
-      case "roulette" -> s.roulette.compact = compact;
-      case "poker" -> s.poker.compact = compact;
-      case "shop" -> {
-        s.shop.compact = compact;
-        s.shop.checkout = false;
-        s.shop.cartPage = 0;
-      }
-      case "rewards" -> {
-        s.rewards.compact = compact;
-        s.rewards.selected = -1;
-        s.rewards.celebrating = false;
-        s.rewards.burstStarted = -1;
-      }
-      case "slots" -> {
-        s.slots.compact = compact;
-        s.slots.paytable = false;
-      }
-      case "videos" -> {
-        s.videoCompact = compact;
-        s.videoPage = 0;
-        requestVideos(p, s, option.equals("refresh"));
-        return true;
-      }
-      default -> {
-        if (name.equals("uikit") && option.equals("setup")) {
-          setup(p, s);
-          return true;
-        }
-        s.kit.page = option.isEmpty() ? "basics" : option;
-        s.kit.part = 0;
-        s.kit.dropdownOpen = false;
-        if (ShowcaseState.PAGES.stream().noneMatch(page -> page.id().equals(s.kit.page)))
-          s.kit.page = "basics";
-      }
+    if (section.equals("setup") || name.equals("uikit") && option.equals("setup")) {
+      s.menu = new ShowcaseMenu(services(p, s));
+      ((ShowcaseMenu) s.menu).setup(s);
+      show(p, s);
+      return true;
+    }
+    s.menu = catalogue.find(s.section).orElseThrow().factory().apply(services(p, s));
+    s.videoForce = section.equals("videos") && option.equals("refresh");
+    s.menu.prepare(s, compact);
+    if (section.equals("components")) {
+      s.kit.page = option.isEmpty() ? "basics" : option;
+      if (ShowcaseState.PAGES.stream().noneMatch(page -> page.id().equals(s.kit.page)))
+        s.kit.page = "basics";
     }
     show(p, s);
     return true;

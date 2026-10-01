@@ -13,7 +13,10 @@ public final class SlotView {
   private static MenuTemplate load() {
     try (var in = SlotView.class.getResourceAsStream("/ui/slots.html")) {
       return MenuTemplate.parse(
-          new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8));
+          new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+          new gg.kembel.dui.core.GlyphFont(),
+          gg.kembel.dui.components.VisualComponents.registry(),
+          "demo template");
     } catch (Exception e) {
       throw new IllegalStateException("Invalid bundled arcade template", e);
     }

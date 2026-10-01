@@ -49,7 +49,7 @@ public final class ShopState {
   }
 
   public int cartPages() {
-    return Math.max(1, (cart.size() + perPage() - 1) / perPage());
+    return Page.count(cart.size(), perPage());
   }
 
   public static String money(int cents) {

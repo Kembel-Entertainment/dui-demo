@@ -236,7 +236,7 @@ public final class ShowcaseState {
     data.put("checkbox", checkbox);
     data.put("variant", variant);
     data.put("dropdownOpen", dropdownOpen);
-    part = Math.floorMod(part, partCount());
+    int part = Math.floorMod(this.part, partCount());
     data.put("part", part + 1);
     data.put("partCount", partCount());
     data.put("partLabel", PARTS.get(page).get(part));

@@ -29,9 +29,9 @@
   </dui-if>
   <dui-if test="{{hasCards}}">
    <dui-repeat items="cards" as="c">
-    <dui-playing-card id="{{c.id}}" x="{{c.x}}" y="{{c.y}}" width="{{c.w}}" height="{{c.h}}" lift="{{c.lift}}" value="{{c.value}}" face-down="{{c.down}}" active="{{c.active}}" animation="{{c.mode}}" duration="28" delay="{{c.delay}}" palette="mint" />
+    <dui-visual-playing-card id="{{c.id}}" x="{{c.x}}" y="{{c.y}}" width="{{c.w}}" height="{{c.h}}" lift="{{c.lift}}" value="{{c.value}}" face-down="{{c.down}}" active="{{c.active}}" animation="{{c.mode}}" duration="28" delay="{{c.delay}}" palette="mint" />
    </dui-repeat>
-   <dui-chip-stack id="pot_chips" x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" count="{{chipCount}}" animation="{{chipMode}}" duration="18" palette="gold" from="{{chipFrom}}" to="{{chipTo}}" />
+   <dui-visual-chip-stack id="pot_chips" x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" count="{{chipCount}}" animation="{{chipMode}}" duration="18" palette="gold" from="{{chipFrom}}" to="{{chipTo}}" />
    <dui-text x="{{heroNameX}}" y="{{heroNameY}}" width="{{heroNameW}}" height="9" label="{{playerLabel}}" color="#7DE5C4" />
    <dui-text x="{{heroNameX}}" y="{{stackY}}" width="{{heroNameW}}" height="9" label="{{heroStack}}" color="#F6E8CC" />
    <dui-text x="{{bestX}}" y="{{bestY}}" width="{{bestW}}" height="9" label="{{best}}" color="#E9BE70" />

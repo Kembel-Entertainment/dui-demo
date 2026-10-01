@@ -299,11 +299,11 @@ final class ShowcaseClient {
                         + ".json");
         if (Files.exists(preference))
           savedDisplay = JsonParser.parseString(Files.readString(preference)).getAsJsonObject();
-        mc.options.guiScale().set(2);
+        mc.options.guiScale().set(Paths.referenceScale(mc));
         mc.getWindow().setWindowed(1280, 900);
         mc.resizeGui();
         org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
-        var data = new ServerData("dui fixture", "127.0.0.1:25584", ServerData.Type.OTHER);
+        var data = new ServerData("dui fixture", Paths.server(), ServerData.Type.OTHER);
         data.setResourcePackStatus(ServerData.ServerPackStatus.ENABLED);
         ConnectScreen.startConnecting(
             new TitleScreen(), mc, ServerAddress.parseString(data.ip), data, false, null);
@@ -381,7 +381,7 @@ final class ShowcaseClient {
           case "KEEP" -> label(mc, "Use this layout");
           case "SMALL_WINDOW" -> {
             mc.getWindow().setWindowed(640, 480);
-            mc.options.guiScale().set(2);
+            mc.options.guiScale().set(Paths.referenceScale(mc));
             mc.resizeGui();
           }
           case "AUTO_WINDOW" -> {
@@ -518,11 +518,7 @@ final class ShowcaseClient {
   }
 
   private static List<AbstractWidget> widgets(GuiEventListener parent) {
-    var result = new ArrayList<AbstractWidget>();
-    if (parent instanceof AbstractWidget w) result.add(w);
-    if (parent instanceof ContainerEventHandler c)
-      for (var child : c.children()) result.addAll(widgets(child));
-    return result;
+    return RealClientHarness.widgets(parent);
   }
 
   private static FocusableTextWidget canvas(Minecraft mc) {
@@ -609,20 +605,11 @@ final class ShowcaseClient {
   }
 
   private static void move(Minecraft mc, double x, double y) {
-    var w = mc.getWindow();
-    ((FixtureMouseAccess) mc.mouseHandler)
-        .dui$move(
-            w.handle(),
-            x * w.getScreenWidth() / w.getGuiScaledWidth(),
-            y * w.getScreenHeight() / w.getGuiScaledHeight());
+    RealClientHarness.move(mc, x, y);
   }
 
   private static void clickAt(Minecraft mc, double x, double y) {
-    move(mc, x, y);
-    var mouse = (FixtureMouseAccess) mc.mouseHandler;
-    mouse.dui$button(mc.getWindow().handle(), new MouseButtonInfo(0, 0), 1);
-    mouse.dui$button(mc.getWindow().handle(), new MouseButtonInfo(0, 0), 0);
-    move(mc, 5, 5);
+    RealClientHarness.clickAt(mc, x, y);
   }
 
   private static void snapshot(Minecraft mc, String name) throws Exception {

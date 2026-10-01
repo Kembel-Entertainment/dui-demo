@@ -6,8 +6,6 @@ import java.util.*;
 
 /** Feed presentation data; component geometry lives in videos.html. */
 public final class VideoView {
-  private static final GlyphFont FONT = new GlyphFont();
-
   public record Model(
       Map<String, Object> data,
       Map<String, RasterImage> images,
@@ -24,14 +22,11 @@ public final class VideoView {
       boolean loading,
       String error,
       Map<String, RasterImage> thumbnails) {
-    int perPage = compact ? 1 : 2,
-        pages = Math.max(1, (feed.videos().size() + perPage - 1) / perPage),
-        page = Math.max(0, Math.min(requestedPage, pages - 1));
-    var visible =
-        feed.videos()
-            .subList(
-                Math.min(page * perPage, feed.videos().size()),
-                Math.min((page + 1) * perPage, feed.videos().size()));
+    var pagination =
+        CollectionView.of(feed.videos(), requestedPage, compact ? 1 : 2, YouTubeFeed.Video::id)
+            .page();
+    int pages = pagination.pages(), page = pagination.index();
+    var visible = pagination.items();
     var cards = new ArrayList<Map<String, Object>>();
     var images = new HashMap<String, RasterImage>();
     for (var video : visible) {
@@ -43,8 +38,6 @@ public final class VideoView {
               video.id(),
               "title",
               video.title(),
-              "titleLines",
-              wrap(video.title(), compact ? 132 : 207, 3),
               "published",
               video.published().atOffset(ZoneOffset.UTC).toLocalDate().toString(),
               "hasThumbnail",
@@ -79,25 +72,5 @@ public final class VideoView {
                         + " UTC");
     data.put("sizeLabel", compact ? "Wide" : "Compact");
     return new Model(Map.copyOf(data), Map.copyOf(images), List.copyOf(visible), page, pages);
-  }
-
-  private static List<Map<String, String>> wrap(String text, int width, int limit) {
-    var result = new ArrayList<Map<String, String>>();
-    String remaining = text.replaceAll("\\s+", " ").strip();
-    for (int i = 0; i < limit && !remaining.isEmpty(); i++) {
-      if (i == limit - 1 || FONT.width(remaining) <= width) {
-        result.add(Map.of("label", FONT.fit(remaining, width)));
-        break;
-      }
-      int end = 0;
-      while (end < remaining.length() && FONT.width(remaining.substring(0, end + 1)) <= width)
-        end++;
-      int space = remaining.lastIndexOf(' ', end);
-      if (space > 0) end = space;
-      if (end == 0) end = 1;
-      result.add(Map.of("label", remaining.substring(0, end)));
-      remaining = remaining.substring(end).stripLeading();
-    }
-    return result;
   }
 }

@@ -251,7 +251,10 @@ public final class PokerView {
   public static Canvas render(PokerState s) {
     try (var in = PokerView.class.getResourceAsStream("/ui/poker.html")) {
       return MenuTemplate.parse(
-              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8))
+              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+              new gg.kembel.dui.core.GlyphFont(),
+              gg.kembel.dui.components.VisualComponents.registry(),
+              "demo template")
           .render(data(s), PokerArt.images(s.game));
     } catch (Exception e) {
       throw new IllegalStateException(e);

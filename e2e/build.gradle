@@ -6,13 +6,14 @@ dependencies { minecraft 'com.mojang:minecraft:26.2'; implementation 'net.fabric
 java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
 tasks.withType(JavaCompile).configureEach { options.release = 25 }
 def scenario=providers.gradleProperty('scenario').getOrElse('showcase')
-def names=[showcase:'ShowcaseTest',shop:'ShopTest',advent:'AdventTest',warps:'WarpTest',roulette:'RouletteTest',blackjack:'BlackjackTest',poker:'PokerTest',rewards:'RewardTest',slots:'SlotTest',confetti:'ConfettiTest',videos:'VideoTest']
+def names=[protocol:'ProtocolTest',showcase:'ShowcaseTest',shop:'ShopTest',advent:'AdventTest',warps:'WarpTest',roulette:'RouletteTest',blackjack:'BlackjackTest',poker:'PokerTest',rewards:'RewardTest',slots:'SlotTest',confetti:'ConfettiTest',videos:'VideoTest']
 if(!names.containsKey(scenario))throw new GradleException('Unknown E2E scenario: '+scenario)
 loom {
  mods { dui_demo_e2e { sourceSet sourceSets.main } }
  runs { testClient {
   client(); runDir '../run/clients/'+scenario
   vmArg '-Ddui.e2e.scenario='+scenario
+  vmArg '-Ddui.e2e.port='+providers.gradleProperty('e2ePort').getOrElse('25584')
   vmArg '-Ddui.e2e.output='+file('../build/reports/e2e/'+scenario).absolutePath
   vmArg '-Ddui.e2e.plugin='+file('../run/server/plugins/dui-demo').absolutePath
   programArgs '--username',names[scenario],'--width','1280','--height','900'

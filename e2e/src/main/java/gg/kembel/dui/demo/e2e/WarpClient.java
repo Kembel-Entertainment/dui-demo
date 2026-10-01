@@ -10,7 +10,6 @@ import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.events.*;
 import net.minecraft.client.gui.screens.*;
 import net.minecraft.client.gui.screens.dialog.DialogScreen;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
 
@@ -101,11 +100,11 @@ final class WarpClient {
       if (stage == 0 && ticks > 80) {
         Files.createDirectories(OUT.resolve("screenshots"));
         mc.options.tutorialStep = net.minecraft.client.tutorial.TutorialSteps.NONE;
-        mc.options.guiScale().set(2);
+        mc.options.guiScale().set(Paths.referenceScale(mc));
         mc.getWindow().setWindowed(1280, 900);
         mc.resizeGui();
         org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
-        var server = new ServerData("Warp fixture", "127.0.0.1:25584", ServerData.Type.OTHER);
+        var server = new ServerData("Warp fixture", Paths.server(), ServerData.Type.OTHER);
         server.setResourcePackStatus(ServerData.ServerPackStatus.ENABLED);
         ConnectScreen.startConnecting(
             new TitleScreen(), mc, ServerAddress.parseString(server.ip), server, false, null);
@@ -175,7 +174,7 @@ final class WarpClient {
           }
           case "SMALL_WINDOW" -> {
             mc.getWindow().setWindowed(640, 480);
-            mc.options.guiScale().set(2);
+            mc.options.guiScale().set(Paths.referenceScale(mc));
             mc.resizeGui();
             mc.getConnection().sendCommand("dui warps compact");
           }
@@ -239,11 +238,7 @@ final class WarpClient {
   }
 
   private static List<AbstractWidget> widgets(GuiEventListener parent) {
-    var list = new ArrayList<AbstractWidget>();
-    if (parent instanceof AbstractWidget w) list.add(w);
-    if (parent instanceof ContainerEventHandler c)
-      for (var child : c.children()) list.addAll(widgets(child));
-    return list;
+    return RealClientHarness.widgets(parent);
   }
 
   private static FocusableTextWidget canvas(Minecraft mc) {
@@ -314,20 +309,11 @@ final class WarpClient {
   }
 
   private static void move(Minecraft mc, double x, double y) {
-    var w = mc.getWindow();
-    ((FixtureMouseAccess) mc.mouseHandler)
-        .dui$move(
-            w.handle(),
-            x * w.getScreenWidth() / w.getGuiScaledWidth(),
-            y * w.getScreenHeight() / w.getGuiScaledHeight());
+    RealClientHarness.move(mc, x, y);
   }
 
   private static void clickAt(Minecraft mc, double x, double y) {
-    move(mc, x, y);
-    var mouse = (FixtureMouseAccess) mc.mouseHandler;
-    mouse.dui$button(mc.getWindow().handle(), new MouseButtonInfo(0, 0), 1);
-    mouse.dui$button(mc.getWindow().handle(), new MouseButtonInfo(0, 0), 0);
-    move(mc, 5, 5);
+    RealClientHarness.clickAt(mc, x, y);
   }
 
   private static void snapshot(Minecraft mc, String name) throws Exception {

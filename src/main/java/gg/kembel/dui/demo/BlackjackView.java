@@ -237,8 +237,11 @@ public final class BlackjackView {
         n = Math.min(limit, list.size() - offset),
         start = ((c ? 320 : 480) - n * gap + (gap - width)) / 2;
     if (side > 0) start = (side == 1 ? (c ? 68 : 125) : (c ? 196 : 263));
+    var slots =
+        CardStrip.layout(
+            n, start, y, Math.max(1, n * gap - (gap - width)), width, height, gap - width);
     for (int j = 0; j < n; j++) {
-      int i = j + offset, x = start + j * gap;
+      int i = j + offset, x = slots.get(j).x();
       String mode = "static";
       int delay = 0;
       if (s.event.equals("deal")) {
@@ -283,7 +286,10 @@ public final class BlackjackView {
   public static Canvas render(BlackjackState s) {
     try (var in = BlackjackView.class.getResourceAsStream("/ui/blackjack.html")) {
       return MenuTemplate.parse(
-              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8))
+              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+              new gg.kembel.dui.core.GlyphFont(),
+              gg.kembel.dui.components.VisualComponents.registry(),
+              "demo template")
           .render(data(s), BlackjackArt.images());
     } catch (Exception e) {
       throw new IllegalStateException(e);

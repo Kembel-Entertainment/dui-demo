@@ -1,6 +1,6 @@
 package gg.kembel.dui.demo;
 
-import gg.kembel.dui.core.ShaderEffect;
+import gg.kembel.dui.core.*;
 import java.util.*;
 import java.util.random.RandomGenerator;
 
@@ -28,8 +28,12 @@ public final class BlackjackState {
     int capacity = ShaderEffect.LIMIT - (event.equals("payout") ? 1 : 0);
     int heroCount =
         game.hands.isEmpty() ? 0 : event.equals("split") ? 4 : game.hands.get(focus).cards.size();
-    int dealer = Math.min(game.visibleDealer().size(), capacity - Math.min(4, heroCount));
-    return new int[] {dealer, Math.min(heroCount, capacity - dealer)};
+    var allocation =
+        RenderBudget.allocate(
+            capacity,
+            new RenderBudget.Request("dealer", game.visibleDealer().size(), 0),
+            new RenderBudget.Request("hero", heroCount, Math.min(4, heroCount)));
+    return new int[] {allocation.get("dealer"), allocation.get("hero")};
   }
 
   public int dealerLimit() {

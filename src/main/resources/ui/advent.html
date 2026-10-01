@@ -9,7 +9,7 @@
   <dui-if test="{{board}}">
    <dui-surface class="frame" fill="#79504F" x="12" y="{{shelfY}}" width="{{inner}}" height="{{shelfH}}" />
    <dui-image id="roof" source="roof" x="12" y="{{roofY}}" width="{{inner}}" height="{{roofH}}" pixel-size="4" />
-   <dui-if test="{{wide}}"><dui-lights id="fairy_lights" x="21" y="{{lightsY}}" width="{{lightsW}}" height="9" count="{{lightsCount}}" radius="2" /></dui-if>
+   <dui-if test="{{wide}}"><dui-visual-lights id="fairy_lights" x="21" y="{{lightsY}}" width="{{lightsW}}" height="9" count="{{lightsCount}}" radius="2" /></dui-if>
    <dui-repeat items="parcels" as="g">
     <dui-button class="frame" id="gift_{{g.day}}" action="advent_open" value="{{g.day}}" x="{{g.x}}" y="{{g.y}}" width="{{g.w}}" height="{{g.h}}" label="" tooltip="Gift {{g.day}} / Unwrap a little surprise" />
     <dui-image id="art_{{g.day}}" source="{{g.key}}" x="{{g.ix}}" y="{{g.iy}}" width="{{g.iw}}" height="{{g.ih}}" pixel-size="2" />
@@ -31,7 +31,7 @@
     <dui-heading x="{{textX}}" y="{{copyY}}" width="{{textW}}" height="18" label="{{name}}" color="#FFF1D0" />
     <dui-text x="{{textX}}" y="{{tagY}}" width="{{textW}}" height="18" label="{{caption}}" color="#A9C8C9" />
    </dui-if>
-   <dui-particles id="gift_confetti" effect="confetti" x="0" y="0" width="{{width}}" height="{{height}}" origin-x="{{originX}}" origin-y="{{originY}}" count="52" delay="24" />
+   <dui-visual-particles id="gift_confetti" effect="confetti" x="0" y="0" width="{{width}}" height="{{height}}" origin-x="{{originX}}" origin-y="{{originY}}" count="52" delay="24" />
    <dui-button class="button" id="advent_back" action="advent_back" label="&lt; Calendar" x="12" y="{{footer}}" width="{{buttonW}}" height="18" />
    <dui-button class="button" id="advent_again" action="advent_again" locked="{{opening}}" fill="#FF679A" label="Again, please" x="{{againX}}" y="{{footer}}" width="{{buttonW}}" height="18" />
   </dui-if>

@@ -9,6 +9,9 @@ public final class ShopView {
 
   private ShopView() {}
 
+  private static final BoundedCache<String, RasterImage> QRS =
+      new BoundedCache<>(8, 32768, i -> (long) i.width * i.height);
+
   private static Map<String, Object> product(ShopState state, ShopState.Product p) {
     return Map.of(
         "id",
@@ -23,10 +26,15 @@ public final class ShopView {
 
   public static Map<String, Object> data(ShopState state, String player) {
     var products = state.products().stream().map(p -> product(state, p)).toList();
+    var pagination =
+        CollectionView.of(
+                new ArrayList<>(state.cart.entrySet()),
+                state.cartPage,
+                state.perPage(),
+                Map.Entry::getKey)
+            .page();
     var cart =
-        state.cart.entrySet().stream()
-            .skip((long) state.cartPage * state.perPage())
-            .limit(state.perPage())
+        pagination.items().stream()
             .map(
                 e ->
                     Map.<String, Object>of(
@@ -50,8 +58,10 @@ public final class ShopView {
     d.put("selectedProducts", List.of(products.get(state.productPage)));
     d.put("productPage", (state.productPage + 1) + " / " + products.size());
     d.put("cart", cart);
-    d.put("cartPage", state.cartPages() > 1 ? (state.cartPage + 1) + "/" + state.cartPages() : "");
-    d.put("cartPagination", state.cartPages() > 1);
+    d.put(
+        "cartPage",
+        pagination.pages() > 1 ? (pagination.index() + 1) + "/" + pagination.pages() : "");
+    d.put("cartPagination", pagination.pages() > 1);
     d.put("empty", state.cart.isEmpty());
     d.put("total", ShopState.money(state.total()));
     return d;
@@ -59,7 +69,11 @@ public final class ShopView {
 
   public static Map<String, RasterImage> images(ShopState state) {
     return state.checkout
-        ? Map.of("checkout_qr", QrCode.raster(ShopState.DEMO_URL, state.compact ? 54 : 52))
+        ? Map.of(
+            "checkout_qr",
+            QRS.computeIfAbsent(
+                ShopState.DEMO_URL + ":" + state.compact,
+                key -> QrCode.raster(ShopState.DEMO_URL, state.compact ? 54 : 52)))
         : Map.of();
   }
 
@@ -67,7 +81,10 @@ public final class ShopView {
     try (var in = ShopView.class.getResourceAsStream("/ui/shop.html")) {
       var c =
           MenuTemplate.parse(
-                  new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8))
+                  new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+                  new gg.kembel.dui.core.GlyphFont(),
+                  gg.kembel.dui.components.VisualComponents.registry(),
+                  "demo template")
               .render(data(state, player), images(state));
       QrCode.Region qr = null;
       if (state.checkout) {

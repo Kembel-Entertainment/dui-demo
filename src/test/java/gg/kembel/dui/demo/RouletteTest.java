@@ -143,6 +143,43 @@ class RouletteTest {
               "c:3"));
       for (String key : keys) s.place(key, 100);
       var c = RouletteView.render(s);
+      var bindings = RouletteView.data(s);
+      @SuppressWarnings("unchecked")
+      var cells = (List<Map<String, Object>>) bindings.get("cells");
+      for (var cell : cells) {
+        String id = (String) cell.get("id");
+        var hit = c.hits.stream().filter(h -> h.id().equals(id)).findFirst().orElseThrow();
+        var marker =
+            c.images.stream().filter(i -> i.id().equals("chip_" + id)).findFirst().orElseThrow();
+        assertTrue(marker.x() > hit.x(), id + " left padding");
+        assertTrue(marker.x() + marker.width() < hit.x() + hit.width(), id + " right padding");
+        assertTrue(marker.y() > hit.y(), id + " top padding");
+        assertTrue(marker.y() + marker.height() < hit.y() + hit.height(), id + " bottom padding");
+        int tx = (int) cell.get("textX"), ty = (int) cell.get("textY");
+        int tw = (int) cell.get("textW");
+        assertEquals(cell.get("label"), c.metrics().fit((String) cell.get("label"), tw), id);
+        assertTrue(
+            tx + tw <= marker.x()
+                || marker.x() + marker.width() <= tx
+                || ty + 9 <= marker.y()
+                || marker.y() + marker.height() <= ty,
+            id + " label overlaps the placed chip");
+      }
+      var destination =
+          cells.stream().filter(cell -> cell.get("key").equals(s.chipBet)).findFirst().orElseThrow();
+      var flight =
+          c.effects.stream()
+              .filter(e -> e.kind() == gg.kembel.dui.core.ShaderEffect.Kind.CHIP_STACK)
+              .findFirst()
+              .orElseThrow();
+      assertEquals(
+          (int) destination.get("chipX") + (int) destination.get("chipSize") / 2.0,
+          flight.x() + flight.width() * .5,
+          .5);
+      assertEquals(
+          (int) destination.get("chipY") + (int) destination.get("chipSize") / 2.0,
+          flight.y() + flight.height() * .14,
+          .5);
       assertEquals(compact ? 153 : 324, c.height);
       assertEquals(2, c.effects.size());
       assertEquals(1, c.items.size());
@@ -160,6 +197,13 @@ class RouletteTest {
       assertDoesNotThrow(() -> RouletteView.render(s));
       s.finish(388);
       assertFalse(s.locked());
+      s.toggleMotion(400);
+      s.place("red", 401);
+      assertFalse((boolean) RouletteView.data(s).get("chipFlight"));
+      assertTrue(
+          RouletteView.render(s).effects.stream()
+              .noneMatch(e -> e.kind() == gg.kembel.dui.core.ShaderEffect.Kind.CHIP_STACK),
+          "Still mode must not cover the stationary marker with a frozen flight chip");
     }
   }
 }

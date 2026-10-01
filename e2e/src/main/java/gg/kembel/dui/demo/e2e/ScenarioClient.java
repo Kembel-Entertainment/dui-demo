@@ -14,6 +14,7 @@ public final class ScenarioClient implements ClientModInitializer {
       case "advent" -> new AdventClient().initialize();
       case "rewards" -> new RewardClient().initialize();
       case "slots" -> new SlotClient().initialize();
+      case "protocol" -> new ProtocolClient().initialize();
       case "confetti" -> new ConfettiClient().initialize();
       case "videos" -> new VideoClient().initialize();
       default -> throw new IllegalArgumentException("Unknown dui test scenario");

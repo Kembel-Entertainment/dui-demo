@@ -6,6 +6,10 @@ ROOT = Path(__file__).resolve().parent.parent
 SERVER = ROOT / 'run/server'
 PLUGIN = SERVER / 'plugins/dui-demo'
 REPORT = ROOT / 'build/reports/e2e'
+SERVER_PORT = int(os.environ.get('DUI_DEMO_PORT', '25584'))
+PACK_PORT = int(os.environ.get('DUI_PACK_PORT', '25585'))
+if not (1024 <= SERVER_PORT <= 65535 and 1024 <= PACK_PORT <= 65535) or SERVER_PORT == PACK_PORT:
+    raise ValueError('Demo and pack ports must be distinct ports in 1024..65535')
 PAPER_SHA256 = 'b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083'
 PAPER_URL = f'https://fill-data.papermc.io/v1/objects/{PAPER_SHA256}/paper-26.2-129.jar'
 
@@ -25,7 +29,7 @@ def download(url, path, algorithm, digest):
     return path
 
 def check_ports():
-    for port in (25584, 25585):
+    for port in (SERVER_PORT, PACK_PORT):
         with socket.socket() as s:
             try:
                 s.bind(('127.0.0.1', port))
@@ -42,7 +46,7 @@ def prepare(accept):
         eula.write_text('eula=true\n')
     elif not eula.exists():
         eula.write_text('eula=false\n')
-    (SERVER / 'server.properties').write_text('server-ip=127.0.0.1\nserver-port=25584\nonline-mode=false\nwhite-list=false\nenforce-secure-profile=false\ndifficulty=peaceful\ngamemode=creative\nforce-gamemode=true\nlevel-type=minecraft:flat\ngenerator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\nview-distance=2\nsimulation-distance=2\nspawn-protection=0\nmotd=dui-demo / Paper 26.2\n')
+    (SERVER / 'server.properties').write_text('server-ip=127.0.0.1\nserver-port=' + str(SERVER_PORT) + '\nonline-mode=false\nwhite-list=false\nenforce-secure-profile=false\ndifficulty=peaceful\ngamemode=creative\nforce-gamemode=true\nlevel-type=minecraft:flat\ngenerator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\nview-distance=2\nsimulation-distance=2\nspawn-protection=0\nmotd=dui-demo / Paper 26.2\n')
 
 def install():
     check_ports()
@@ -71,7 +75,7 @@ def run_e2e(scenario, live):
     PLUGIN.mkdir(parents=True, exist_ok=True)
     config = PLUGIN / 'config.yml'
     previous = config.read_bytes() if config.exists() else None
-    config.write_text('pack:\n  bind-address: 127.0.0.1\n  port: 25585\n  public-url: http://127.0.0.1:25585/dui.zip\nvideos:\n  live: ' + str(live).lower() + '\n')
+    config.write_text(f'pack:\n  bind-address: 127.0.0.1\n  port: {PACK_PORT}\n  public-url: http://127.0.0.1:{PACK_PORT}/dui.zip\nvideos:\n  live: ' + str(live).lower() + '\n')
     op = uuid.UUID(bytes=hashlib.md5(b'OfflinePlayer:SlotTest').digest(), version=3)
     ops = SERVER / 'ops.json'
     old_ops = ops.read_bytes() if ops.exists() else b'[]'
@@ -91,7 +95,7 @@ def run_e2e(scenario, live):
                 time.sleep(0.5)
             else:
                 raise RuntimeError('Demo server startup timed out')
-            scenarios = ['showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos'] if scenario == 'all' else [scenario]
+            scenarios = ['showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol'] if scenario == 'all' else [scenario]
             for name in scenarios:
                 output = REPORT / name
                 if output.exists():
@@ -102,7 +106,7 @@ def run_e2e(scenario, live):
                 game.mkdir(parents=True, exist_ok=True)
                 (game / 'options.txt').write_text('lang:en_us\nguiScale:2\nsoundCategory_master:0.0\nskipMultiplayerWarning:true\nonboardAccessibility:false\nstartedCleanly:true\nmaxFps:30\ntutorialStep:none\n')
                 print('Running muted client:', name, flush=True)
-                command = [str(ROOT / 'gradlew'), '-p', str(ROOT / 'e2e'), 'runTestClient', '-Pscenario=' + name, '--console=plain']
+                command = [str(ROOT / 'gradlew'), '-p', str(ROOT / 'e2e'), 'runTestClient', '-Pscenario=' + name, '-Pe2ePort=' + str(SERVER_PORT), '--console=plain']
                 if os.environ.get('JAVA_HOME'):
                     command.insert(1, '-Dorg.gradle.java.home=' + os.environ['JAVA_HOME'])
                 with (output / 'client.log').open('w') as client_log:
@@ -128,7 +132,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('command', choices=['prepare', 'install', 'server', 'e2e', 'client-jar'])
     parser.add_argument('--accept-eula', action='store_true')
-    parser.add_argument('--scenario', default='all', choices=['all', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos'])
+    parser.add_argument('--scenario', default='all', choices=['all', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol'])
     parser.add_argument('--live-videos', action='store_true')
     args = parser.parse_args()
     if args.command == 'prepare':

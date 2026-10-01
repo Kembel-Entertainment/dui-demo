@@ -10,7 +10,7 @@ public final class WarpView {
 
   public static Map<String, Object> data(WarpState s) {
     var d = new HashMap<String, Object>();
-    int width = s.compact ? 320 : 480, height = s.compact ? 108 : 252;
+    int width = LayoutProfile.choose(s.compact).width(), height = s.compact ? 108 : 252;
     int size = s.compact ? 63 : 126, stride = s.compact ? 66 : 108;
     int center = s.compact ? 129 : 174, y = s.compact ? 18 : 54;
     int clipX = s.compact ? 68 : 82, clipW = s.compact ? 185 : 316;
@@ -59,14 +59,19 @@ public final class WarpView {
     d.put("paperH", s.compact ? 63 : 135);
     d.put("arrived", s.arrived);
     var cards = new ArrayList<Map<String, Object>>();
-    int first = s.moving && s.direction == 1 ? -2 : -1;
-    int last = s.moving && s.direction == -1 ? 2 : 1;
-    for (int slot = first; slot <= last; slot++) {
-      int index = Math.floorMod(s.selected + slot, 4);
+    for (var slotInfo :
+        Carousel.window(
+            WarpState.DESTINATIONS.size(),
+            s.selected,
+            1,
+            center,
+            stride,
+            s.moving ? s.direction : 0)) {
+      int slot = slotInfo.offset(), index = slotInfo.index();
       var card = new HashMap<String, Object>();
       card.put("id", "card_" + index);
       card.put("index", index);
-      card.put("x", center + slot * stride);
+      card.put("x", slotInfo.x());
       card.put("y", y);
       card.put("size", size);
       card.put("active", slot == 0);
@@ -114,7 +119,10 @@ public final class WarpView {
   public static Canvas render(WarpState s) {
     try (var in = WarpView.class.getResourceAsStream("/ui/warps.html")) {
       return MenuTemplate.parse(
-              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8))
+              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+              new gg.kembel.dui.core.GlyphFont(),
+              gg.kembel.dui.components.VisualComponents.registry(),
+              "demo template")
           .render(data(s));
     } catch (Exception e) {
       throw new IllegalStateException(e);

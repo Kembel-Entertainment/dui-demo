@@ -11,7 +11,10 @@ class ShowcaseTest {
   private MenuTemplate template() throws Exception {
     try (var in = getClass().getResourceAsStream("/ui/showcase.html")) {
       return MenuTemplate.parse(
-          new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8));
+          new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+          new gg.kembel.dui.core.GlyphFont(),
+          gg.kembel.dui.components.VisualComponents.registry(),
+          "demo template");
     }
   }
 
@@ -127,6 +130,12 @@ class ShowcaseTest {
     assertEquals(0xFFFFFF, light.paints.getLast().color());
     assertThrows(
         IllegalArgumentException.class,
-        () -> MenuTemplate.parse("<dui-menu theme='missing'/>").render(Map.of()));
+        () ->
+            MenuTemplate.parse(
+                    "<dui-menu theme='missing'/>",
+                    new gg.kembel.dui.core.GlyphFont(),
+                    gg.kembel.dui.components.VisualComponents.registry(),
+                    "demo template")
+                .render(Map.of()));
   }
 }

@@ -1,0 +1,8 @@
+<dui-menu width="{{width}}" height="{{height}}" padding="12">
+ <dui-column width="fill" height="fill" gap="9">
+  <dui-layer height="36"><dui-chrome-header title="FIELD JOURNAL / DEMO" detail="A public API example with twelve stable entries." width="fill-27" height="36"/><dui-image id="journal_mark" source="journal_mark" width="18" height="18" anchor-x="right" pixel-size="1"/></dui-layer>
+  <dui-repeat items="rows" as="entry"><dui-entry id="{{entry.id}}" label="{{entry.label}}" detail="Ready for review" height="18" /></dui-repeat>
+  <dui-chrome-pagination label="{{page}}" previous="acceptance_page" next="acceptance_page" previous-locked="{{previous}}" next-locked="{{next}}" height="18"/>
+
+ </dui-column>
+</dui-menu>

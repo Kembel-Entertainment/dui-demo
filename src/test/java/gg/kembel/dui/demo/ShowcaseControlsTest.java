@@ -13,7 +13,10 @@ class ShowcaseControlsTest {
         getClass()
             .getResourceAsStream(compact ? "/ui/showcase-compact.html" : "/ui/showcase.html")) {
       return MenuTemplate.parse(
-          new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8));
+          new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+          new gg.kembel.dui.core.GlyphFont(),
+          gg.kembel.dui.components.VisualComponents.registry(),
+          "demo template");
     }
   }
 
@@ -115,8 +118,11 @@ class ShowcaseControlsTest {
     DropdownComponent.draw(
         canvas, new MenuTemplate.Node("dropdown", props, List.of(option)), 0, 0, 100, 27, overlays);
     overlays.forEach(Runnable::run);
-    assertEquals(List.of("outside"), canvas.items.stream().map(Canvas.Item::id).toList());
-    assertTrue(canvas.heads.isEmpty());
+    assertEquals(List.of("under", "outside"), canvas.items.stream().map(Canvas.Item::id).toList());
+    assertEquals(1, canvas.heads.size());
+    assertEquals(
+        List.of("outside"), canvas.renderPlan().items.stream().map(Canvas.Item::id).toList());
+    assertTrue(canvas.renderPlan().heads.isEmpty());
     assertThrows(
         IllegalArgumentException.class,
         () ->

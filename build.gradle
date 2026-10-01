@@ -5,9 +5,12 @@ repositories { mavenLocal(); mavenCentral(); maven { url = 'https://repo.papermc
 configurations { packTools }
 dependencies {
     implementation 'gg.kembel.dui:dui-paper:0.1.0-SNAPSHOT'
+    implementation 'gg.kembel.dui:dui-components:0.1.0-SNAPSHOT'
+    testImplementation 'gg.kembel.dui:dui-test:0.1.0-SNAPSHOT'
     implementation 'com.google.code.gson:gson:2.13.2'
     implementation 'com.google.zxing:core:3.5.4'
     packTools 'gg.kembel.dui:dui-pack:0.1.0-SNAPSHOT'
+    compileOnly 'gg.kembel.dui:dui-pack:0.1.0-SNAPSHOT'
     compileOnly 'io.papermc.paper:paper-api:26.2.build.129-stable'
     testImplementation 'io.papermc.paper:paper-api:26.2.build.129-stable'
     testImplementation platform('org.junit:junit-bom:5.14.0')
@@ -18,6 +21,7 @@ java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaV
 tasks.withType(JavaCompile).configureEach { options.release = 25 }
 test { useJUnitPlatform() }
 jar {
+    dependsOn configurations.runtimeClasspath
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     exclude 'META-INF/*.SF', 'META-INF/*.RSA', 'META-INF/*.DSA', 'module-info.class'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -28,7 +32,7 @@ tasks.register('demoArt', JavaExec) {
  args layout.buildDirectory.dir('pack-additions').get().asFile.absolutePath
 }
 tasks.register('buildPack', JavaExec) {
- dependsOn demoArt; classpath=configurations.packTools; mainClass='gg.kembel.dui.pack.PackGenerator'
+ dependsOn demoArt, configurations.packTools; classpath=sourceSets.main.runtimeClasspath + configurations.packTools; mainClass='gg.kembel.dui.demo.DemoPackGenerator'
  doFirst { if(!project.hasProperty('minecraftJar'))throw new GradleException('Pass -PminecraftJar=/path/to/verified/26.2-client.jar'); args project.property('minecraftJar'),layout.buildDirectory.dir('pack').get().asFile.absolutePath,layout.buildDirectory.dir('pack-additions').get().asFile.absolutePath }
 }
 tasks.register('installDemo', Exec) {

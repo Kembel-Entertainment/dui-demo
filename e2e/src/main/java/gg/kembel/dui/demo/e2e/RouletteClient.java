@@ -10,7 +10,6 @@ import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.events.*;
 import net.minecraft.client.gui.screens.*;
 import net.minecraft.client.gui.screens.dialog.DialogScreen;
-import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
 
@@ -19,6 +18,17 @@ final class RouletteClient {
   private static final Path OUT = Paths.output();
   private static final String[] STEPS = {
     "SHOT:lobby",
+    "READABLE_SCALE",
+    "SHOT:labels-wide",
+    "chip_5",
+    "bet_n_23",
+    "bet_n_0",
+    "bet_d_3",
+    "bet_red",
+    "bet_c_1",
+    "SHOT:chips-wide",
+    "roulette_clear",
+    "REFERENCE_SCALE",
     "chip_5",
     "PLACE_ALL",
     "SHOT:bets",
@@ -47,6 +57,16 @@ final class RouletteClient {
     "SHOT:instant-result",
     "SMALL_WINDOW",
     "SHOT:compact",
+    "READABLE_SCALE",
+    "SHOT:labels-compact",
+    "bet_n_23",
+    "bet_n_0",
+    "bet_d_3",
+    "bet_red",
+    "bet_c_1",
+    "SHOT:chips-compact",
+    "roulette_clear",
+    "REFERENCE_SCALE",
     "roulette_motion",
     "bet_n_0",
     "roulette_spin",
@@ -64,7 +84,7 @@ final class RouletteClient {
   };
   private int ticks, stage, changed, placed, spinAt;
   private String inventory;
-  private Screen previous, receivedScreen;
+  private Screen previous, receivedScreen, pendingResponse;
   private int receivedAt;
 
   void initialize() {
@@ -83,11 +103,11 @@ final class RouletteClient {
       if (stage == 0 && ticks > 80) {
         Files.createDirectories(OUT.resolve("screenshots"));
         mc.options.tutorialStep = net.minecraft.client.tutorial.TutorialSteps.NONE;
-        mc.options.guiScale().set(2);
+        mc.options.guiScale().set(Paths.referenceScale(mc));
         mc.getWindow().setWindowed(1280, 900);
         mc.resizeGui();
         org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
-        var server = new ServerData("Roulette fixture", "127.0.0.1:25584", ServerData.Type.OTHER);
+        var server = new ServerData("Roulette fixture", Paths.server(), ServerData.Type.OTHER);
         server.setResourcePackStatus(ServerData.ServerPackStatus.ENABLED);
         ConnectScreen.startConnecting(
             new TitleScreen(), mc, ServerAddress.parseString(server.ip), server, false, null);
@@ -151,6 +171,17 @@ final class RouletteClient {
         if (step.endsWith("early")) previous = mc.gui.screen();
       } else
         switch (step) {
+          case "READABLE_SCALE" -> {
+            mc.getWindow().setWindowed(1280, 900);
+            mc.options.guiScale().set(Paths.referenceScale(mc) * 2);
+            mc.resizeGui();
+          }
+          case "REFERENCE_SCALE" -> {
+            boolean compact = layout().get("width").getAsInt() == 320;
+            mc.getWindow().setWindowed(compact ? 640 : 1280, compact ? 480 : 900);
+            mc.options.guiScale().set(Paths.referenceScale(mc));
+            mc.resizeGui();
+          }
           case "PLACE_ALL" -> {
             if (!received(mc) || ticks - changed < 6) return;
             if (layout().get("stake").getAsInt() != placed * 5) return;
@@ -179,7 +210,7 @@ final class RouletteClient {
           }
           case "SMALL_WINDOW" -> {
             mc.getWindow().setWindowed(640, 480);
-            mc.options.guiScale().set(2);
+            mc.options.guiScale().set(Paths.referenceScale(mc));
             mc.resizeGui();
             mc.getConnection().sendCommand("dui roulette compact");
           }
@@ -245,11 +276,7 @@ final class RouletteClient {
   }
 
   private static List<AbstractWidget> widgets(GuiEventListener parent) {
-    var list = new ArrayList<AbstractWidget>();
-    if (parent instanceof AbstractWidget w) list.add(w);
-    if (parent instanceof ContainerEventHandler c)
-      for (var child : c.children()) list.addAll(widgets(child));
-    return list;
+    return RealClientHarness.widgets(parent);
   }
 
   private static FocusableTextWidget canvas(Minecraft mc) {
@@ -264,6 +291,10 @@ final class RouletteClient {
   // Wait for receipt rather than clicking a previous revision's widgets.
   private boolean received(Minecraft mc) throws Exception {
     if (!(mc.gui.screen() instanceof DialogScreen<?>)) return false;
+    // Chip selection can change only styles, leaving the raw text hash identical.
+    // Await the response to the last click before using its replacement callbacks.
+    if (mc.gui.screen() == pendingResponse) return false;
+    pendingResponse = null;
     var data = layout();
     int expected = data.getAsJsonArray("items").size();
     String hash =
@@ -319,7 +350,7 @@ final class RouletteClient {
         throw new IllegalStateException("Native item clipped");
   }
 
-  private static void hit(Minecraft mc, String id) throws Exception {
+  private void hit(Minecraft mc, String id) throws Exception {
     validate(mc);
     var data = layout();
     JsonObject h = null;
@@ -328,6 +359,7 @@ final class RouletteClient {
     if (h == null || h.get("action").getAsString().isEmpty())
       throw new IllegalStateException("Missing or locked hit: " + id);
     var w = canvas(mc);
+    pendingResponse = mc.gui.screen();
     clickAt(
         mc,
         w.getX()
@@ -342,20 +374,11 @@ final class RouletteClient {
   }
 
   private static void move(Minecraft mc, double x, double y) {
-    var w = mc.getWindow();
-    ((FixtureMouseAccess) mc.mouseHandler)
-        .dui$move(
-            w.handle(),
-            x * w.getScreenWidth() / w.getGuiScaledWidth(),
-            y * w.getScreenHeight() / w.getGuiScaledHeight());
+    RealClientHarness.move(mc, x, y);
   }
 
   private static void clickAt(Minecraft mc, double x, double y) {
-    move(mc, x, y);
-    var mouse = (FixtureMouseAccess) mc.mouseHandler;
-    mouse.dui$button(mc.getWindow().handle(), new MouseButtonInfo(0, 0), 1);
-    mouse.dui$button(mc.getWindow().handle(), new MouseButtonInfo(0, 0), 0);
-    move(mc, 5, 5);
+    RealClientHarness.clickAt(mc, x, y);
   }
 
   private static void snapshot(Minecraft mc, String name) throws Exception {

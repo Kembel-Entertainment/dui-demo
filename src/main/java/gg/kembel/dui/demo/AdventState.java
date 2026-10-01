@@ -1,5 +1,6 @@
 package gg.kembel.dui.demo;
 
+import gg.kembel.dui.core.AnimationTimeline;
 import java.util.List;
 
 /** Session-only playground: no date gates, claim ledger, inventory grants or persistence. */
@@ -12,7 +13,10 @@ public final class AdventState {
 
   public record Gift(String name, String material, String caption) {}
 
-  public static final int OPEN_TICKS = 24;
+  public static final AnimationTimeline OPENING =
+      AnimationTimeline.sequence(
+          AnimationTimeline.of("open", 24), AnimationTimeline.of("celebrate", 96));
+  public static final int OPEN_TICKS = (int) OPENING.segment("open").duration();
   public static final List<Gift> GIFTS =
       List.of(
           new Gift("Pocket sunshine", "GOLDEN_APPLE", "A tiny snack. Main-character energy."),

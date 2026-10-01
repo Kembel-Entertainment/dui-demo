@@ -16,7 +16,7 @@
               <dui-surface class="card" width="fill" height="fill" />
               <dui-if test="{{video.hasThumbnail}}"><dui-image id="thumb_{{video.id}}" source="{{video.id}}" x="9" y="9" width="207" height="117" pixel-size="3" action="video_open" locked="{{loading}}" payload="{{video.id}}" tooltip="{{video.title}}" /></dui-if>
               <dui-if test="{{video.noThumbnail}}"><dui-surface x="9" y="9" width="207" height="117" fill="#101725" border="#485570" /><dui-text x="18" y="54" width="189" height="18" label="{{video.imageStatus}}" /></dui-if>
-              <dui-column x="9" y="135" width="207" height="27"><dui-repeat items="video.titleLines" as="line"><dui-text height="9" label="{{line.label}}" color="#FFFFFF" /></dui-repeat></dui-column>
+              <dui-text x="9" y="135" width="207" height="27" label="{{video.title}}" wrap="true" max-lines="3" color="#FFFFFF" />
               <dui-text x="9" y="171" width="207" height="9" label="Published {{video.published}}" color="#98AFD3" />
               <dui-button class="button" x="9" y="180" width="207" height="18" id="watch_{{video.id}}" action="video_open" locked="{{loading}}" payload="{{video.id}}" label="Watch on YouTube" tooltip="{{video.title}}" />
             </dui-layer>
@@ -37,7 +37,7 @@
           <dui-layer x="9" y="36" width="282" height="72">
             <dui-if test="{{video.hasThumbnail}}"><dui-image id="thumb_{{video.id}}" source="{{video.id}}" width="128" height="72" pixel-size="2" action="video_open" locked="{{loading}}" payload="{{video.id}}" tooltip="{{video.title}}" /></dui-if>
             <dui-if test="{{video.noThumbnail}}"><dui-surface width="128" height="72" fill="#101725" border="#485570" /></dui-if>
-            <dui-column x="141" width="132" height="27"><dui-repeat items="video.titleLines" as="line"><dui-text height="9" label="{{line.label}}" color="#FFFFFF" /></dui-repeat></dui-column>
+            <dui-text x="141" width="132" height="27" label="{{video.title}}" wrap="true" max-lines="3" color="#FFFFFF" />
             <dui-text x="141" y="36" width="132" height="9" label="{{video.published}}" color="#98AFD3" />
             <dui-button class="button" x="141" y="54" width="132" height="18" id="watch_{{video.id}}" action="video_open" locked="{{loading}}" payload="{{video.id}}" label="Watch video" tooltip="{{video.title}}" />
           </dui-layer>

@@ -41,12 +41,15 @@ Connect an unmodified Minecraft **26.2** client to **127.0.0.1:25584** and accep
 | `/dui advent spacious` | Own winter gift wall, 24 replayable gifts, animated lids, native rewards and shader confetti |
 | `/dui warps spacious` | Original pixel landscapes, clipped swipe-like carousel, direct selection and portal preview |
 | `/dui poker spacious` | Velvet Hold’em: one player, three bots, deal/flip/chip animations, real betting and side-pots |
+| `/dui blackjack spacious` | Monarch: animated shoe-to-slot deals, Hit/Stand/Double/Split and demo bankroll |
 | `/dui roulette spacious` | Riviera: European wheel, counter-rotating ball, illustrated betting layout, chip animation and demo ledger |
 | `/dui slots spacious` | Shared-shader reels, lever, preview outcomes, demo chips and exactly-once payout |
 | `/dui videos spacious` | Live YouTube feed and runtime RGB thumbnails |
+| `/dui acceptance compact` | Field Journal: unrelated public controller, chrome, stable collection and cached RGBA asset |
+| `/dui protocol spacious` | 14-effect batching, consumer shader extension, generic motion and popup coverage lab |
 | `/dui reload` | Validate and reload every template; requires `dui-demo.reload` |
 
-The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots`, `/advent`, `/warps`, `/poker`, `/roulette` and `/uivideos` are also available. Reward, Advent, warp, poker, roulette, shop, slot and video commands accept `compact`/`spacious`. `/uivideos refresh` checks the feed again.
+The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots`, `/advent`, `/warps`, `/poker`, `/roulette`, `/blackjack` and `/uivideos` are also available. Reward, Advent, warp, poker, roulette, blackjack, shop, slot and video commands accept `compact`/`spacious`. `/uivideos refresh` checks the feed again.
 
 Active templates are copied to `run/server/plugins/dui-demo/ui/`. Change those templates and reload; the pack remains unchanged. Java supplies view data, business actions and own artwork only. The QR is generated at runtime and points to the demo YouTube video; it is not a real payment system. Balances and rewards are demo-only and never grant real items.
 
@@ -63,7 +66,7 @@ When `videos.live` is enabled, the service restores its last successful feed and
   -PacceptEula=true -Pscenario=videos -PliveVideos e2e
 ```
 
-Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `slots`, `confetti`, `videos`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
+Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `blackjack`, `slots`, `confetti`, `videos`, `protocol`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
 
 By default, E2E videos use deterministic own gradient images and feed entries; the ordinary demo uses the live Minecraft YouTube channel. `liveVideos` opts into real network requests, using the saved snapshot if the upstream feed is unavailable. Temporary test config and operator access are restored after the run.
 
@@ -92,3 +95,11 @@ Open `/roulette`, `/dui roulette spacious` or `/dui roulette compact`. [The Roul
 ## Monarch Blackjack
 
 Open `/blackjack`, `/dui blackjack spacious` or `/dui blackjack compact`. [The Blackjack guide](docs/blackjack.md) explains the original illustrated table, sequential shoe-to-slot card flights, dealer flip, chip settlement, Hit/Stand/Double/Split, exact 3:2 half-credit accounting and transient demo bankroll. Ordinary Deal shuffles six decks; Demo deal explicitly previews scripted examples. Compact and Motion/Still controls are included.
+
+## Library abstraction migration
+
+The [dui roadmap](https://github.com/Kembel-Entertainment/dui/blob/master/docs/roadmap.md) tracks the library refactor. Every demo now owns a pure MenuDefinition projection, typed action routes and lifecycle effects, bound through MenuController.refresh and catalogue registration. The compatibility presentation path is unused by the demos. Consumers exercise public component composition, stable collections/layout profiles, spans/carousels/card strips, token styles, resource providers, scene planning, generated transport capabilities, shared GPU motion, optional visual components and test helpers. Protocol Lab and Field Journal prove additions through consumer code only. See [the migration guide](docs/abstractions.md). Slot ledger settlement remains application-owned.
+
+Muted integration tests may run alongside a local demo with distinct ports, for example `DUI_DEMO_PORT=25594 DUI_PACK_PORT=25595 python3 scripts/demo.py e2e --scenario shop`. Prepare and install with the same environment. Test clients use the chosen loopback server port.
+
+The compact templates are not guaranteed to fit a 320×240 GUI viewport. Vanilla dialog chrome and native item carrier bodies also consume space. A 640×480 window at GUI scale 2 on an ordinary display supplies only 320×240 units. Select a smaller GUI scale or a larger window; vanilla does not report the viewport to the plugin. Integration fixtures normalize display pixel ratios and record actual GUI bounds, including Auto scale.

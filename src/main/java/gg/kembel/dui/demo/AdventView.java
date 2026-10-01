@@ -25,21 +25,27 @@ public final class AdventView {
         row = compact ? 27 : 54,
         origin = compact ? 16 : 27,
         top = compact ? 36 : 99;
-    for (int i = 0; i < 24; i++) {
+    var cells = new ArrayList<GridLayout.Cell>();
+    for (int i = 0; i < CELLS.length; i++) {
       int[] cell = CELLS[i];
-      int w = cell[2] * stride - 6, h = cell[3] * row - (compact ? 0 : 9);
+      cells.add(new GridLayout.Cell("gift_" + DAYS[i], cell[0], cell[1], cell[2], cell[3]));
+    }
+    var geometry = GridLayout.place(cells, 8, 4, origin, top, stride, row, 6, compact ? 0 : 9);
+    for (int i = 0; i < 24; i++) {
+      var box = geometry.get(i);
+      int w = box.width(), h = box.height();
       int day = DAYS[i];
       var d = new HashMap<String, Object>();
       d.put("day", day);
-      d.put("x", origin + cell[0] * stride);
-      d.put("y", top + cell[1] * row);
+      d.put("x", box.x());
+      d.put("y", box.y());
       d.put("w", w);
       d.put("h", h);
-      d.put("ix", origin + cell[0] * stride + 3);
-      d.put("iy", top + cell[1] * row + 2);
+      d.put("ix", box.x() + 3);
+      d.put("iy", box.y() + 2);
       d.put("iw", w - 6);
       d.put("ih", h - 12);
-      d.put("ny", top + cell[1] * row + h - 9);
+      d.put("ny", box.y() + h - 9);
       d.put("color", hex(AdventArt.COLORS[day % 6]));
       d.put("key", "gift_" + day);
       result.add(d);
@@ -70,7 +76,7 @@ public final class AdventView {
   public static Map<String, Object> data(AdventState s, long tick) {
     boolean board = s.phase == AdventState.Phase.BOARD,
         shown = s.phase == AdventState.Phase.REVEALED;
-    int width = s.compact ? 320 : 480,
+    int width = LayoutProfile.choose(s.compact).width(),
         height = board ? (s.compact ? 180 : 360) : (s.compact ? 135 : 288);
     var d = new HashMap<String, Object>();
     d.put("width", width);
@@ -130,7 +136,10 @@ public final class AdventView {
   public static Canvas render(AdventState s, long tick) {
     try (var in = AdventView.class.getResourceAsStream("/ui/advent.html")) {
       return MenuTemplate.parse(
-              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8))
+              new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
+              new gg.kembel.dui.core.GlyphFont(),
+              gg.kembel.dui.components.VisualComponents.registry(),
+              "demo template")
           .render(data(s, tick), images(s));
     } catch (Exception e) {
       throw new IllegalStateException(e);

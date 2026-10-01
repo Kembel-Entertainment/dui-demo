@@ -82,7 +82,10 @@ class VideoTest {
         MenuTemplate.parse(
                 "<dui-menu width='150' height='36'><dui-layer height='fill'><dui-image id='test'"
                     + " source='{{source}}' x='9' y='9' width='60' height='18' pixel-size='2'"
-                    + " action='open'/></dui-layer></dui-menu>")
+                    + " action='open'/></dui-layer></dui-menu>",
+                new gg.kembel.dui.core.GlyphFont(),
+                gg.kembel.dui.components.VisualComponents.registry(),
+                "demo template")
             .render(Map.of("source", "sample"), Map.of("sample", image));
     assertEquals(1, c.images.size());
     assertEquals(30, c.images.getFirst().raster().width);
@@ -100,7 +103,12 @@ class VideoTest {
     var image = new RasterImage(1, 1, new int[] {0xFF0077});
     MenuTemplate template;
     try (var in = getClass().getResourceAsStream("/ui/videos.html")) {
-      template = MenuTemplate.parse(new String(in.readAllBytes(), StandardCharsets.UTF_8));
+      template =
+          MenuTemplate.parse(
+              new String(in.readAllBytes(), StandardCharsets.UTF_8),
+              new gg.kembel.dui.core.GlyphFont(),
+              gg.kembel.dui.components.VisualComponents.registry(),
+              "demo template");
     }
     for (boolean compact : List.of(false, true))
       for (boolean loading : List.of(false, true)) {
