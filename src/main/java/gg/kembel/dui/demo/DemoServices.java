@@ -35,5 +35,14 @@ interface DemoServices {
 
   TaskScope tasks();
 
+  default EquipmentPort equipment() {
+    return EquipmentPort.EMPTY;
+  }
+
+  default java.util.concurrent.CompletionStage<gg.kembel.dui.paper.PlayerAppearance>
+      resolveAppearance(gg.kembel.dui.paper.PlayerAppearance captured) {
+    return java.util.concurrent.CompletableFuture.completedFuture(captured);
+  }
+
   void refresh();
 }

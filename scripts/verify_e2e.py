@@ -9,7 +9,7 @@ out = ROOT / 'build/reports/e2e' / name
 run = json.loads((out / 'run.json').read_text())
 result = json.loads((out / 'client-result.json').read_text())
 log = (out / 'client.log').read_text()
-assert result['passed'] and result['inventoryUnchanged'], result
+assert result['passed'] and (result.get('inventoryUnchanged') or result.get('inventoryConserved')), result
 assert '_TEST_COMPLETE' in log and '_TEST_FAILED' not in log
 for error in ("Couldn't compile", 'Failed to load required shader', 'Unable to load font', 'DecoderException', 'Missing texture references', 'Missing textures in model'):
     assert error not in log, error
@@ -26,7 +26,7 @@ for file in sorted((out / 'screenshots').glob('*.png')):
     if images:
         _, _, pixel = png(file)
     occluders = []
-    for kind in ('paints', 'effects', 'heads', 'items'):
+    for kind in ('paints', 'effects', 'heads', 'items', 'playerModels'):
         for shape in layout.get(kind, []):
             occluders.append((shape['x'], shape['y'], shape.get('width', shape.get('size', 0)), shape.get('height', shape.get('size', 0))))
     occluders.extend((i['x'], i['y'], i['width'], i['height']) for i in images if not i.get('background', False))
@@ -58,7 +58,7 @@ report = dict(result='PASS', scenario=name, client=result, screenshots=screens, 
 cards = ''.join(('<section><h2>' + s.removesuffix('.png') + '</h2><img src="screenshots/' + s + '"></section>' for s in screens))
 (out / 'index.html').write_text('<!doctype html><html lang="en"><meta charset="utf-8"><title>dui demo / ' + name + '</title><style>body{max-width:1100px;margin:40px auto;background:#181c28;color:#edf0f8;font:16px system-ui}img{width:100%}</style><h1>dui demo / ' + name + '</h1>' + cards + '</html>')
 print('PASS', name, 'steps=' + str(result['steps']), 'screenshots=' + str(len(screens)), 'runtimeImageProbes=' + str(image_probes))
-if name in ('slots', 'confetti', 'advent', 'warps', 'poker', 'roulette', 'blackjack', 'protocol', 'casino'):
+if name in ('slots', 'confetti', 'advent', 'warps', 'poker', 'roulette', 'blackjack', 'protocol', 'casino', 'character'):
     import subprocess
     subprocess.run([sys.executable, str(ROOT / 'scripts' / ('verify_' + name + '.py'))], check=True)
 if name == 'shop':

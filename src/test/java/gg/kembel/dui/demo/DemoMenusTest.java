@@ -26,7 +26,15 @@ class DemoMenusTest {
               new ExclusionStrategy() {
                 public boolean shouldSkipField(FieldAttributes field) {
                   return Set.of(
-                          "controller", "ui", "menu", "settlement", "items", "videoModel", "random")
+                          "controller",
+                          "ui",
+                          "menu",
+                          "settlement",
+                          "items",
+                          "videoModel",
+                          "random",
+                          "snapshot",
+                          "resolved")
                       .contains(field.getName());
                 }
 
@@ -233,7 +241,7 @@ class DemoMenusTest {
       menu.validate(false);
       menu.validate(true);
     }
-    assertEquals(16, ids.size());
+    assertEquals(17, ids.size());
   }
 
   @Test

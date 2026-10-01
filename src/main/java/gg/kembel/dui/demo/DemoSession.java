@@ -13,6 +13,7 @@ final class DemoSession {
   int acceptancePage;
   long protocolTick;
   boolean protocolMotion = true, protocolPopup;
+  CharacterState character = new CharacterState();
   ShowcaseState kit = new ShowcaseState();
   DisplayPreferences display = new DisplayPreferences(), preview;
   ShopState shop = new ShopState();

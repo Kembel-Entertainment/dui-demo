@@ -47,11 +47,13 @@ Connect an unmodified Minecraft **26.2** client to **127.0.0.1:25584** and accep
 | `/dui videos spacious` | Live YouTube feed and runtime RGB thumbnails |
 | `/dui acceptance compact` | Field Journal: unrelated public controller, chrome, stable collection and cached RGBA asset |
 | `/dui protocol spacious` | 14-effect batching, consumer shader extension, generic motion and popup coverage lab |
+| `/character spacious` | Aster: live full-body skin and armor, real equipment pickers, rarity borders and vanilla attributes |
+| `/character kit` | Explicit OP-only sample gear; opening the sheet grants nothing |
 | `/dui reload` | Validate and reload every template; requires `dui-demo.reload` |
 
 The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots`, `/advent`, `/warps`, `/poker`, `/roulette`, `/blackjack` and `/uivideos` are also available. Reward, Advent, warp, poker, roulette, blackjack, shop, slot and video commands accept `compact`/`spacious`. `/uivideos refresh` checks the feed again.
 
-Active templates are copied to `run/server/plugins/dui-demo/ui/`. Change those templates and reload; the pack remains unchanged. Java supplies view data, business actions and own artwork only. The QR is generated at runtime and points to the demo YouTube video; it is not a real payment system. Balances and rewards are demo-only and never grant real items.
+Active templates are copied to `run/server/plugins/dui-demo/ui/`. Change those templates and reload; the pack remains unchanged. Java supplies view data, business actions and own artwork only. The QR is generated at runtime and points to the demo YouTube video; it is not a real payment system. Casino balances and reward screens are demo-only. The Aster character sheet uses real inventory equipment; its separate OP-only `/character kit` explicitly creates sample items.
 
 When `videos.live` is enabled, the service restores its last successful feed and thumbnails from `run/server/plugins/dui-demo/videos-cache/` before requesting updates. HTTP errors retain that snapshot and show a cached-results status; the saved check time is preserved. Disk reads, decoding and network requests run outside Paper's main thread. Successful downloads replace the cache atomically. The downloaded media is ignored by Git and never added to the resource pack.
 
@@ -66,7 +68,7 @@ When `videos.live` is enabled, the service restores its last successful feed and
   -PacceptEula=true -Pscenario=videos -PliveVideos e2e
 ```
 
-Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `blackjack`, `slots`, `confetti`, `videos`, `protocol`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
+Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `blackjack`, `slots`, `confetti`, `videos`, `protocol`, `casino`, `character`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
 
 By default, E2E videos use deterministic own gradient images and feed entries; the ordinary demo uses the live Minecraft YouTube channel. `liveVideos` opts into real network requests, using the saved snapshot if the upstream feed is unavailable. Temporary test config and operator access are restored after the run.
 
@@ -107,3 +109,6 @@ The compact templates are not guaranteed to fit a 320×240 GUI viewport. Vanilla
 ## Additional arcade demos
 
 `/horses`, `/wheel`, `/coinflip` and `/bookofra` open four animated games built entirely in this demo using dui's public component and pack extension APIs. Each supports Compact/Wide, Motion/Still, Rules and demo credits. [Rules, architecture and extension contracts](docs/arcade.md).
+
+
+See [the Aster implementation guide](docs/character.md) for the equipment controller and [the library player-model contract](https://github.com/Kembel-Entertainment/dui/blob/master/docs/player-model.md) for its reusable GPU component.

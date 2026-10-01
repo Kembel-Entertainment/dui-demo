@@ -36,6 +36,8 @@ public final class ProtocolView {
             tick, 24, 0, Motion.Easing.EASE_OUT, motion, -18, 0, .5, 1, -15, 0, 0, 1, .5, .5));
     c.item("native", 252, 108, 36, new ItemClip(240, 90, 108, 63));
     c.motion("native", Motion.pop(tick, 24, 18, motion));
+    c.playerModel("classic", "classic", 78, 81, 48, 72, 1, true, motion);
+    c.playerModel("slim", "slim", 126, 81, 48, 72, 1, true, motion);
     c.head(270, 126, "texture:minecraft:entity/player/wide/steve", true);
     c.image("patch", 288, 126, 18, 18, 3, new RasterImage(1, 1, new int[] {0xFDBA74}));
     var overlays = new ArrayList<Runnable>();

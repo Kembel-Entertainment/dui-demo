@@ -51,7 +51,22 @@ final class ProtocolMenu extends DemoMenu {
   MenuView project(DemoSession s) {
     return new MenuView(
         ProtocolView.render(s.protocolTick, s.protocolMotion, s.protocolPopup),
-        new ViewModel(Map.of(), Map.of(), s.items, Map.of()),
+        new ViewModel(
+            Map.of(),
+            Map.of(),
+            s.items,
+            Map.of(),
+            Map.of(
+                "classic",
+                PlayerAppearance.skinResource(
+                    "minecraft:entity/player/wide/steve",
+                    false,
+                    Arrays.asList(null, null, null, null)),
+                "slim",
+                PlayerAppearance.skinResource(
+                    "minecraft:entity/player/slim/alex",
+                    true,
+                    Arrays.asList(null, null, null, null)))),
         DialogOptions.notice("dui / Protocol lab", "Close", "protocol_close"));
   }
 

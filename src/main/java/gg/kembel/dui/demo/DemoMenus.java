@@ -24,6 +24,7 @@ final class DemoMenus {
         services -> new ArcadeMenu(services, ArcadeMenu.Game.BOOK),
         VideosMenu::new,
         AcceptanceMenu::new,
-        ProtocolMenu::new);
+        ProtocolMenu::new,
+        CharacterMenu::new);
   }
 }

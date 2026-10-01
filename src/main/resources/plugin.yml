@@ -49,6 +49,11 @@ commands:
     description: Open Temple of Dawn, the original book adventure demo
   book:
     description: Open Temple of Dawn
+  character:
+    description: Open the Aster character sheet and equip inventory items
+    usage: /character [compact|spacious|kit]
 permissions:
+  dui-demo.character-kit:
+    default: op
   dui-demo.reload:
     default: op

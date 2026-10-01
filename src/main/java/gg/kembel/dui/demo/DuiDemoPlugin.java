@@ -191,6 +191,18 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         return Objects.requireNonNull(templates.get(name), name);
       }
 
+      public EquipmentPort equipment() {
+        return new PaperEquipment(player);
+      }
+
+      public java.util.concurrent.CompletionStage<PlayerAppearance> resolveAppearance(
+          PlayerAppearance captured) {
+        var profile = captured.profile();
+        if (profile == null || !captured.fallback())
+          return java.util.concurrent.CompletableFuture.completedFuture(captured);
+        return profile.update().thenApply(p -> new PlayerAppearance(p, captured.armor()));
+      }
+
       public String viewerName() {
         return player.getName();
       }
@@ -342,6 +354,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       data.put("effectMotions", c.effectMotions);
       data.put("coverage", c.coverage);
       data.put("heads", c.heads);
+      data.put("playerModels", c.playerModels);
       data.put("paints", c.paints);
       data.put("effects", c.effects);
       data.put("packSha1", metadata.sha1());
@@ -527,6 +540,12 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
               + String.join(
                   "|", catalogue.definitions().stream().map(MenuCatalogue.Definition::id).toList())
               + "|setup|reload]");
+      return true;
+    }
+    if (section.equals("character")
+        && !arguments.isEmpty()
+        && arguments.getFirst().equalsIgnoreCase("kit")) {
+      PaperEquipment.kit(p);
       return true;
     }
     var s = session(p);
