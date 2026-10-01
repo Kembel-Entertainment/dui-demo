@@ -7,7 +7,7 @@ description: Work in progress examples for the embedded dui library
 commands:
   dui:
     description: Explore the dui demo
-    usage: /dui [components|setup|shop|rewards|advent|warps|poker|roulette|blackjack|slots|videos|reload] [compact|spacious|refresh]
+    usage: /dui [components|setup|shop|rewards|advent|warps|poker|roulette|blackjack|slots|horses|wheel|coinflip|bookofra|videos|reload] [compact|spacious|refresh]
   uikit:
     description: Open the component catalogue
   uishop:
@@ -31,6 +31,24 @@ commands:
     usage: /blackjack [compact|spacious]
   uivideos:
     description: Open runtime video thumbnails
+  horses:
+    description: Race four illustrated horses with demo credits
+  horserace:
+    description: Open Nightfall Derby
+  pferderennen:
+    description: Open Nightfall Derby
+  wheel:
+    description: Spin the Prism prize wheel with demo credits
+  gluecksrad:
+    description: Open the Prism prize wheel
+  fortunewheel:
+    description: Open the Prism prize wheel
+  coinflip:
+    description: Call heads or tails in Sun and Moon
+  bookofra:
+    description: Open Temple of Dawn, the original book adventure demo
+  book:
+    description: Open Temple of Dawn
 permissions:
   dui-demo.reload:
     default: op

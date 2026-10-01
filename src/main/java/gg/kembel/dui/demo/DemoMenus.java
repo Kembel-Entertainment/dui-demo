@@ -18,6 +18,10 @@ final class DemoMenus {
         RouletteMenu::new,
         BlackjackMenu::new,
         SlotsMenu::new,
+        services -> new ArcadeMenu(services, ArcadeMenu.Game.HORSES),
+        services -> new ArcadeMenu(services, ArcadeMenu.Game.WHEEL),
+        services -> new ArcadeMenu(services, ArcadeMenu.Game.COIN),
+        services -> new ArcadeMenu(services, ArcadeMenu.Game.BOOK),
         VideosMenu::new,
         AcceptanceMenu::new,
         ProtocolMenu::new);

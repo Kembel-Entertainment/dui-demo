@@ -1,0 +1,31 @@
+<dui-menu width="{{width}}" height="{{height}}" animation-start="{{startedAt}}" motion="{{motion}}" focus-outline="hidden">
+  <dui-layer width="fill" height="fill">
+    <dui-demo-arcade-chrome width="fill" height="fill" title="{{title}}" subtitle="{{subtitle}}" compact="{{compact}}" wide="{{wide}}" background="{{background}}" panel="{{panel}}" accent="{{accent}}" ink="{{ink}}" motion-label="{{motionLabel}}" size-label="{{sizeLabel}}" help-label="{{helpLabel}}" busy="{{busy}}" credits="{{credits}}" returned="{{returned}}" status="{{status}}" wager="{{wager}}" play-label="{{playLabel}}" play-locked="{{playLocked}}" less-locked="{{lessLocked}}" more-locked="{{moreLocked}}" />
+    <dui-if test="{{playground}}">
+      <dui-if test="{{wide}}">
+        <dui-demo-coin id="coin" x="27" y="45" width="171" height="171" a="{{a}}" b="{{b}}" duration="{{duration}}" />
+        <dui-heading x="246" y="63" width="210" height="18" label="{{outcome}}" color="{{accent}}" />
+        <dui-button id="choose_0" x="246" y="108" width="102" height="36" label="HEADS / SUN" active="{{heads}}" action="arcade_select" payload="0" locked="{{busy}}" fill="{{panel}}" border="{{accent}}" color="{{ink}}" />
+        <dui-button id="choose_1" x="354" y="108" width="102" height="36" label="TAILS / MOON" active="{{tails}}" action="arcade_select" payload="1" locked="{{busy}}" fill="{{panel}}" border="{{accent}}" color="{{ink}}" />
+        <dui-text x="246" y="171" width="210" height="9" label="50 / 50. WIN RETURNS 2x." color="{{ink}}" />
+      </dui-if>
+      <dui-if test="{{compact}}">
+        <dui-demo-coin id="coin" x="12" y="18" width="108" height="108" a="{{a}}" b="{{b}}" duration="{{duration}}" />
+        <dui-text x="150" y="36" width="156" height="9" label="{{outcome}}" color="{{accent}}" />
+        <dui-button id="choose_0" x="150" y="63" width="74" height="27" label="HEADS" active="{{heads}}" action="arcade_select" payload="0" locked="{{busy}}" fill="{{panel}}" border="{{accent}}" color="{{ink}}" />
+        <dui-button id="choose_1" x="230" y="63" width="74" height="27" label="TAILS" active="{{tails}}" action="arcade_select" payload="1" locked="{{busy}}" fill="{{panel}}" border="{{accent}}" color="{{ink}}" />
+        <dui-text x="150" y="108" width="156" height="9" label="CORRECT CALL = 2x" color="{{ink}}" />
+      </dui-if>
+    </dui-if>
+    <dui-if test="{{help}}">
+      <dui-repeat items="rules" as="rule">
+        <dui-if test="{{wide}}">
+          <dui-text x="18" y="{{rule.wideY}}" width="444" height="9" label="{{rule.text}}" color="{{ink}}" />
+        </dui-if>
+        <dui-if test="{{compact}}">
+          <dui-text x="10" y="{{rule.compactY}}" width="300" height="9" label="{{rule.text}}" color="{{ink}}" />
+        </dui-if>
+      </dui-repeat>
+    </dui-if>
+  </dui-layer>
+</dui-menu>

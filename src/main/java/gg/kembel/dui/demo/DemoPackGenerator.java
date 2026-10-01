@@ -22,6 +22,27 @@ public final class DemoPackGenerator {
         Path.of(args[0]),
         Path.of(args[2]),
         Path.of(args[1]),
-        List.of(new PackContribution("demo", Map.of(), List.of(pulse))));
+        List.of(
+            new PackContribution(
+                "demo",
+                Map.of(),
+                List.of(
+                    pulse,
+                    effect("race", 9, "demoRace"),
+                    effect("prize-wheel", 10, "demoPrizeWheel"),
+                    effect("coin", 11, "demoCoin"),
+                    effect("temple-reel", 12, "demoTempleReel")))));
+  }
+
+  private static PackContribution.Effect effect(String name, int code, String function)
+      throws Exception {
+    try (var in = DemoPackGenerator.class.getResourceAsStream("/casino/" + name + ".glsl")) {
+      return new PackContribution.Effect(
+          "demo:" + name,
+          code,
+          function,
+          new String(
+              Objects.requireNonNull(in).readAllBytes(), java.nio.charset.StandardCharsets.UTF_8));
+    }
   }
 }

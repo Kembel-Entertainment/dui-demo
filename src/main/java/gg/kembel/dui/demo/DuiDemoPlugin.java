@@ -132,7 +132,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
           dui.compile(
               "ui/" + name + ".html",
               Files.readString(directory.resolve("ui/" + name + ".html")),
-              gg.kembel.dui.components.VisualComponents.registry()));
+              CasinoComponents.registry()));
     var old = new HashMap<>(templates);
     templates.clear();
     templates.putAll(next);

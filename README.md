@@ -103,3 +103,7 @@ The [dui roadmap](https://github.com/Kembel-Entertainment/dui/blob/master/docs/r
 Muted integration tests may run alongside a local demo with distinct ports, for example `DUI_DEMO_PORT=25594 DUI_PACK_PORT=25595 python3 scripts/demo.py e2e --scenario shop`. Prepare and install with the same environment. Test clients use the chosen loopback server port.
 
 The compact templates are not guaranteed to fit a 320×240 GUI viewport. Vanilla dialog chrome and native item carrier bodies also consume space. A 640×480 window at GUI scale 2 on an ordinary display supplies only 320×240 units. Select a smaller GUI scale or a larger window; vanilla does not report the viewport to the plugin. Integration fixtures normalize display pixel ratios and record actual GUI bounds, including Auto scale.
+
+## Additional arcade demos
+
+`/horses`, `/wheel`, `/coinflip` and `/bookofra` open four animated games built entirely in this demo using dui's public component and pack extension APIs. Each supports Compact/Wide, Motion/Still, Rules and demo credits. [Rules, architecture and extension contracts](docs/arcade.md).

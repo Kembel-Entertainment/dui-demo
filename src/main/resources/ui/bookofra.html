@@ -1,0 +1,33 @@
+<dui-menu width="{{width}}" height="{{height}}" animation-start="{{startedAt}}" motion="{{motion}}" focus-outline="hidden">
+  <dui-layer width="fill" height="fill">
+    <dui-demo-arcade-chrome width="fill" height="fill" title="{{title}}" subtitle="{{subtitle}}" compact="{{compact}}" wide="{{wide}}" background="{{background}}" panel="{{panel}}" accent="{{accent}}" ink="{{ink}}" motion-label="{{motionLabel}}" size-label="{{sizeLabel}}" help-label="{{helpLabel}}" busy="{{busy}}" credits="{{credits}}" returned="{{returned}}" status="{{status}}" wager="{{wager}}" play-label="{{playLabel}}" play-locked="{{playLocked}}" less-locked="{{lessLocked}}" more-locked="{{moreLocked}}" />
+    <dui-if test="{{playground}}">
+      <dui-if test="{{wide}}">
+        <dui-button id="bonus_demo" x="336" y="36" width="126" height="18" label="Bonus demo" action="arcade_bonus" locked="{{busy}}" fill="{{panel}}" color="{{accent}}" />
+        <dui-text x="18" y="54" width="444" height="9" label="{{bonus}}" align="center" color="{{accent}}" />
+      </dui-if>
+      <dui-if test="{{compact}}">
+        <dui-text x="10" y="18" width="200" height="9" label="{{bonus}}" color="{{accent}}" />
+        <dui-button id="bonus_demo" x="216" y="18" width="96" height="9" label="Bonus demo" action="arcade_bonus" locked="{{busy}}" fill="{{panel}}" color="{{accent}}" />
+      </dui-if>
+      <dui-repeat items="reels" as="reel">
+        <dui-if test="{{wide}}">
+          <dui-demo-temple-reel id="reel_{{reel.id}}" x="{{reel.x}}" y="72" width="{{reel.width}}" height="135" a="{{reel.a}}" b="{{reel.b}}" duration="{{duration}}" />
+        </dui-if>
+        <dui-if test="{{compact}}">
+          <dui-demo-temple-reel id="reel_{{reel.id}}" x="{{reel.x}}" y="27" width="{{reel.width}}" height="90" a="{{reel.a}}" b="{{reel.b}}" duration="{{duration}}" />
+        </dui-if>
+      </dui-repeat>
+    </dui-if>
+    <dui-if test="{{help}}">
+      <dui-repeat items="rules" as="rule">
+        <dui-if test="{{wide}}">
+          <dui-text x="18" y="{{rule.wideY}}" width="444" height="9" label="{{rule.text}}" color="{{ink}}" />
+        </dui-if>
+        <dui-if test="{{compact}}">
+          <dui-text x="10" y="{{rule.compactY}}" width="300" height="9" label="{{rule.text}}" color="{{ink}}" />
+        </dui-if>
+      </dui-repeat>
+    </dui-if>
+  </dui-layer>
+</dui-menu>

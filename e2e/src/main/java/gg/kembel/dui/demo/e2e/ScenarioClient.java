@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 public final class ScenarioClient implements ClientModInitializer {
   public void onInitializeClient() {
     switch (System.getProperty("dui.e2e.scenario", "showcase")) {
+      case "casino" -> new CasinoClient().initialize();
       case "showcase" -> new ShowcaseClient().initialize();
       case "shop" -> new ShopClient().initialize();
       case "blackjack" -> new BlackjackClient().initialize();

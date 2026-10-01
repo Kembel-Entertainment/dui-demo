@@ -23,6 +23,7 @@ final class DemoSession {
   BlackjackState blackjack = new BlackjackState();
   PokerState poker = new PokerState();
   SlotState slots = new SlotState();
+  final Map<String, ArcadeGame> arcade = new HashMap<>();
   BukkitTask settlement;
   int videoPage;
   boolean videoLoading, videoCompact;

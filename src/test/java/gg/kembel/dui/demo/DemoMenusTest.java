@@ -70,7 +70,7 @@ class DemoMenusTest {
               return MenuTemplate.parse(
                   new String(Objects.requireNonNull(stream).readAllBytes(), StandardCharsets.UTF_8),
                   new GlyphFont(),
-                  gg.kembel.dui.components.VisualComponents.registry(),
+                  CasinoComponents.registry(),
                   id);
             } catch (Exception e) {
               throw new IllegalStateException(e);
@@ -233,7 +233,27 @@ class DemoMenusTest {
       menu.validate(false);
       menu.validate(true);
     }
-    assertEquals(12, ids.size());
+    assertEquals(16, ids.size());
+  }
+
+  @Test
+  void newArcadeMenusCancelClosedTimersAndSettleOneRoundOnly() {
+    for (var game : ArcadeMenu.Game.values()) {
+      var services = open(ports -> new ArcadeMenu(ports, game), false);
+      var state = services.state.arcade.get(game.id);
+      state.help = true;
+      services.click("arcade_play", "");
+      assertFalse(state.help, "Play from Rules must expose the illustration");
+      assertTrue(state.pending);
+      services.menu.presented(services.state, services.project().canvas());
+      services.close();
+      assertFalse(state.pending);
+      long balance = state.credits;
+      services.scheduler.advance(500);
+      assertEquals(0, services.refreshed, "Closed animation reopened a menu");
+      assertEquals(1, state.rounds);
+      assertEquals(balance, state.credits);
+    }
   }
 
   @Test
