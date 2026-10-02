@@ -5,8 +5,8 @@ import zlib
 
 @cache
 def png(path):
-    """Read the 8-bit RGB(A) screenshots without a third-party imaging dependency."""
-    data = path.read_bytes(); assert data[:8] == b'\x89PNG\r\n\x1a\n'
+    """Read an 8-bit RGB(A) PNG path or archive bytes without imaging dependencies."""
+    data = path if isinstance(path, bytes) else path.read_bytes(); assert data[:8] == b'\x89PNG\r\n\x1a\n'
     pos = 8; packed = bytearray()
     while pos < len(data):
         n = struct.unpack('>I', data[pos:pos+4])[0]; kind = data[pos+4:pos+8]; block = data[pos+8:pos+8+n]; pos += n+12

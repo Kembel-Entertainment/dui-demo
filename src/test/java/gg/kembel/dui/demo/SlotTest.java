@@ -115,14 +115,14 @@ class SlotTest {
     s.previous = new int[] {5, 4, 3};
     s.reels = new int[] {2, 1, 0};
     s.startedAt = 24007;
-    long data = decode(ItemTransport.animationPayload(SlotView.render(s)).subList(0, 18));
+    long data = decode(TestTransport.animationPayload(SlotView.render(s)).subList(0, 18));
     assertEquals(7, data & 32767);
     assertEquals(480, (data >>> 15) & 511);
     assertEquals(270, (data >>> 24) & 511);
     assertEquals(6, (data >>> 33) & 511);
     assertEquals(0, (data >>> 42) & 511);
     assertEquals(1, data >>> 51);
-    assertEquals(0, decode(ItemTransport.confettiPayload(24001, 300, 144, 10, 20)) >>> 51);
+    assertEquals(0, decode(ItemTransport.headerPayload(24001, 300, 144, 10, 20)) >>> 51);
   }
 
   private static long decode(List<Integer> colors) {

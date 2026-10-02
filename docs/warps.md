@@ -12,7 +12,7 @@ Open `/dui warps spacious`, `/dui warps compact` or `/warps`. Four original real
 | [WarpArt](../src/main/java/gg/kembel/dui/demo/WarpArt.java) | Own pixel landscapes/seals, selected/unselected brass frames and generated model/texture additions |
 | [WarpItems](../src/main/java/gg/kembel/dui/demo/WarpItems.java) | Decorative native ItemStacks keyed by template placement ID |
 | [DuiDemoPlugin](../src/main/java/gg/kembel/dui/demo/DuiDemoPlugin.java) | Actions through the public API, a guarded finite completion callback and template reload |
-| dui `ItemTransition.SLIDE` / `ItemClip` | Reusable GPU motion and fixed native-pixel clipping; no warp-specific shader |
+| dui `Motion.slide` / `ItemClip` | Reusable GPU motion and fixed native-pixel clipping; no warp-specific shader |
 
 The illustrated cards are consumer-owned textured models, not pre-rendered Minecraft items. Only eight card variants (four scenes × normal/selected) are added to the demo resourcepack. All scenery is authored procedurally in WarpArt; none of the reference's assets, logos or names is shipped. Models/textures require pack regeneration; layout, labels, positions and timing can change through template/view data without new shaders.
 
@@ -20,7 +20,7 @@ The illustrated cards are consumer-owned textured models, not pre-rendered Minec
 
 The resting strip uses three native carriers. An arrow advances the selected index and submits four target placements, including one off-canvas outgoing/incoming card. A signed distance shifts every native quad from its prior position to its target over 24 world ticks with cubic easing. The fixed viewport discards pixels beyond the paper's card region, including fully hidden carrier pixels.
 
-Only the click update and one completion update are sent. The client shader draws the intermediate frames. The completion removes the hidden fourth carrier and unlocks fixed controls; it checks player/session/menu/generation before applying. Closing, switching menus, size changes and Motion off cancel previous work. Resting views omit transitions, preventing clock-wrap replay. Portal preview briefly bounces the selected model using the same library preset.
+Only the click update and one completion update are sent. The client shader draws the intermediate frames. The completion removes the hidden fourth carrier and unlocks fixed controls; it checks player/session/menu/generation before applying. Closing, switching menus, size changes and Motion off cancel previous work. Resting views omit motion attributes, preventing clock-wrap replay. Portal preview briefly bounces the selected model using the consumer motion factory.
 
 Vanilla dialogs send discrete actions, not pointer down/move/up, swipe deltas or scroll-wheel events. This demo provides a swipe-like carousel through arrows/card clicks, not true mouse/touch dragging. The card pictures themselves are visual native item layers; the template's separate stationary hits provide clicks. Input is locked while those pictures move so callbacks cannot target moving artwork incorrectly.
 

@@ -265,10 +265,10 @@ public final class RouletteView {
 
   public static Canvas render(RouletteGame s) {
     try (var in = RouletteView.class.getResourceAsStream("/ui/roulette.html")) {
-      return MenuTemplate.parse(
+      return DemoTemplates.parse(
               new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
-              new gg.kembel.dui.core.GlyphFont(),
-              gg.kembel.dui.components.VisualComponents.registry(),
+              DemoTemplates.font(),
+              DemoVisualComponents.registry(),
               "demo template")
           .render(data(s), RouletteArt.images());
     } catch (Exception e) {

@@ -11,7 +11,7 @@
   <dui-surface fill="#EBC99F" border="#B78361" highlight="#FFF1CE" bevel="3" x="12" y="{{paperY}}" width="{{inner}}" height="{{paperH}}" />
   <dui-rect x="{{viewportX}}" y="{{viewportY}}" width="{{viewportW}}" height="{{viewportH}}" fill="#DDB388" />
   <dui-repeat items="cards" as="card">
-   <dui-item id="{{card.id}}" x="{{card.x}}" y="{{card.y}}" width="{{card.size}}" height="{{card.size}}" size="{{card.size}}"
+   <dui-demo-item id="{{card.id}}" x="{{card.x}}" y="{{card.y}}" width="{{card.size}}" height="{{card.size}}" size="{{card.size}}"
      clip-x="{{viewportX}}" clip-y="{{viewportY}}" clip-width="{{viewportW}}" clip-height="{{viewportH}}"
      transition="{{card.transition}}" transition-start="{{tick}}" transition-duration="{{duration}}" transition-distance="{{distance}}" />
   </dui-repeat>

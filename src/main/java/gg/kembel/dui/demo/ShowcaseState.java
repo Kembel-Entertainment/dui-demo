@@ -231,7 +231,7 @@ public final class ShowcaseState {
     data.put("detail", current.detail);
     data.put("notice", notice);
     data.put("theme", dark ? "studio_dark" : "studio");
-    data.put("themeIcon", dark ? "sun" : "moon");
+    data.put("themeIcon", dark ? "demo:sun" : "demo:moon");
     data.put("themeHint", dark ? "Switch to light mode" : "Switch to dark mode");
     data.put("checkbox", checkbox);
     data.put("variant", variant);

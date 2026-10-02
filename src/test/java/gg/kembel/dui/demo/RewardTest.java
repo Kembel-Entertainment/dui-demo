@@ -130,16 +130,16 @@ class RewardTest {
     s.claim(DAY);
     s.burstStarted = 23999;
     var c = RewardView.render(s, DAY);
-    assertEquals(23999, c.confetti.startedAt());
+    assertEquals(23999, c.animation.startedAt());
     var restored = new Gson().fromJson(new Gson().toJson(s), RewardState.class);
     assertEquals(-1, restored.burstStarted);
     s.apply("reward_motion", "", DAY);
-    assertNull(RewardView.render(s, DAY).confetti);
+    assertTrue(RewardView.render(s, DAY).effects.isEmpty());
     s.apply("reward_motion", "", DAY);
-    assertNull(RewardView.render(s, DAY).confetti);
+    assertTrue(RewardView.render(s, DAY).effects.isEmpty());
     s.burstStarted = 24020;
     s.apply("reward_done", "", DAY);
-    assertNull(RewardView.render(s, DAY).confetti);
+    assertTrue(RewardView.render(s, DAY).effects.isEmpty());
   }
 
   @Test
@@ -150,7 +150,7 @@ class RewardTest {
             h = compact ? 144 : 306,
             x = compact ? 27 : 45,
             y = compact ? 74 : 75;
-        var colors = ItemTransport.confettiPayload(tick, w, h, x, y);
+        var colors = ItemTransport.headerPayload(tick, w, h, x, y);
         long data = 0;
         for (int i = 0; i < colors.size(); i++) {
           int rgb = colors.get(i);
@@ -171,6 +171,6 @@ class RewardTest {
         assertEquals(0x0000FF, plain.get(9) ^ burst.get(9));
       }
     assertThrows(
-        IllegalArgumentException.class, () -> ItemTransport.confettiPayload(-1, 480, 306, 45, 75));
+        IllegalArgumentException.class, () -> ItemTransport.headerPayload(-1, 480, 306, 45, 75));
   }
 }

@@ -118,10 +118,10 @@ public final class WarpView {
 
   public static Canvas render(WarpState s) {
     try (var in = WarpView.class.getResourceAsStream("/ui/warps.html")) {
-      return MenuTemplate.parse(
+      return DemoTemplates.parse(
               new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
-              new gg.kembel.dui.core.GlyphFont(),
-              gg.kembel.dui.components.VisualComponents.registry(),
+              DemoTemplates.font(),
+              DemoVisualComponents.registry(),
               "demo template")
           .render(data(s));
     } catch (Exception e) {

@@ -41,11 +41,11 @@ SMALL_DIGITS=(
 
 def labels(name,detailed):
     meta,sample=frame(name)
-    effect=next(e for e in meta['layout']['effects'] if e['kind']=='WHEEL')
+    effect=next(e for e in meta['layout']['effects'] if e['shader']['id']=='demo:wheel')
     radius=effect['width']*.47
     cx=effect['x']+effect['width']/2;cy=effect['y']+effect['height']/2
     step=math.tau/37
-    target=effect['parameter0']&63
+    target=effect['parameters']['a']&63
     rotation=-NUMBERS.index(target)*step
     digits=WIDE_DIGITS if detailed else SMALL_DIGITS
     columns=len(digits[0][0]);rows=len(digits[0])
@@ -120,7 +120,16 @@ def labels(name,detailed):
     assert points,(name,'Missing zero glyph')
     aspect=(max(x for x,y in points)-min(x for x,y in points)+pitch)/(max(y for x,y in points)-min(y for x,y in points)+pitch)
     expected=columns/rows
-    assert abs(aspect-expected)<.12,(name,aspect,expected,'Stretched wheel numerals')
+    ink_width=max(x for x,y in points)-min(x for x,y in points)+pitch
+    ink_height=max(y for x,y in points)-min(y for x,y in points)+pitch
+    # Compact strokes can be only 3-5 physical pixels tall. Raster boundaries and
+    # sampling may round each of the two edges by one pixel; validate proportions
+    # within that physical bound instead of a resolution-independent ratio tolerance.
+    edge_error=2*pitch
+    assert abs(ink_width-columns*unit)<=edge_error,(name,ink_width,columns*unit,'Horizontal label scaling')
+    assert abs(ink_height-rows*unit)<=edge_error,(name,ink_height,rows*unit,'Vertical label scaling')
+    tolerance=edge_error*(1+expected)/ink_height
+    assert abs(aspect-expected)<=tolerance,(name,aspect,expected,tolerance,'Stretched wheel numerals')
     return dict(pockets=len(pockets),glyphProbes=probes,matched=matched,matchRatio=matched/probes,dividerInk=gap_ink,zeroAspect=aspect,
         adjacentTwoDigitPairs=len(pair_gaps),minimumPairGapFraction=min(pair_gaps))
 
@@ -140,17 +149,17 @@ def placed_chips(name):
     return count
 
 motion={}
-for early,late,name,kind in [('spin-early','spin-middle','wheel','WHEEL'),('spin-middle','spin-late','ball-drop','WHEEL'),('payout-early','payout-late','payout','CHIP_STACK'),('compact-early','compact-late','compact','WHEEL')]:
+for early,late,name,kind in [('spin-early','spin-middle','wheel','demo:wheel'),('spin-middle','spin-late','ball-drop','demo:wheel'),('payout-early','payout-late','payout','demo:chip-stack'),('compact-early','compact-late','compact','demo:wheel')]:
     ma,a=frame(early);mb,b=frame(late)
-    e=next(e for e in ma['layout']['effects'] if e['kind']==kind)
+    e=next(e for e in ma['layout']['effects'] if e['shader']['id']==kind)
     motion[name]=changes(a,b,e);assert motion[name]>20,(name,motion[name])
 ma,a=frame('motion-off');mb,b=frame('still-frame')
 still=changes(a,b,dict(x=0,y=0,width=ma['layout']['width'],height=ma['layout']['height']))
 assert still==0,still
 meta,sample=frame('result');layout=meta['layout']
 assert layout['balance']==4995 and layout['return']==180 and layout['rounds']==1 and layout['stake']==0
-e=next(e for e in layout['effects'] if e['kind']=='WHEEL')
-assert e['parameter0']&63==layout['result']
+e=next(e for e in layout['effects'] if e['shader']['id']=='demo:wheel')
+assert e['parameters']['a']&63==layout['result']
 # The ivory ball must be visible in the winning pocket under the fixed twelve-o'clock marker.
 cx=e['x']+e['width']/2;cy=e['y']+e['height']/2-e['width']*.47*.60
 ball=sample(cx,cy)

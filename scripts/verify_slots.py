@@ -33,17 +33,17 @@ def difference(first, second, area):
     return sum(a(xx, yy) != b(xx, yy) for yy in range(y,y+height) for xx in range(x,x+width))
 
 def effects(name, kind):
-    return [e for e in screenshot(name)[0]['layout']['effects'] if e['kind'] == kind]
+    return [e for e in screenshot(name)[0]['layout']['effects'] if e['shader']['id'] == kind]
 
 def bounds(effect):
     return tuple(effect[key] for key in ('x','y','width','height'))
 
-moving = [difference('wide-pull','wide-spin',bounds(e)) for e in effects('wide-spin','REEL')]
+moving = [difference('wide-pull','wide-spin',bounds(e)) for e in effects('wide-spin','demo:reel')]
 assert min(moving) > 200, moving
-lever = difference('wide-idle','wide-pull',bounds(effects('wide-pull','LEVER')[0]))
+lever = difference('wide-idle','wide-pull',bounds(effects('wide-pull','demo:lever')[0]))
 assert lever > 80, lever
 # First reel has stopped at 2.4 s; the third continues until 3.35 s.
-sequential = [difference('wide-stop-one','wide-stop-two',bounds(e)) for e in effects('wide-stop-one','REEL')]
+sequential = [difference('wide-stop-one','wide-stop-two',bounds(e)) for e in effects('wide-stop-one','demo:reel')]
 assert sequential[0] == 0 and sequential[2] > 100, sequential
 # Motion off produces byte-identical opaque canvas samples (the bevel corners expose the world).
 still = difference('compact-no-motion','compact-still',(2,2,296,140))
@@ -59,7 +59,7 @@ for i in range(3):
     red.append(sum((lambda rgb: rgb[0]>150 and rgb[1]<110 and rgb[2]<140)(sample(x,y)) for y in range(101,151) for x in range(42+i*84,90+i*84)))
 assert min(red) > 100, red
 # HTML-only reload changes the shader's actual pixels, with the same pack hash.
-dynamic_reels = effects('dynamic-finished','REEL')
+dynamic_reels = effects('dynamic-finished','demo:reel')
 assert [bounds(e) for e in dynamic_reels] == [(39,90,60,72),(117,90,60,72),(195,90,60,72)]
 _, dynamic = screenshot('dynamic-finished')
 dynamic_red = []
@@ -93,11 +93,11 @@ report = dict(result='PASS',clientSteps=result['steps'],muted=True,inventoryUnch
     checks=['real lever clicks','three rolling reels stop sequentially','recognizable 777 artwork','finite coin payout',
             'preview modes preserve chip balance','charged spin settles while closed','Compact with GUI Auto','no per-frame dialog replacement','no inventory changes',
             'HTML reload moves and resizes shader components without rebuilding the pack','white focus border masked on tagged canvases','native focus border remains available'])
-(OUT / 'verification.json').write_text(json.dumps(report,indent=2)+'\n')
+(OUT / 'slots-verification.json').write_text(json.dumps(report,indent=2)+'\n')
 names = ['wide-idle','wide-focused','wide-pull','wide-spin','wide-stop-one','wide-stop-two','wide-coins','wide-more-coins','wide-finished','wide-pair','wide-miss','compact-spin','compact-coins','compact-finished','compact-focused','compact-payouts','compact-no-motion','dynamic-finished','wide-native-focused']
 cards = ''.join(f'<section><h2>{n.replace("-"," ").title()}</h2><img src="screenshots/{n}.png"></section>' for n in names)
 (OUT / 'index.html').write_text('''<!doctype html><html lang="en"><meta charset="utf-8"><title>dui demo / Demo arcade</title>
 <style>body{max-width:1100px;margin:40px auto;background:#211429;color:#fff0c9;font:16px/1.6 system-ui;padding:24px}a{color:#f1bf68}img{width:100%}section{margin:32px 0}</style>
 <h1>dui demo / Demo arcade</h1><p>Real Minecraft screenshots: procedural reels, a clickable lever and gold coin payout.</p>
-<p><a href="verification.json">Pixel verification report</a></p>'''+cards+'</html>')
+<p><a href="slots-verification.json">Pixel verification report</a></p>'''+cards+'</html>')
 print('PASS:',json.dumps(report))

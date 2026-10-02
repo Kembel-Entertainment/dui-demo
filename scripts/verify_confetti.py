@@ -64,11 +64,11 @@ report = dict(result='PASS', clientSteps=result['steps'], muted=True, inventoryU
                       'full fade before marker cleanup', 'no per-frame dialog replacement',
                       'buttons work through confetti', 'motion off stops burst', 'motion on does not replay',
                       'Escape during burst stays closed past expiry', 'reopen does not replay'])
-(OUT / 'verification.json').write_text(json.dumps(report,indent=2)+'\n')
+(OUT / 'confetti-verification.json').write_text(json.dumps(report,indent=2)+'\n')
 names = ['wide-early','wide-late','wide-settled','wide-clean','compact-early','compact-late','motion-disabled','motion-still']
 cards = ''.join(f'<section><h2>{n.replace("-"," ").title()}</h2><img src="screenshots/{n}.png"></section>' for n in names)
 (OUT / 'index.html').write_text('''<!doctype html><html lang="en"><meta charset="utf-8"><title>dui demo / Confetti burst</title>
 <style>body{max-width:1100px;margin:40px auto;background:#251e36;color:#fff9ed;font:16px/1.6 system-ui;padding:24px}a{color:#ffdf75}img{width:100%}section{margin:32px 0}</style>
 <h1>dui demo / Confetti burst</h1><p>Real Minecraft screenshots: a finite UI shader burst with working controls.</p>
-<p><a href="verification.json">Pixel verification report</a></p>'''+cards+'</html>')
+<p><a href="confetti-verification.json">Pixel verification report</a></p>'''+cards+'</html>')
 print('PASS:',json.dumps(report))

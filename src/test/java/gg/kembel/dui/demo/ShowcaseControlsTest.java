@@ -12,10 +12,10 @@ class ShowcaseControlsTest {
     try (var in =
         getClass()
             .getResourceAsStream(compact ? "/ui/showcase-compact.html" : "/ui/showcase.html")) {
-      return MenuTemplate.parse(
+      return DemoTemplates.parse(
           new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
-          new gg.kembel.dui.core.GlyphFont(),
-          gg.kembel.dui.components.VisualComponents.registry(),
+          DemoTemplates.font(),
+          DemoVisualComponents.registry(),
           "demo template");
     }
   }
@@ -105,7 +105,7 @@ class ShowcaseControlsTest {
 
   @Test
   void popupCoversNativeObjectsAndRejectsDuplicateOrUnplaceableOptions() throws Exception {
-    var canvas = new Canvas(160, 90);
+    var canvas = new Canvas(160, 90, DemoTemplates.environment(DemoTemplates.font()));
     canvas.item("under", 12, 27, 18);
     canvas.head(50, 27, "self", true);
     canvas.item("outside", 120, 54, 18);
@@ -115,7 +115,7 @@ class ShowcaseControlsTest {
             "id", "select", "action", "open", "open", "true", "select", "choose", "dismiss",
             "close");
     var overlays = new ArrayList<Runnable>();
-    DropdownComponent.draw(
+    TestDropdown.draw(
         canvas, new MenuTemplate.Node("dropdown", props, List.of(option)), 0, 0, 100, 27, overlays);
     overlays.forEach(Runnable::run);
     assertEquals(List.of("under", "outside"), canvas.items.stream().map(Canvas.Item::id).toList());
@@ -126,8 +126,8 @@ class ShowcaseControlsTest {
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            DropdownComponent.draw(
-                new Canvas(160, 90),
+            TestDropdown.draw(
+                new Canvas(160, 90, DemoTemplates.environment(DemoTemplates.font())),
                 new MenuTemplate.Node("dropdown", props, List.of(option, option)),
                 0,
                 0,
@@ -137,8 +137,8 @@ class ShowcaseControlsTest {
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            DropdownComponent.draw(
-                new Canvas(160, 27),
+            TestDropdown.draw(
+                new Canvas(160, 27, DemoTemplates.environment(DemoTemplates.font())),
                 new MenuTemplate.Node("dropdown", props, List.of(option)),
                 0,
                 0,

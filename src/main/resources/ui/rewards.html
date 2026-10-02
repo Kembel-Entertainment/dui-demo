@@ -10,12 +10,12 @@
  <dui-text x="357" y="18" width="96" height="27" label="{{stars}} stars" align="center" color="#322647" />
  <dui-surface class="box" x="12" y="63" width="456" height="135" />
  <dui-surface class="box" x="21" y="72" width="144" height="117" fill="{{light}}" />
- <dui-item id="reward_mascot" x="45" y="75" width="96" height="96" size="96" burst-start="{{burstTick}}" />
+ <dui-demo-item id="reward_mascot" x="45" y="75" width="96" height="96" size="96" burst-start="{{burstTick}}" />
  <dui-text x="27" y="171" width="132" height="9" label="{{giftLabel}}" align="center" color="#322647" />
  <dui-text x="180" y="81" width="66" height="9" label="DAY {{day}} / 7" color="#322647" />
  <dui-heading x="180" y="99" width="219" height="9" label="{{name}}" color="#322647" />
  <dui-text x="180" y="117" width="270" height="9" label="{{description}}" color="#706681" />
- <dui-item id="reward_preview" x="418" y="87" width="27" height="27" size="27" />
+ <dui-demo-item id="reward_preview" x="418" y="87" width="27" height="27" size="27" />
  <dui-text x="180" y="135" width="270" height="9" label="{{detail}}" color="#8061CD" />
  <dui-button class="button" id="reward_claim" action="{{claimAction}}" locked="{{claimLocked}}" fill="{{claimColor}}" label="{{claimLabel}}" tooltip="{{claimTooltip}}" x="180" y="153" width="273" height="36" />
  <dui-heading x="15" y="207" width="250" height="9" label="SEVEN DAYS OF LITTLE SURPRISES" color="#322647" />
@@ -36,7 +36,7 @@
  <dui-text x="12" y="30" width="276" height="9" label="A LITTLE JOY. EVERY DAY." color="#8061CD" />
  <dui-grid columns="7" gap="3" x="12" y="45" width="270" height="18"><dui-repeat items="days" as="d"><dui-button class="button" fill="{{d.fill}}" id="reward_day_{{d.index}}" action="reward_select" value="{{d.index}}" label="{{d.day}} {{d.symbol}}" tooltip="{{d.tooltip}}" height="18" /></dui-repeat></dui-grid>
  <dui-surface class="box" x="9" y="72" width="84" height="54" fill="{{light}}" />
- <dui-item id="reward_mascot" x="27" y="74" size="48" width="48" height="48" burst-start="{{burstTick}}" />
+ <dui-demo-item id="reward_mascot" x="27" y="74" size="48" width="48" height="48" burst-start="{{burstTick}}" />
  <dui-text x="105" y="72" width="183" height="9" label="{{name}}" color="#322647" />
  <dui-text x="105" y="90" width="183" height="9" label="{{description}}" color="#706681" />
  <dui-button class="button" id="reward_claim" action="{{claimAction}}" locked="{{claimLocked}}" fill="{{claimColor}}" label="{{claimLabel}}" tooltip="{{claimTooltip}}" x="105" y="99" width="183" height="27" />

@@ -13,6 +13,8 @@ final class ProtocolClient {
   private int ticks, stage, changed, fpsSamples;
   private long fpsTotal;
   private String inventory;
+  private java.util.concurrent.CompletableFuture<Void> reload;
+  private int resourceReloads;
   private final Path out = Paths.output();
 
   void initialize() {
@@ -116,6 +118,20 @@ final class ProtocolClient {
         step();
       } else if (stage == 11) {
         if (d.get("width").getAsInt() != 480) return;
+        if (reload != null) {
+          if (!reload.isDone()) return;
+          reload.join();
+          reload = null;
+          resourceReloads++;
+        }
+        if (resourceReloads < 3) {
+          reload = mc.reloadResourcePacks();
+          changed = ticks;
+          return;
+        }
+        long heapMiB = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+        if (heapMiB > 2048)
+          throw new IllegalStateException("Memory regression test needs a 2 GiB client limit");
         RealClientHarness.snapshot(mc, out, "journal-wide", d);
         if (!inventory.equals(inventory(mc)))
           throw new IllegalStateException("Protocol UI modified player inventory");
@@ -124,6 +140,8 @@ final class ProtocolClient {
         result.addProperty("inventoryUnchanged", true);
         result.addProperty("muted", true);
         result.addProperty("steps", 12);
+        result.addProperty("resourceReloads", resourceReloads);
+        result.addProperty("maxHeapMiB", heapMiB);
         result.addProperty("averageSampledFps", (double) fpsTotal / Math.max(1, fpsSamples));
         result.addProperty("fpsSamples", fpsSamples);
         Files.writeString(out.resolve("client-result.json"), result.toString());

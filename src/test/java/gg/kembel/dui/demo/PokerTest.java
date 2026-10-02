@@ -214,8 +214,8 @@ class PokerTest {
       var holes = c.effects.stream().filter(e -> e.id().startsWith("hero_")).toList();
       assertEquals(2, holes.size());
       for (var effect : c.effects)
-        if (effect.kind() == ShaderEffect.Kind.PLAYING_CARD && effect.id().startsWith("board"))
-          assertEquals(63, effect.parameter0() & 63);
+        if (effect.shader().equals(DemoShaders.spec(DemoShaders.Kind.PLAYING_CARD))
+            && effect.id().startsWith("board")) assertEquals(63, DemoShaders.a(effect) & 63);
       for (var hit : c.hits) assertTrue(hit.y() % 9 == 0 && hit.height() % 9 == 0);
       s.motion = false;
       s.stop();
@@ -231,8 +231,8 @@ class PokerTest {
       assertTrue(s.game.payouts[0] > 0);
       assertTrue(
           PokerView.render(s).effects.stream()
-              .filter(e -> e.kind() == ShaderEffect.Kind.PLAYING_CARD)
-              .anyMatch(e -> (e.parameter0() & 128) != 0));
+              .filter(e -> e.shader().equals(DemoShaders.spec(DemoShaders.Kind.PLAYING_CARD)))
+              .anyMatch(e -> (DemoShaders.a(e) & 128) != 0));
       long old = s.generation;
       s.reset();
       assertTrue(s.generation > old);

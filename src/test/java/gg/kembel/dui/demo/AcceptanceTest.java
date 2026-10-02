@@ -16,17 +16,14 @@ class AcceptanceTest {
                 .readAllBytes(),
             java.nio.charset.StandardCharsets.UTF_8);
     var template =
-        MenuTemplate.parse(
-            source,
-            new gg.kembel.dui.core.GlyphFont(),
-            gg.kembel.dui.components.VisualComponents.registry(),
-            "demo template");
+        DemoTemplates.parse(
+            source, DemoTemplates.font(), DemoVisualComponents.registry(), "demo template");
     for (boolean compact : List.of(false, true))
       for (int page = 0; page < 4; page++) {
         var data = AcceptanceView.data(page, compact);
         var c =
             template.render(
-                data, AcceptanceView.images(), ThemeTokens.DARK.with(Map.of("accent", 0xFDBA74)));
+                data, AcceptanceView.images(), DemoTheme.DARK.with(Map.of("accent", 0xFDBA74)));
         RenderAssertions.visibleHits(c);
         RenderAssertions.budget(c);
         assertEquals(compact ? 320 : 480, c.width);

@@ -43,7 +43,7 @@ final class AcceptanceMenu extends DemoMenu {
     var data = AcceptanceView.data(s.acceptancePage, s.acceptanceCompact);
     var images = AcceptanceView.images();
     var palette =
-        ThemeTokens.DARK.with(Map.of("surface", 0x172438, "raised", 0x233652, "accent", 0xFDBA74));
+        DemoTheme.DARK.with(Map.of("surface", 0x172438, "raised", 0x233652, "accent", 0xFDBA74));
     return new MenuView(
         services.template("acceptance").render(data, images, palette),
         new ViewModel(data, images, Map.of(), Map.of()),

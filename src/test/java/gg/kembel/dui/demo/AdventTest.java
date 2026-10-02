@@ -83,8 +83,9 @@ class AdventTest {
           s.motion = motion;
           s.open(day, 23990);
           var opening = AdventView.render(s, 23990);
-          assertEquals(motion ? 2 : (compact ? 1 : 3), opening.transitions.size());
-          assertEquals(ShaderEffect.Kind.CONFETTI, opening.effects.getFirst().kind());
+          assertEquals(motion ? 2 : (compact ? 1 : 3), opening.motions.size());
+          assertEquals(
+              DemoShaders.spec(DemoShaders.Kind.CONFETTI), opening.effects.getFirst().shader());
           if (motion) {
             assertEquals(
                 "",
@@ -96,10 +97,10 @@ class AdventTest {
             s.reveal(s.generation, 24014);
           }
           var reveal = AdventView.render(s, 24014);
-          assertEquals(compact ? 1 : 3, reveal.transitions.size());
+          assertEquals(compact ? 1 : 3, reveal.motions.size());
           assertEquals(compact ? 2 : 4, reveal.items.size());
-          assertEquals(ItemTransition.Kind.POP, reveal.transitions.get("advent_reward").kind());
-          if (!compact) assertEquals(motion, reveal.transitions.get("parcel_lid").motion());
+          assertEquals(Motion.Easing.BACK_OUT, reveal.motions.get("advent_reward").easing());
+          if (!compact) assertEquals(motion, reveal.motions.get("parcel_lid").enabled());
           assertEquals(
               "advent_again",
               reveal.hits.stream()

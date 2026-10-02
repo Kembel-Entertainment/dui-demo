@@ -1,16 +1,16 @@
 plugins { id 'java' }
 group = 'gg.kembel.dui'
-version = '0.1.0-SNAPSHOT'
+version = '0.2.0-SNAPSHOT'
 repositories { mavenLocal(); mavenCentral(); maven { url = 'https://repo.papermc.io/repository/maven-public/' } }
 configurations { packTools }
 dependencies {
-    implementation 'gg.kembel.dui:dui-paper:0.1.0-SNAPSHOT'
-    implementation 'gg.kembel.dui:dui-components:0.1.0-SNAPSHOT'
-    testImplementation 'gg.kembel.dui:dui-test:0.1.0-SNAPSHOT'
+    implementation project(':extension-proof')
+    implementation 'gg.kembel.dui:dui-paper:0.2.0-SNAPSHOT'
+    testImplementation 'gg.kembel.dui:dui-test:0.2.0-SNAPSHOT'
     implementation 'com.google.code.gson:gson:2.13.2'
     implementation 'com.google.zxing:core:3.5.4'
-    packTools 'gg.kembel.dui:dui-pack:0.1.0-SNAPSHOT'
-    compileOnly 'gg.kembel.dui:dui-pack:0.1.0-SNAPSHOT'
+    packTools 'gg.kembel.dui:dui-pack:0.2.0-SNAPSHOT'
+    compileOnly 'gg.kembel.dui:dui-pack:0.2.0-SNAPSHOT'
     compileOnly 'io.papermc.paper:paper-api:26.2.build.129-stable'
     testImplementation 'io.papermc.paper:paper-api:26.2.build.129-stable'
     testImplementation platform('org.junit:junit-bom:5.14.0')
@@ -20,6 +20,7 @@ dependencies {
 java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
 tasks.withType(JavaCompile).configureEach { options.release = 25 }
 test { useJUnitPlatform() }
+tasks.named('check'){dependsOn ':extension-proof:check'}
 jar {
     dependsOn configurations.runtimeClasspath
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -37,7 +38,7 @@ tasks.register('buildPack', JavaExec) {
 }
 tasks.register('installDemo', Exec) {
  dependsOn jar, buildPack
- commandLine 'python3','scripts/demo.py','install'
+ doFirst { commandLine 'python3','scripts/demo.py','install','--plugin-jar',tasks.named('jar').get().archiveFile.get().asFile.absolutePath }
 }
 
 tasks.register('prepareDemo', Exec) {

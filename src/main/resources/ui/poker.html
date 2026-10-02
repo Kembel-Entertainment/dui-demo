@@ -1,5 +1,5 @@
 <!-- Public data binds into reusable dui card/chip primitives. No game rules or opponent secrets here. -->
-<dui-menu width="{{width}}" height="{{height}}" motion="{{motion}}" animation-start="{{tick}}">
+<dui-menu background="none" width="{{width}}" height="{{height}}" motion="{{motion}}" animation-start="{{tick}}">
  <dui-style id="ink" fill="#152630" border="#53615F" highlight="#6E8077" color="#F6E8CC" bevel="1" disabled-fill="#1C2A32" disabled-color="#748B85" disabled-border="#3B4E4D" />
  <dui-style id="mint" fill="#79D8B4" border="#203F3A" highlight="#D0F4DF" color="#152F32" disabled-fill="#324D49" disabled-color="#809E91" disabled-border="#3B4E4D" bevel="2" />
  <dui-style id="coral" fill="#713C49" border="#A9787D" highlight="#F7B3A1" color="#FFE8CF" bevel="1" disabled-fill="#2D2C35" disabled-color="#81787F" disabled-border="#48464F" />
@@ -29,9 +29,9 @@
   </dui-if>
   <dui-if test="{{hasCards}}">
    <dui-repeat items="cards" as="c">
-    <dui-visual-playing-card id="{{c.id}}" x="{{c.x}}" y="{{c.y}}" width="{{c.w}}" height="{{c.h}}" lift="{{c.lift}}" value="{{c.value}}" face-down="{{c.down}}" active="{{c.active}}" animation="{{c.mode}}" duration="28" delay="{{c.delay}}" palette="mint" />
+    <dui-demo-playing-card id="{{c.id}}" x="{{c.x}}" y="{{c.y}}" width="{{c.w}}" height="{{c.h}}" lift="{{c.lift}}" value="{{c.value}}" face-down="{{c.down}}" active="{{c.active}}" animation="{{c.mode}}" duration="28" delay="{{c.delay}}" palette="mint" />
    </dui-repeat>
-   <dui-visual-chip-stack id="pot_chips" x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" count="{{chipCount}}" animation="{{chipMode}}" duration="18" palette="gold" from="{{chipFrom}}" to="{{chipTo}}" />
+   <dui-demo-chip-stack id="pot_chips" x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" count="{{chipCount}}" animation="{{chipMode}}" duration="18" palette="gold" from="{{chipFrom}}" to="{{chipTo}}" />
    <dui-text x="{{heroNameX}}" y="{{heroNameY}}" width="{{heroNameW}}" height="9" label="{{playerLabel}}" color="#7DE5C4" />
    <dui-text x="{{heroNameX}}" y="{{stackY}}" width="{{heroNameW}}" height="9" label="{{heroStack}}" color="#F6E8CC" />
    <dui-text x="{{bestX}}" y="{{bestY}}" width="{{bestW}}" height="9" label="{{best}}" color="#E9BE70" />

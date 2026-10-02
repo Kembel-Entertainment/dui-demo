@@ -79,12 +79,12 @@ class VideoTest {
   void runtimeImagesRespectBoundsPixelBudgetAndTemplateBindings() throws Exception {
     var image = new RasterImage(2, 1, new int[] {0xFF0000, 0x00FF00});
     var c =
-        MenuTemplate.parse(
+        DemoTemplates.parse(
                 "<dui-menu width='150' height='36'><dui-layer height='fill'><dui-image id='test'"
                     + " source='{{source}}' x='9' y='9' width='60' height='18' pixel-size='2'"
                     + " action='open'/></dui-layer></dui-menu>",
-                new gg.kembel.dui.core.GlyphFont(),
-                gg.kembel.dui.components.VisualComponents.registry(),
+                DemoTemplates.font(),
+                DemoVisualComponents.registry(),
                 "demo template")
             .render(Map.of("source", "sample"), Map.of("sample", image));
     assertEquals(1, c.images.size());
@@ -92,7 +92,7 @@ class VideoTest {
     assertEquals(9, c.images.getFirst().raster().height);
     assertEquals("open", c.at(10, 10).action());
     assertThrows(IllegalArgumentException.class, () -> c.image("huge", 0, 0, 150, 36, 0, image));
-    var large = new Canvas(480, 360);
+    var large = new Canvas(480, 360, DemoTemplates.environment(DemoTemplates.font()));
     assertThrows(
         IllegalArgumentException.class, () -> large.image("huge", 0, 0, 480, 360, 1, image));
   }
@@ -104,10 +104,10 @@ class VideoTest {
     MenuTemplate template;
     try (var in = getClass().getResourceAsStream("/ui/videos.html")) {
       template =
-          MenuTemplate.parse(
+          DemoTemplates.parse(
               new String(in.readAllBytes(), StandardCharsets.UTF_8),
-              new gg.kembel.dui.core.GlyphFont(),
-              gg.kembel.dui.components.VisualComponents.registry(),
+              DemoTemplates.font(),
+              DemoVisualComponents.registry(),
               "demo template");
     }
     for (boolean compact : List.of(false, true))

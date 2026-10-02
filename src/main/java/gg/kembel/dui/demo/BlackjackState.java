@@ -25,7 +25,7 @@ public final class BlackjackState {
 
   /** Spend only actual effect slots; reserve one chip slot during payout. */
   private int[] cardLimits() {
-    int capacity = ShaderEffect.LIMIT - (event.equals("payout") ? 1 : 0);
+    int capacity = ShaderInvocation.LIMIT - (event.equals("payout") ? 1 : 0);
     int heroCount =
         game.hands.isEmpty() ? 0 : event.equals("split") ? 4 : game.hands.get(focus).cards.size();
     var allocation =

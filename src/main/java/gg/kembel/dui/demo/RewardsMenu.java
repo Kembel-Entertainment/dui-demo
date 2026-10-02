@@ -65,7 +65,7 @@ final class RewardsMenu extends DemoMenu {
   void advance(DemoSession s) {
     s.rewards.sync(s.date);
     long age = s.tick - s.rewards.burstStarted;
-    if (age < 0 || age >= ItemTransport.BURST_TICKS) s.rewards.burstStarted = -1;
+    if (age < 0 || age >= 96) s.rewards.burstStarted = -1;
   }
 
   @Override
@@ -86,10 +86,8 @@ final class RewardsMenu extends DemoMenu {
 
   @Override
   void presented(DemoSession s, Canvas c) {
-    if (c.confetti != null)
-      later(
-          ItemTransport.BURST_TICKS + 40 - (s.tick - s.rewards.burstStarted),
-          () -> s.rewards.burstStarted = -1);
+    if (s.rewards.burstStarted >= 0)
+      later(96 + 40 - (s.tick - s.rewards.burstStarted), () -> s.rewards.burstStarted = -1);
   }
 
   @Override
@@ -105,7 +103,9 @@ final class RewardsMenu extends DemoMenu {
     result.put("celebrating", s.rewards.celebrating);
     result.put("selected", s.rewards.selection(s.date));
     result.put("today", s.rewards.today(s.date).toString());
-    result.put("confetti", c.confetti);
+    result.put(
+        "confetti",
+        s.rewards.burstStarted >= 0 ? Map.of("startedAt", s.rewards.burstStarted) : null);
     return result;
   }
 

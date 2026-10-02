@@ -1,6 +1,5 @@
 package gg.kembel.dui.demo;
 
-import gg.kembel.dui.components.VisualComponents;
 import gg.kembel.dui.core.*;
 import java.util.*;
 
@@ -9,7 +8,7 @@ public final class CasinoComponents {
   private CasinoComponents() {}
 
   public static ComponentRegistry registry() {
-    var builder = ComponentRegistry.builder().include(VisualComponents.registry());
+    var builder = ComponentRegistry.builder().include(DemoVisualComponents.registry());
     try (var in = CasinoComponents.class.getResourceAsStream("/casino/chrome.xml")) {
       builder.template(
           "demo-arcade-chrome",
@@ -56,15 +55,16 @@ public final class CasinoComponents {
           int duration = node.n("duration", 0);
           ctx.canvas()
               .effect(
-                  new ShaderEffect(
+                  DemoShaders.effect(
                       node.s("id", ""),
-                      new ShaderEffect.Extension("demo:" + name, code, duration),
+                      DemoShaders.spec(name),
                       ctx.x(),
                       ctx.y(),
                       ctx.width(),
                       ctx.height(),
                       node.n("a", 0),
-                      node.n("b", 0)));
+                      node.n("b", 0),
+                      duration));
         });
   }
 }

@@ -8,34 +8,32 @@ public final class ProtocolView {
   private ProtocolView() {}
 
   public static Canvas render(long tick, boolean motion, boolean popup) {
-    var c = new Canvas(360, 180, ThemeTokens.DARK, new GlyphFont());
+    var c = new Canvas(360, 180, DemoTemplates.environment(DemoTemplates.font()));
     c.effectLimit = 16;
     c.motionEnabled = motion;
     c.rect(0, 0, 360, 180, 0x16171D);
     c.text(12, 9, 330, "dui / PROTOCOL LAB", 0x58E6DB);
     for (int i = 0; i < 12; i++)
       c.effect(
-          new ShaderEffect(
+          DemoShaders.effect(
               "light_" + i,
-              ShaderEffect.Kind.LIGHTS,
+              DemoShaders.Kind.LIGHTS,
               12 + i % 6 * 48,
               27 + i / 6 * 27,
               36,
               18,
               3,
               2));
+    c.effect(example.proof.ExtensionProof.ring("pulse", 174, 99, 36, 36));
     c.effect(
-        new ShaderEffect(
-            "pulse", new ShaderEffect.Extension("demo:pulse", 8, 0), 174, 99, 36, 36, 0, 0));
-    c.effect(
-        new ShaderEffect(
-            "card", ShaderEffect.Kind.PLAYING_CARD, 30, 90, 36, 63, 12, 24 | (6 << 7)));
+        DemoShaders.effect(
+            "card", DemoShaders.Kind.PLAYING_CARD, 30, 90, 36, 63, 12, 24 | (6 << 7)));
     c.effectMotion(
         "card",
         new Motion(
             tick, 24, 0, Motion.Easing.EASE_OUT, motion, -18, 0, .5, 1, -15, 0, 0, 1, .5, .5));
     c.item("native", 252, 108, 36, new ItemClip(240, 90, 108, 63));
-    c.motion("native", Motion.pop(tick, 24, 18, motion));
+    c.motion("native", DemoMotion.pop(tick, 24, 18, motion));
     c.playerModel("classic", "classic", 78, 81, 48, 72, 1, true, motion);
     c.playerModel("slim", "slim", 126, 81, 48, 72, 1, true, motion);
     c.head(270, 126, "texture:minecraft:entity/player/wide/steve", true);
@@ -67,7 +65,8 @@ public final class ProtocolView {
         90,
         108,
         27,
-        overlays);
+        overlays,
+        DemoWidgets.registry().require("dropdown"));
     overlays.forEach(Runnable::run);
     c.item("__effects", 0, 0, 1);
     c.animation = new Canvas.Animation("__effects", tick, motion, 24);

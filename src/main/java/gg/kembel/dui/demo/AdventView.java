@@ -135,10 +135,10 @@ public final class AdventView {
 
   public static Canvas render(AdventState s, long tick) {
     try (var in = AdventView.class.getResourceAsStream("/ui/advent.html")) {
-      return MenuTemplate.parse(
+      return DemoTemplates.parse(
               new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
-              new gg.kembel.dui.core.GlyphFont(),
-              gg.kembel.dui.components.VisualComponents.registry(),
+              DemoTemplates.font(),
+              DemoVisualComponents.registry(),
               "demo template")
           .render(data(s, tick), images(s));
     } catch (Exception e) {

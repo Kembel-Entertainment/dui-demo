@@ -1,13 +1,16 @@
 name: dui-demo
-version: 0.1.0-SNAPSHOT
+version: 0.2.0-SNAPSHOT
 main: gg.kembel.dui.demo.DuiDemoPlugin
 api-version: '26.2'
 website: https://kembel.gg
 description: Work in progress examples for the embedded dui library
 commands:
+  worldmap:
+    description: Open the Atlas of Elsewhere world map
+    usage: /worldmap [debug|still|state|close]
   dui:
     description: Explore the dui demo
-    usage: /dui [components|setup|shop|rewards|advent|warps|poker|roulette|blackjack|slots|horses|wheel|coinflip|bookofra|videos|reload] [compact|spacious|refresh]
+    usage: /dui [components|setup|shop|rewards|advent|warps|poker|roulette|blackjack|slots|horses|wheel|coinflip|bookofra|videos|map|reload] [compact|spacious|refresh]
   uikit:
     description: Open the component catalogue
   uishop:

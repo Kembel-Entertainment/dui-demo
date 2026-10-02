@@ -1,5 +1,5 @@
 <!-- Aster is an ordinary DUI consumer: appearance resources + public components. -->
-<dui-menu width="{{width}}" height="{{height}}" motion="{{motion}}">
+<dui-menu background="none" width="{{width}}" height="{{height}}" motion="{{motion}}">
  <dui-style id="metal" fill="#202A32" border="#89724C" highlight="#BCA77B" color="#EEDDB6" bevel="1" />
  <dui-style id="gold" fill="#B18B4D" border="#664E2C" highlight="#EAD09B" color="#15212A" bevel="1" />
  <dui-layer height="fill">
@@ -12,7 +12,7 @@
   <dui-repeat items="slots" as="s">
    <dui-button id="slot_{{s.id}}" action="character_slot" payload="{{s.id}}" x="{{s.x}}" y="{{s.y}}" width="{{s.size}}" height="{{s.size}}" label="" fill="#16212B" border="{{s.color}}" highlight="{{s.color}}" bevel="1" tooltip="{{s.tooltip}}" />
    <dui-if test="{{s.empty}}"><dui-text x="{{s.x}}" y="{{s.y}}" width="{{s.size}}" height="{{s.size}}" label="{{s.letter}}" align="center" color="#897B62" /></dui-if>
-   <dui-if test="{{s.equipped}}"><dui-item id="slot_{{s.id}}" x="{{s.ix}}" y="{{s.iy}}" width="{{s.iconSize}}" height="{{s.iconSize}}" size="{{s.iconSize}}" /></dui-if>
+   <dui-if test="{{s.equipped}}"><dui-demo-item id="slot_{{s.id}}" x="{{s.ix}}" y="{{s.iy}}" width="{{s.iconSize}}" height="{{s.iconSize}}" size="{{s.iconSize}}" /></dui-if>
    <dui-if test="{{s.equipped}}"><dui-progress x="{{s.x}}" y="{{s.barY}}" width="{{s.size}}" height="9" value="{{s.durability}}" /></dui-if>
   </dui-repeat>
   <dui-button class="metal" id="character_left" action="character_turn" payload="-1" x="{{turnX}}" y="{{turnY}}" width="27" height="18" label="&lt;" />
@@ -30,7 +30,7 @@ Real inventory." color="#9DA7A9" /></dui-if>
    <dui-if test="{{empty}}"><dui-text x="6" y="27" width="fill" height="27" wrap="true" label="No matching inventory items." color="#ACAFAF" /></dui-if>
    <dui-repeat items="candidates" as="item">
     <dui-button id="candidate_{{item.index}}" action="character_equip" payload="{{item.index}}" x="4" y="{{item.y}}" width="fill" height="27" label="" fill="#202E3A" border="{{item.color}}" bevel="1" tooltip="{{item.tooltip}}" />
-    <dui-item id="candidate_{{item.index}}" x="6" y="{{item.y}}" width="{{item.icon}}" height="{{item.icon}}" size="{{item.icon}}" />
+    <dui-demo-item id="candidate_{{item.index}}" x="6" y="{{item.y}}" width="{{item.icon}}" height="{{item.icon}}" size="{{item.icon}}" />
     <dui-text x="36" y="{{item.y}}" width="fill" height="27" label="{{item.name}}" wrap="true" max-lines="2" color="{{item.color}}" />
    </dui-repeat>
    <dui-button class="gold" id="character_unequip" action="character_unequip" x="4" y="{{unequipY}}" width="fill" height="18" label="Unequip" />

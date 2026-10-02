@@ -29,7 +29,7 @@ final class VideoCache {
 
   Optional<RasterImage> thumbnail(YouTubeFeed.Video video) {
     try {
-      return Optional.of(RasterImage.decode(read(imagePath(video), IMAGE_LIMIT)));
+      return Optional.of(RasterImage.decode(read(imagePath(video), IMAGE_LIMIT), 0x16171D));
     } catch (Exception ignored) {
       // Recover individual images independently; keep the rest of the feed usable.
       return Optional.empty();
@@ -45,7 +45,7 @@ final class VideoCache {
 
   RasterImage saveThumbnail(YouTubeFeed.Video video, byte[] bytes) throws IOException {
     if (bytes.length > IMAGE_LIMIT) throw new IOException("Thumbnail too large");
-    var image = RasterImage.decode(bytes);
+    var image = RasterImage.decode(bytes, 0x16171D);
     write(imagePath(video), bytes);
     return image;
   }

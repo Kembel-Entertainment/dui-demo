@@ -47,7 +47,7 @@ class WarpTest {
           var resting = WarpView.render(s);
           assertEquals(3, resting.items.size());
           assertEquals(3, resting.clips.size());
-          assertTrue(resting.transitions.isEmpty());
+          assertTrue(resting.motions.isEmpty());
           var previous =
               resting.hits.stream()
                   .filter(h -> h.id().equals("warp_previous"))
@@ -56,12 +56,12 @@ class WarpTest {
           s.step(direction, 200);
           var moving = WarpView.render(s);
           assertEquals(4, moving.items.size());
-          assertEquals(4, moving.transitions.size());
+          assertEquals(4, moving.motions.size());
           assertTrue(
               moving.items.stream().anyMatch(i -> i.x() < 0 || i.x() + i.size() > moving.width));
-          for (var t : moving.transitions.values()) {
-            assertEquals(ItemTransition.Kind.SLIDE, t.kind());
-            assertEquals(direction * (compact ? 66 : 108), t.distance());
+          for (var t : moving.motions.values()) {
+            assertEquals(Motion.Easing.EASE_OUT, t.easing());
+            assertEquals(direction * (compact ? 66 : 108), t.tx());
           }
           var locked =
               moving.hits.stream()
@@ -76,7 +76,7 @@ class WarpTest {
           assertEquals(3, WarpView.render(s).items.size());
           s.motion = false;
           s.step(direction, 230);
-          assertTrue(WarpView.render(s).transitions.isEmpty());
+          assertTrue(WarpView.render(s).motions.isEmpty());
         }
   }
 

@@ -19,7 +19,7 @@ for name in ('horses','wheel','coinflip','bookofra'):
     assert len(effects)==(5 if name=='bookofra' else 1)
     changed=colours=0
     for effect in effects:
-        assert 'id' in effect['kind'] and effect['kind']['code'] in (9,10,11,12),effect
+        assert effect['shader']['id'] in ('demo:race','demo:prize-wheel','demo:coin','demo:temple-reel'),effect
         for y in range(effect['y'],effect['y']+effect['height']):
             for x in range(effect['x'],effect['x']+effect['width']):
                 pa=a(x,y);pb=b(x,y)

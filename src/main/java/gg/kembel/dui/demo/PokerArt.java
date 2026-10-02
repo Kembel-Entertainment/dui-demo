@@ -14,7 +14,7 @@ public final class PokerArt {
 
   private static RasterImage table() {
     try (var in = PokerArt.class.getResourceAsStream("/art/holdem-table.png")) {
-      return RasterImage.decode(Objects.requireNonNull(in).readAllBytes());
+      return RasterImage.decode(Objects.requireNonNull(in).readAllBytes(), 0x16171D);
     } catch (Exception e) {
       throw new IllegalStateException("Missing original poker table artwork", e);
     }

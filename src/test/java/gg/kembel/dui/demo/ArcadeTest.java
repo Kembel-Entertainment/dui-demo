@@ -153,7 +153,7 @@ class ArcadeTest {
           source = new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8);
         }
         var template =
-            MenuTemplate.parse(source, new GlyphFont(), CasinoComponents.registry(), game.id);
+            DemoTemplates.parse(source, DemoTemplates.font(), CasinoComponents.registry(), game.id);
         var state = game.fresh();
         state.compact = compact;
         for (int phase = 0; phase < 4; phase++) {
@@ -167,7 +167,7 @@ class ArcadeTest {
           assertEquals(compact ? 320 : 480, canvas.width);
           if (phase < 3) assertEquals(game == ArcadeMenu.Game.BOOK ? 5 : 1, canvas.effects.size());
           else assertTrue(canvas.effects.isEmpty());
-          for (var e : canvas.effects) assertInstanceOf(ShaderEffect.Extension.class, e.kind());
+          for (var e : canvas.effects) assertTrue(e.shader().id().startsWith("demo:"));
         }
       }
   }

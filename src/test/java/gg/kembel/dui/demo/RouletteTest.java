@@ -166,10 +166,13 @@ class RouletteTest {
             id + " label overlaps the placed chip");
       }
       var destination =
-          cells.stream().filter(cell -> cell.get("key").equals(s.chipBet)).findFirst().orElseThrow();
+          cells.stream()
+              .filter(cell -> cell.get("key").equals(s.chipBet))
+              .findFirst()
+              .orElseThrow();
       var flight =
           c.effects.stream()
-              .filter(e -> e.kind() == gg.kembel.dui.core.ShaderEffect.Kind.CHIP_STACK)
+              .filter(e -> e.shader().equals(DemoShaders.spec(DemoShaders.Kind.CHIP_STACK)))
               .findFirst()
               .orElseThrow();
       assertEquals(
@@ -202,7 +205,7 @@ class RouletteTest {
       assertFalse((boolean) RouletteView.data(s).get("chipFlight"));
       assertTrue(
           RouletteView.render(s).effects.stream()
-              .noneMatch(e -> e.kind() == gg.kembel.dui.core.ShaderEffect.Kind.CHIP_STACK),
+              .noneMatch(e -> e.shader().equals(DemoShaders.spec(DemoShaders.Kind.CHIP_STACK))),
           "Still mode must not cover the stationary marker with a frozen flight chip");
     }
   }

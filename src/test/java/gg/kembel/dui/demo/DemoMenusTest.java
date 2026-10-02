@@ -75,9 +75,9 @@ class DemoMenusTest {
           name,
           id -> {
             try (var stream = DemoMenusTest.class.getResourceAsStream("/ui/" + id + ".html")) {
-              return MenuTemplate.parse(
+              return DemoTemplates.parse(
                   new String(Objects.requireNonNull(stream).readAllBytes(), StandardCharsets.UTF_8),
-                  new GlyphFont(),
+                  DemoTemplates.font(),
                   CasinoComponents.registry(),
                   id);
             } catch (Exception e) {
@@ -204,6 +204,18 @@ class DemoMenusTest {
     assertEquals(first.canvas().paints, second.canvas().paints);
     RenderAssertions.visibleHits(first.canvas());
     RenderAssertions.budget(first.canvas());
+    if (first.canvas().images.stream().anyMatch(Canvas.Image::background))
+      assertFalse(
+          first.canvas().paints.stream()
+              .anyMatch(
+                  p ->
+                      p.text() == null
+                          && p.icon() == null
+                          && p.x() == 0
+                          && p.y() == 0
+                          && p.width() == first.canvas().width
+                          && p.height() == first.canvas().height),
+          "An opaque canvas surface must not hide the consumer background image");
     for (var hit : first.canvas().hits) {
       if (!hit.action().isBlank() && !first.model().links().containsKey(hit.id()))
         assertTrue(

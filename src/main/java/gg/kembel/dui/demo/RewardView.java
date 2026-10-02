@@ -81,10 +81,10 @@ public final class RewardView {
 
   public static Canvas render(RewardState s, LocalDate date) {
     try (var in = RewardView.class.getResourceAsStream("/ui/rewards.html")) {
-      return MenuTemplate.parse(
+      return DemoTemplates.parse(
               new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
-              new gg.kembel.dui.core.GlyphFont(),
-              gg.kembel.dui.components.VisualComponents.registry(),
+              DemoTemplates.font(),
+              DemoVisualComponents.registry(),
               "demo template")
           .render(data(s, date));
     } catch (Exception e) {

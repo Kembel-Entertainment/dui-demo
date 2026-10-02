@@ -1,15 +1,15 @@
 <!-- Small-screen layout: readable type and paginated specimens instead of shrinking hit areas. -->
-<dui-menu width="300" height="{{compactHeight}}" padding="9" theme="{{theme}}">
+<dui-menu width="300" height="{{compactHeight}}" padding="9" theme="{{theme}}" padding-y="9">
   <dui-column>
     <dui-row height="18" gap="6">
       <dui-heading label="DUI / UI KIT" />
-      <dui-button width="27" icon="settings" id="kit_setup" action="kit_setup" tooltip="GUI scale and layout size" />
+      <dui-button width="27" icon="demo:settings" id="kit_setup" action="kit_setup" tooltip="GUI scale and layout size" />
       <dui-button width="27" icon="{{themeIcon}}" id="kit_theme" action="kit_theme" tooltip="{{themeHint}}" />
     </dui-row>
     <dui-row height="18" gap="6">
-      <dui-button width="27" icon="previous" id="kit_nav_previous" action="kit_page_cycle" value="-1" tooltip="Previous component page" />
+      <dui-button width="27" icon="demo:previous" id="kit_nav_previous" action="kit_page_cycle" value="-1" tooltip="Previous component page" />
       <dui-text align="center" label="{{pageLabel}}" tone="gold" />
-      <dui-button width="27" icon="next" id="kit_nav_next" action="kit_page_cycle" value="1" tooltip="Next component page" />
+      <dui-button width="27" icon="demo:next" id="kit_nav_next" action="kit_page_cycle" value="1" tooltip="Next component page" />
     </dui-row>
     <dui-column height="{{compactBodyHeight}}">
       <dui-if test="{{basics0}}">
@@ -20,10 +20,10 @@
         <dui-button label="Try the controls >" id="kit_start" action="kit_page" value="actions" height="27" active="true" />
       </dui-if>
       <dui-if test="{{basics1}}">
-        <dui-panel height="81" padding="6">
+        <dui-panel height="81" padding="6" padding-y="9">
           <dui-text label="PANEL / NAVIGATION" height="9" tone="gold" />
-          <dui-nav label="Cards &amp; data" icon="book" id="kit_cards_link" action="kit_page" value="cards" />
-          <dui-nav label="Items &amp; heads" icon="users" id="kit_media_link" action="kit_page" value="media" />
+          <dui-demo-nav label="Cards &amp; data" icon="demo:book" id="kit_cards_link" action="kit_page" value="cards" />
+          <dui-demo-nav label="Items &amp; heads" icon="demo:users" id="kit_media_link" action="kit_page" value="media" />
         </dui-panel>
       </dui-if>
       <dui-if test="{{actions0}}">
@@ -56,69 +56,69 @@
         <dui-text label="You can confirm or cancel." height="9" />
       </dui-if>
       <dui-if test="{{cards0}}">
-        <dui-card height="81" padding="6"><dui-heading label="Lorem ipsum / {{progress}} %" height="18" /><dui-progress value="{{progress}}" max="100" /><dui-spacer height="9" /><dui-button label="Advance +20" id="kit_progress" action="kit_progress" height="27" active="true" /></dui-card>
+        <dui-demo-card height="81" padding="6" padding-y="9"><dui-heading label="Lorem ipsum / {{progress}} %" height="18" /><dui-progress value="{{progress}}" max="100" /><dui-spacer height="9" /><dui-button label="Advance +20" id="kit_progress" action="kit_progress" height="27" active="true" /></dui-demo-card>
       </dui-if>
       <dui-if test="{{cards1}}">
-        <dui-stat label="Completed example" value="100 / 100" tone="green" height="45" /><dui-progress value="100" tone="green" /><dui-button label="Completed" id="kit_done" locked="true" tooltip="No more action needed" height="27" />
+        <dui-demo-stat label="Completed example" value="100 / 100" tone="green" height="45" /><dui-progress value="100" tone="green" /><dui-button label="Completed" id="kit_done" locked="true" tooltip="No more action needed" height="27" />
       </dui-if>
       <dui-if test="{{cards2}}">
-        <dui-stat label="Remaining" value="{{remaining}} %" tone="gold" height="45" /><dui-progress value="0" /><dui-button label="Unavailable" id="kit_waiting" locked="true" tooltip="Waiting example" height="27" />
+        <dui-demo-stat label="Remaining" value="{{remaining}} %" tone="gold" height="45" /><dui-progress value="0" /><dui-button label="Unavailable" id="kit_waiting" locked="true" tooltip="Waiting example" height="27" />
       </dui-if>
       <dui-if test="{{lists0}}">
         <dui-text label="COLLECTION / {{selectedRow}}" height="9" tone="gold" />
         <dui-column height="54">
-          <dui-if test="{{listEmpty}}"><dui-empty label="No entries" detail="Use the next example to restore the list." height="54" icon="book" /></dui-if>
-          <dui-if test="{{listFilled}}"><dui-repeat items="rows" as="r"><dui-entry label="{{r.label}}" value="{{r.value}}" payload="{{r.label}}" height="18" icon="book" id="kit_row_{{r.id}}" action="kit_row" /></dui-repeat></dui-if>
+          <dui-if test="{{listEmpty}}"><dui-demo-empty label="No entries" detail="Use the next example to restore the list." height="54" icon="demo:book" /></dui-if>
+          <dui-if test="{{listFilled}}"><dui-repeat items="rows" as="r"><dui-demo-entry label="{{r.label}}" value="{{r.value}}" payload="{{r.label}}" height="18" icon="demo:book" id="kit_row_{{r.id}}" action="kit_row" /></dui-repeat></dui-if>
         </dui-column>
         <dui-row height="18" gap="6"><dui-button label="&lt; Prev" id="kit_prev" action="kit_list_page" value="-1" locked="{{listEmpty}}" tooltip="Previous collection page" /><dui-text label="{{listPage}} / 3" align="center" /><dui-button label="Next &gt;" id="kit_next" action="kit_list_page" value="1" locked="{{listEmpty}}" tooltip="Next collection page" /></dui-row>
       </dui-if>
       <dui-if test="{{lists1}}">
-        <dui-text label="EMPTY STATE" height="9" tone="gold" /><dui-empty label="A blank slate" detail="Room for something new." height="54" /><dui-button label="{{emptyLabel}}" id="kit_empty" action="kit_list_empty" height="18" />
+        <dui-text label="EMPTY STATE" height="9" tone="gold" /><dui-demo-empty label="A blank slate" detail="Room for something new." height="54" /><dui-button label="{{emptyLabel}}" id="kit_empty" action="kit_list_empty" height="18" />
       </dui-if>
       <dui-if test="{{media0}}">
         <dui-text label="PLAYER PORTRAITS" height="18" tone="gold" />
         <dui-row height="27" gap="9">
-          <dui-card height="27" padding="6"><dui-head player="self" label="With hat layer" height="9" /></dui-card>
-          <dui-card height="27" padding="6"><dui-head player="self" hat="false" label="Base skin layer" height="9" /></dui-card>
+          <dui-demo-card height="27" padding="6" padding-y="9"><dui-head player="self" label="With hat layer" height="9" /></dui-demo-card>
+          <dui-demo-card height="27" padding="6" padding-y="9"><dui-head player="self" hat="false" label="Base skin layer" height="9" /></dui-demo-card>
         </dui-row>
         <dui-spacer height="9" /><dui-text label="Next: native 3D item models." height="18" />
       </dui-if>
       <dui-if test="{{media1}}">
-        <dui-row height="72" gap="9"><dui-slot width="96" label="Grass block" id="kit_grass" action="kit_item" value="grass" active="{{grassSelected}}" count="{{stack}}" /><dui-column><dui-text label="BLOCK MODEL" tone="gold" height="18" /><dui-text label="Stack: {{stack}} / 64" height="18" /><dui-button label="Stack +8" id="kit_stack" action="kit_stack" height="27" /></dui-column></dui-row>
+        <dui-row height="72" gap="9"><dui-demo-slot width="96" label="Grass block" id="kit_grass" action="kit_item" value="grass" active="{{grassSelected}}" count="{{stack}}" /><dui-column><dui-text label="BLOCK MODEL" tone="gold" height="18" /><dui-text label="Stack: {{stack}} / 64" height="18" /><dui-button label="Stack +8" id="kit_stack" action="kit_stack" height="27" /></dui-column></dui-row>
       </dui-if>
       <dui-if test="{{media2}}">
-        <dui-row height="72" gap="9"><dui-slot width="96" label="Profile head" id="kit_head" action="kit_item" value="head" active="{{headSelected}}" /><dui-column><dui-text label="3D PROFILE" tone="gold" height="18" /><dui-text label="Your current skin." height="18" /><dui-text label="Hover for details." height="18" /><dui-text label="Click to select." height="18" /></dui-column></dui-row>
+        <dui-row height="72" gap="9"><dui-demo-slot width="96" label="Profile head" id="kit_head" action="kit_item" value="head" active="{{headSelected}}" /><dui-column><dui-text label="3D PROFILE" tone="gold" height="18" /><dui-text label="Your current skin." height="18" /><dui-text label="Hover for details." height="18" /><dui-text label="Click to select." height="18" /></dui-column></dui-row>
       </dui-if>
       <dui-if test="{{media3}}">
-        <dui-row height="72" gap="9"><dui-slot width="96" label="Glint + wear" id="kit_tool" action="kit_item" value="tool" active="{{toolSelected}}" durability="{{toolWear}}" /><dui-column><dui-text label="ENCHANTED TOOL" tone="gold" height="18" /><dui-text label="Live glint + durability." height="18" /><dui-button label="Toggle tool wear" id="kit_repair" action="kit_repair" height="27" /></dui-column></dui-row>
+        <dui-row height="72" gap="9"><dui-demo-slot width="96" label="Glint + wear" id="kit_tool" action="kit_item" value="tool" active="{{toolSelected}}" durability="{{toolWear}}" /><dui-column><dui-text label="ENCHANTED TOOL" tone="gold" height="18" /><dui-text label="Live glint + durability." height="18" /><dui-button label="Toggle tool wear" id="kit_repair" action="kit_repair" height="27" /></dui-column></dui-row>
       </dui-if>
       <dui-if test="{{media4}}">
-        <dui-row height="72" gap="9"><dui-slot width="96" label="Banner layers" id="kit_banner" action="kit_item" value="banner" active="{{bannerSelected}}" /><dui-column><dui-text label="BANNER PATTERNS" tone="gold" height="18" /><dui-text label="Two pattern layers." height="18" /><dui-text label="Hover for details." height="18" /><dui-text label="Click to select." height="18" /></dui-column></dui-row>
+        <dui-row height="72" gap="9"><dui-demo-slot width="96" label="Banner layers" id="kit_banner" action="kit_item" value="banner" active="{{bannerSelected}}" /><dui-column><dui-text label="BANNER PATTERNS" tone="gold" height="18" /><dui-text label="Two pattern layers." height="18" /><dui-text label="Hover for details." height="18" /><dui-text label="Click to select." height="18" /></dui-column></dui-row>
       </dui-if>
       <dui-if test="{{graph0}}">
-        <dui-row height="81" gap="9"><dui-tree width="165" height="81">
-          <dui-node id="kit_origin" value="Origin" action="kit_node" x="82" y="45" shape="root" rank="1" status="learned" icon="item/book" tooltip="Origin / root node" />
-          <dui-node id="kit_alpha" value="Alpha" action="kit_node" x="39" y="0" parent="kit_origin" shape="square" rank="{{rank}}" limit="3" status="{{alphaStatus}}" icon="item/diamond" tooltip="Alpha / adjustable rank" />
-          <dui-node id="kit_beta" value="Beta" action="kit_node" x="126" y="0" parent="kit_origin" shape="round" rank="0" limit="2" status="locked" icon="item/feather" tooltip="Beta / locked" />
-        </dui-tree><dui-column><dui-text label="{{selectedNode}}" tone="gold" height="18" /><dui-text label="Alpha: {{rank}} / 3" height="18" /><dui-button label="Cycle rank" id="kit_rank" action="kit_rank" locked="{{rankLocked}}" height="27" tooltip="Select Alpha to adjust its rank" /><dui-text label="Click a node." height="18" /></dui-column></dui-row>
+        <dui-row height="81" gap="9"><dui-demo-tree width="165" height="81">
+          <dui-demo-node id="kit_origin" value="Origin" action="kit_node" x="82" y="45" shape="root" rank="1" status="learned" icon="demo:item/book" tooltip="Origin / root node" />
+          <dui-demo-node id="kit_alpha" value="Alpha" action="kit_node" x="39" y="0" parent="kit_origin" shape="square" rank="{{rank}}" limit="3" status="{{alphaStatus}}" icon="demo:item/diamond" tooltip="Alpha / adjustable rank" />
+          <dui-demo-node id="kit_beta" value="Beta" action="kit_node" x="126" y="0" parent="kit_origin" shape="round" rank="0" limit="2" status="locked" icon="demo:item/feather" tooltip="Beta / locked" />
+        </dui-demo-tree><dui-column><dui-text label="{{selectedNode}}" tone="gold" height="18" /><dui-text label="Alpha: {{rank}} / 3" height="18" /><dui-button label="Cycle rank" id="kit_rank" action="kit_rank" locked="{{rankLocked}}" height="27" tooltip="Select Alpha to adjust its rank" /><dui-text label="Click a node." height="18" /></dui-column></dui-row>
       </dui-if>
       <dui-if test="{{graph1}}">
-        <dui-tree height="81">
-          <dui-node id="kit_alpha" value="Alpha" action="kit_node" x="70" y="45" shape="root" rank="{{rank}}" limit="3" status="{{alphaStatus}}" icon="item/diamond" tooltip="Alpha / branch parent" />
-          <dui-node id="kit_beta" value="Beta" action="kit_node" x="210" y="45" shape="root" rank="0" status="locked" icon="item/feather" tooltip="Beta / branch parent" />
-          <dui-node id="kit_gamma" value="Gamma" action="kit_node" x="70" y="0" parent="kit_alpha" shape="round" rank="1" status="learned" icon="item/emerald" tooltip="Gamma / complete" />
-          <dui-node id="kit_delta" value="Delta" action="kit_node" x="210" y="0" parent="kit_beta" shape="square" rank="0" status="excluded" icon="item/amethyst_shard" tooltip="Delta / excluded" />
-        </dui-tree>
+        <dui-demo-tree height="81">
+          <dui-demo-node id="kit_alpha" value="Alpha" action="kit_node" x="70" y="45" shape="root" rank="{{rank}}" limit="3" status="{{alphaStatus}}" icon="demo:item/diamond" tooltip="Alpha / branch parent" />
+          <dui-demo-node id="kit_beta" value="Beta" action="kit_node" x="210" y="45" shape="root" rank="0" status="locked" icon="demo:item/feather" tooltip="Beta / branch parent" />
+          <dui-demo-node id="kit_gamma" value="Gamma" action="kit_node" x="70" y="0" parent="kit_alpha" shape="round" rank="1" status="learned" icon="demo:item/emerald" tooltip="Gamma / complete" />
+          <dui-demo-node id="kit_delta" value="Delta" action="kit_node" x="210" y="0" parent="kit_beta" shape="square" rank="0" status="excluded" icon="demo:item/amethyst_shard" tooltip="Delta / excluded" />
+        </dui-demo-tree>
       </dui-if>
-      <dui-if test="{{graph2}}"><dui-stat label="Selected node" value="{{selectedNode}}" height="45" /><dui-text label="{{nodeDetail}}" height="9" /><dui-button label="Cycle Alpha rank" id="kit_rank" action="kit_rank" locked="{{rankLocked}}" height="27" tooltip="Select Alpha on the first example" /></dui-if>
+      <dui-if test="{{graph2}}"><dui-demo-stat label="Selected node" value="{{selectedNode}}" height="45" /><dui-text label="{{nodeDetail}}" height="9" /><dui-button label="Cycle Alpha rank" id="kit_rank" action="kit_rank" locked="{{rankLocked}}" height="27" tooltip="Select Alpha on the first example" /></dui-if>
       <dui-if test="{{forms0}}"><dui-heading label="Your little experiment." height="18" /><dui-text label="Four inputs. One save action." height="18" /><dui-button label="Open sample form >" id="kit_form" action="kit_form" active="true" height="27" /><dui-text label="Next: result cards." height="18" /></dui-if>
-      <dui-if test="{{forms1}}"><dui-grid columns="2" gap="9" height="81"><dui-stat label="Text" value="{{formName}}" height="36" /><dui-stat label="Checkbox" value="{{formChecked}}" height="36" tone="green" /><dui-stat label="Option" value="{{formStyle}}" height="36" tone="gold" /><dui-stat label="Slider" value="{{formAmount}} %" height="36" /></dui-grid></dui-if>
+      <dui-if test="{{forms1}}"><dui-grid columns="2" gap="9" height="81"><dui-demo-stat label="Text" value="{{formName}}" height="36" /><dui-demo-stat label="Checkbox" value="{{formChecked}}" height="36" tone="green" /><dui-demo-stat label="Option" value="{{formStyle}}" height="36" tone="gold" /><dui-demo-stat label="Slider" value="{{formAmount}} %" height="36" /></dui-grid></dui-if>
       <dui-if test="{{forms2}}"><dui-heading label="Start with a clean page." height="18" /><dui-text label="Restore the example values." height="18" /><dui-button label="Reset demo..." id="kit_reset_form" action="kit_reset" tone="danger" height="27" /><dui-text label="Your display preference is kept." height="18" /></dui-if>
     </dui-column>
     <dui-row height="18" gap="6">
-      <dui-button width="27" icon="previous" id="kit_part_previous" action="kit_part" value="-1" tooltip="Previous example on this page" />
+      <dui-button width="27" icon="demo:previous" id="kit_part_previous" action="kit_part" value="-1" tooltip="Previous example on this page" />
       <dui-text label="{{part}} / {{partCount}}  {{partLabel}}" align="center" />
-      <dui-button width="27" icon="next" id="kit_part_next" action="kit_part" value="1" tooltip="Next example on this page" />
+      <dui-button width="27" icon="demo:next" id="kit_part_next" action="kit_part" value="1" tooltip="Next example on this page" />
     </dui-row>
   </dui-column>
 </dui-menu>

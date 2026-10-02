@@ -10,10 +10,10 @@ import org.junit.jupiter.api.Test;
 class ShowcaseTest {
   private MenuTemplate template() throws Exception {
     try (var in = getClass().getResourceAsStream("/ui/showcase.html")) {
-      return MenuTemplate.parse(
+      return DemoTemplates.parse(
           new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
-          new gg.kembel.dui.core.GlyphFont(),
-          gg.kembel.dui.components.VisualComponents.registry(),
+          DemoTemplates.font(),
+          DemoVisualComponents.registry(),
           "demo template");
     }
   }
@@ -84,9 +84,9 @@ class ShowcaseTest {
     state.apply("kit_page", "cards");
     assertTrue(state.dark);
     assertFalse(other.dark);
-    assertEquals("sun", state.data().get("themeIcon"));
+    assertEquals("demo:sun", state.data().get("themeIcon"));
     state.apply("kit_theme", "");
-    assertEquals("moon", state.data().get("themeIcon"));
+    assertEquals("demo:moon", state.data().get("themeIcon"));
     for (int i = 0; i < 4; i++) state.apply("kit_progress", "");
     assertEquals(0, state.progress);
     state.page = "lists";
@@ -120,21 +120,25 @@ class ShowcaseTest {
 
   @Test
   void themeIsOptInAndPreservesNativeIconTint() throws Exception {
-    var dark = new Canvas(120, 18);
+    var dark = new Canvas(120, 18, DemoTemplates.environment(DemoTemplates.font()));
     dark.text(0, 0, 100, "Sample", 0xEAEAF1);
     assertEquals(0xEAEAF1, dark.paints.getFirst().color());
-    var light = new Canvas(120, 18, UiTheme.STUDIO);
+    var light =
+        new Canvas(
+            120,
+            18,
+            DemoTemplates.environment(DemoTemplates.font()).forData(Map.of("theme", "studio")));
     light.text(0, 0, 100, "Sample", 0xEAEAF1);
     assertEquals(0x252938, light.paints.getFirst().color());
-    light.icon(0, 0, "item/diamond", 0xFFFFFF);
+    light.icon(0, 0, "demo:item/diamond", 0xFFFFFF);
     assertEquals(0xFFFFFF, light.paints.getLast().color());
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            MenuTemplate.parse(
+            DemoTemplates.parse(
                     "<dui-menu theme='missing'/>",
-                    new gg.kembel.dui.core.GlyphFont(),
-                    gg.kembel.dui.components.VisualComponents.registry(),
+                    DemoTemplates.font(),
+                    DemoVisualComponents.registry(),
                     "demo template")
                 .render(Map.of()));
   }

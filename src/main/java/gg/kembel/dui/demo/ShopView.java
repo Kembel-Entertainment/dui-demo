@@ -80,10 +80,10 @@ public final class ShopView {
   public static View render(ShopState state, String player) {
     try (var in = ShopView.class.getResourceAsStream("/ui/shop.html")) {
       var c =
-          MenuTemplate.parse(
+          DemoTemplates.parse(
                   new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8),
-                  new gg.kembel.dui.core.GlyphFont(),
-                  gg.kembel.dui.components.VisualComponents.registry(),
+                  DemoTemplates.font(),
+                  DemoVisualComponents.registry(),
                   "demo template")
               .render(data(state, player), images(state));
       QrCode.Region qr = null;

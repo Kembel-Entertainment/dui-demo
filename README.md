@@ -2,7 +2,7 @@
 
 **Work in Progress.** A Paper example plugin and real-client integration suite for [dui](https://github.com/Kembel-Entertainment/dui). Built by [Kembel Entertainment](https://kembel.gg).
 
-The plugin embeds `gg.kembel.dui:dui-paper:0.1.0-SNAPSHOT`. It has no dependency on dui implementation internals. Its own templates, sample state, network service and asset generators demonstrate the public API. No client mod is required to use the menus.
+The plugin embeds `gg.kembel.dui:dui-paper:0.2.0-SNAPSHOT`. It has no dependency on dui implementation internals. Its own templates, sample state, network service and asset generators demonstrate the public API. No client mod is required to use the menus.
 
 ## Build
 
@@ -15,6 +15,8 @@ Use Java 25 and a local dui checkout:
 Without `duiSource`, Gradle resolves the normal Maven dependency. Run `./gradlew publishToMavenLocal` in dui first; then `./gradlew build` here works without a sibling checkout. No remote Maven package has been published yet.
 
 Normal builds run unit tests and do not provision or start Minecraft. The separate `e2e` project is configured only when explicitly invoked by the integration runner.
+
+Gradle supplies the exact current JAR to `installDemo`, so older files in `build/libs` do not confuse installation. With the local server stopped, installation preserves older versioned demo JARs under `run/server/plugin-backups/` before deploying the new version. Direct script calls can select an artifact with `python3 scripts/demo.py install --plugin-jar /path/to/dui-demo.jar`.
 
 ## Try the demos
 
@@ -47,8 +49,11 @@ Connect an unmodified Minecraft **26.2** client to **127.0.0.1:25584** and accep
 | `/dui videos spacious` | Live YouTube feed and runtime RGB thumbnails |
 | `/dui acceptance compact` | Field Journal: unrelated public controller, chrome, stable collection and cached RGBA asset |
 | `/dui protocol spacious` | 14-effect batching, consumer shader extension, generic motion and popup coverage lab |
+| `/dui extensions` or `/dui extensions play` | Independent measured/typed component, custom font, moving clickable group, RGBA, consumer skin camera/poses and dialog backend |
 | `/character spacious` | Aster: live full-body skin and armor, real equipment pickers, rarity borders and vanilla attributes |
 | `/character kit` | Explicit OP-only sample gear; opening the sheet grants nothing |
+| `/dui map` or `/worldmap` | Original camera-controlled atlas, look-to-pan, scroll zoom, gaze/click details and live pixel HUD |
+| `/worldmap dynamic` | Runtime marker position, size and opacity with matching map hit geometry; left-click advances, right-click closes |
 | `/dui reload` | Validate and reload every template; requires `dui-demo.reload` |
 
 The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots`, `/advent`, `/warps`, `/poker`, `/roulette`, `/blackjack` and `/uivideos` are also available. Reward, Advent, warp, poker, roulette, blackjack, shop, slot and video commands accept `compact`/`spacious`. `/uivideos refresh` checks the feed again.
@@ -68,7 +73,7 @@ When `videos.live` is enabled, the service restores its last successful feed and
   -PacceptEula=true -Pscenario=videos -PliveVideos e2e
 ```
 
-Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `blackjack`, `slots`, `confetti`, `videos`, `protocol`, `casino`, `character`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
+Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `blackjack`, `slots`, `confetti`, `videos`, `protocol`, `dynamic`, `casino`, `character`, `map`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
 
 By default, E2E videos use deterministic own gradient images and feed entries; the ordinary demo uses the live Minecraft YouTube channel. `liveVideos` opts into real network requests, using the saved snapshot if the upstream feed is unavailable. Temporary test config and operator access are restored after the run.
 
@@ -92,7 +97,7 @@ Open `/dui poker spacious`, `/dui poker compact`, or `/poker`. [The Hold’em gu
 
 ## Riviera Roulette
 
-Open `/roulette`, `/dui roulette spacious` or `/dui roulette compact`. [The Roulette guide](docs/roulette.md) covers the illustrated European table, live unbiased spins, straight/dozen/column/outside bets, chip denominations, Undo/Clear/Repeat, result history and exact payouts. Wheel/ball motion uses the public `dui-wheel` preset; hitboxes compose the table independently of its artwork. All balances are transient demo credits. Closing or changing menus resets the table. Compact and Motion/Still controls are included.
+Open `/roulette`, `/dui roulette spacious` or `/dui roulette compact`. [The Roulette guide](docs/roulette.md) covers the illustrated European table, live unbiased spins, straight/dozen/column/outside bets, chip denominations, Undo/Clear/Repeat, result history and exact payouts. Wheel/ball artwork and motion use the consumer-owned `demo-wheel` shader; hitboxes compose the table independently of its artwork. All balances are transient demo credits. Closing or changing menus resets the table. Compact and Motion/Still controls are included.
 
 ## Monarch Blackjack
 
@@ -100,7 +105,7 @@ Open `/blackjack`, `/dui blackjack spacious` or `/dui blackjack compact`. [The B
 
 ## Library abstraction migration
 
-The [dui roadmap](https://github.com/Kembel-Entertainment/dui/blob/master/docs/roadmap.md) tracks the library refactor. Every demo now owns a pure MenuDefinition projection, typed action routes and lifecycle effects, bound through MenuController.refresh and catalogue registration. The compatibility presentation path is unused by the demos. Consumers exercise public component composition, stable collections/layout profiles, spans/carousels/card strips, token styles, resource providers, scene planning, generated transport capabilities, shared GPU motion, optional visual components and test helpers. Protocol Lab and Field Journal prove additions through consumer code only. See [the migration guide](docs/abstractions.md). Slot ledger settlement remains application-owned.
+The [dui roadmap](https://github.com/Kembel-Entertainment/dui/blob/master/docs/roadmap.md) describes the design-neutral boundary. Every demo owns a pure MenuDefinition projection, typed action routes and lifecycle effects, bound through MenuController.refresh and catalogue registration. Consumers use public composition, collections/layout profiles, spans/carousels/strips, tokens, resource providers, scene planning, generated transport, Motion and test helpers. Concrete visual components are registered by this demo. Protocol Lab, Field Journal and extension-proof demonstrate additions through consumer code only. See [the migration guide](docs/abstractions.md). Slot ledger settlement remains application-owned.
 
 Muted integration tests may run alongside a local demo with distinct ports, for example `DUI_DEMO_PORT=25594 DUI_PACK_PORT=25595 python3 scripts/demo.py e2e --scenario shop`. Prepare and install with the same environment. Test clients use the chosen loopback server port.
 
@@ -112,3 +117,13 @@ The compact templates are not guaranteed to fit a 320×240 GUI viewport. Vanilla
 
 
 See [the Aster implementation guide](docs/character.md) for the equipment controller and [the library player-model contract](https://github.com/Kembel-Entertainment/dui/blob/master/docs/player-model.md) for its reusable GPU component.
+
+## Atlas of Elsewhere
+
+`/dui map` and `/worldmap` use dui's public in-game map backend and the same resource pack as every dialog demo. The illustration, target locks, 500ms gaze rule and detail modes belong to this consumer; entity/input/shader/session code belongs to dui. `/worldmap debug`, `still`, `state` and `close` support review. See [the map guide](docs/world-map.md). The demo imports no crawler or captured server assets.
+
+## Design ownership
+
+All concrete widget skins, palettes, icons, motion presets and domain shaders live in this repository. Core supplies public registrations, primitives and validated transport. See [abstractions](docs/abstractions.md) and the independent [extension-proof](extension-proof/README.md) project. Library version 0.2 requires a newly generated protocol-4 pack; no preset compatibility module is used.
+
+The extension labs exercise [dui's dynamic composition API](https://github.com/Kembel-Entertainment/dui/blob/master/docs/dynamic-composition.md) without library source changes. `extension-proof` owns font pixels, camera/limb poses, typed component measurement, group animation and a custom primitive. `ExtensionLab` supplies only the Paper adapter and backend lowering. `ExtensionMapLab` uses public runtime layer state and hit geometry. The `dynamic` client scenario checks these rendered features, interruption, input and cleanup; runtime geometry changes require no new pack, while adding font pixels or model render families requires a pack rebuild.

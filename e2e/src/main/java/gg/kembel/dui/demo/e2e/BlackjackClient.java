@@ -212,8 +212,8 @@ final class BlackjackClient {
             for (var e : es)
               if (e.getAsJsonObject().get("id").getAsString().equals("dealer_1")) {
                 found = true;
-                if ((e.getAsJsonObject().get("parameter0").getAsInt() & 63) != 63)
-                  throw new IllegalStateException("Transport leaks private card");
+                if ((e.getAsJsonObject().getAsJsonObject("parameters").get("a").getAsInt() & 63)
+                    != 63) throw new IllegalStateException("Transport leaks private card");
               }
             if (!found) throw new IllegalStateException("Hole card missing");
           }

@@ -128,13 +128,15 @@ class BlackjackTest {
           cv.images.stream().mapToInt(i -> i.raster().width * i.raster().height).sum() <= 16384);
       assertEquals(
           63,
-          cv.effects.stream()
-                  .filter(e -> e.id().equals("dealer_1"))
-                  .findFirst()
-                  .orElseThrow()
-                  .parameter0()
+          (Integer)
+                  cv.effects.stream()
+                      .filter(e -> e.id().equals("dealer_1"))
+                      .findFirst()
+                      .orElseThrow()
+                      .parameters()
+                      .get("a")
               & 63);
-      assertEquals(3, (cv.effects.getFirst().parameter0() >> 13) & 3);
+      assertEquals(3, (DemoShaders.a(cv.effects.getFirst()) >> 13) & 3);
       s.finish(153);
       assertTrue(s.busy());
       s.finish(154);
@@ -199,7 +201,7 @@ class BlackjackTest {
         assertEquals(
             1,
             cv.effects.stream()
-                .filter(e -> e.kind() == gg.kembel.dui.core.ShaderEffect.Kind.CHIP_STACK)
+                .filter(e -> e.shader().equals(DemoShaders.spec(DemoShaders.Kind.CHIP_STACK)))
                 .count());
         assertEquals(Math.min(5, g.visibleDealer().size()), s.dealerLimit());
         if (g.visibleDealer().size() > 5) {

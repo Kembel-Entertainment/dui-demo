@@ -1,3 +1,5 @@
 pluginManagement { repositories { maven { url = 'https://maven.fabricmc.net/' }; gradlePluginPortal(); mavenCentral() } }
 rootProject.name = 'dui-demo'
 if (providers.gradleProperty('duiSource').isPresent()) includeBuild(providers.gradleProperty('duiSource').get())
+
+include 'extension-proof'

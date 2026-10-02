@@ -20,7 +20,7 @@
 <dui-if test="{{compact}}"><dui-layer x="0" y="27" width="144" height="99"><dui-repeat items="selectedProducts" as="p"><dui-layer width="144" height="99">
         <dui-surface class="panel" height="fill" />
         <dui-rect x="5" y="5" width="134" height="48" fill="#AABAB0" />
-        <dui-item id="product_{{p.id}}" x="54" y="9" size="36" width="36" height="36" />
+        <dui-demo-item id="product_{{p.id}}" x="54" y="9" size="36" width="36" height="36" />
         <dui-text x="6" y="54" width="132" height="9" label="{{p.label}}" color="#396860" />
         <dui-button class="buy" id="shop_add_{{p.id}}" action="shop_add" value="{{p.id}}" locked="{{p.full}}" x="6" y="72" width="132" height="18" label="{{p.price}}" tooltip="Add {{p.label}} to your sample cart" />
       </dui-layer></dui-repeat></dui-layer><dui-button class="button" id="shop_prev" label="&lt;" action="shop_product_page" value="-1" y="126" width="27" height="18" /><dui-text x="33" y="126" width="78" height="18" label="{{productPage}}" align="center" color="#FFFFFF" /><dui-button class="button" id="shop_next" label="&gt;" action="shop_product_page" value="1" x="117" y="126" width="27" height="18" /><dui-layer x="153" y="27" width="147" height="99"><dui-layer height="99" width="147">
@@ -42,16 +42,16 @@
 <dui-if test="{{spacious}}"><dui-grid columns="3" gap="6" y="36" width="300" height="108"><dui-repeat items="topProducts" as="p"><dui-layer width="96" height="108">
         <dui-surface class="panel" height="fill" />
         <dui-rect x="5" y="5" width="86" height="57" fill="#AABAB0" />
-        <dui-item id="product_{{p.id}}" x="24" y="9" size="48" width="48" height="48" />
+        <dui-demo-item id="product_{{p.id}}" x="24" y="9" size="48" width="48" height="48" />
         <dui-text x="6" y="63" width="84" height="9" label="{{p.label}}" color="#396860" />
         <dui-button class="buy" id="shop_add_{{p.id}}" action="shop_add" value="{{p.id}}" locked="{{p.full}}" x="6" y="81" width="84" height="18" label="{{p.price}}" tooltip="Add {{p.label}} to your sample cart" />
       </dui-layer></dui-repeat></dui-grid><dui-grid columns="2" gap="6" y="153" width="300" height="108"><dui-repeat items="bottomProducts" as="p"><dui-layer width="147" height="108">
         <dui-surface class="panel" height="fill" />
         <dui-rect x="5" y="5" width="137" height="57" fill="#AABAB0" />
-        <dui-item id="product_{{p.id}}" x="49" y="9" size="48" width="48" height="48" />
+        <dui-demo-item id="product_{{p.id}}" x="49" y="9" size="48" width="48" height="48" />
         <dui-text x="6" y="63" width="135" height="9" label="{{p.label}}" color="#396860" />
         <dui-button class="buy" id="shop_add_{{p.id}}" action="shop_add" value="{{p.id}}" locked="{{p.full}}" x="6" y="81" width="135" height="18" label="{{p.price}}" tooltip="Add {{p.label}} to your sample cart" />
-      </dui-layer></dui-repeat></dui-grid><dui-surface class="panel" x="309" y="36" width="171" height="81" /><dui-head x="321" y="45" width="144" height="18" label="{{player}}" /><dui-item id="shop_profile" x="324" y="66" width="36" height="36" size="36" /><dui-text x="372" y="63" width="99" height="9" label="EXPLORER" color="#396860" /><dui-text x="372" y="81" width="99" height="9" label="Demo profile" color="#5B6B64" /><dui-layer x="309" y="126" width="171" height="135"><dui-layer height="135" width="171">
+      </dui-layer></dui-repeat></dui-grid><dui-surface class="panel" x="309" y="36" width="171" height="81" /><dui-head x="321" y="45" width="144" height="18" label="{{player}}" /><dui-demo-item id="shop_profile" x="324" y="66" width="36" height="36" size="36" /><dui-text x="372" y="63" width="99" height="9" label="EXPLORER" color="#396860" /><dui-text x="372" y="81" width="99" height="9" label="Demo profile" color="#5B6B64" /><dui-layer x="309" y="126" width="171" height="135"><dui-layer height="135" width="171">
       <dui-surface class="panel" height="fill" />
       <dui-text x="6" y="9" width="123" height="9" label="YOUR CART {{cartPage}}" color="#283A35" />
       <dui-if test="{{cartPagination}}">
