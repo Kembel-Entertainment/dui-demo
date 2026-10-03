@@ -10,7 +10,7 @@ tasks.withType(JavaExec).configureEach {
  if(System.getenv('DUI_E2E_JAVA')) executable=System.getenv('DUI_E2E_JAVA')
 }
 def scenario=providers.gradleProperty('scenario').getOrElse('showcase')
-def names=[cinema:'CinemaTest',gba:'GbaTest',dynamic:'DynamicTest','map-observer':'MapObserver',map:'MapTest',character:'CharacterTest',casino:'CasinoTest',protocol:'ProtocolTest',showcase:'ShowcaseTest',shop:'ShopTest',advent:'AdventTest',warps:'WarpTest',roulette:'RouletteTest',blackjack:'BlackjackTest',poker:'PokerTest',rewards:'RewardTest',slots:'SlotTest',confetti:'ConfettiTest',videos:'VideoTest']
+def names=[browser:'BrowserTest',cinema:'CinemaTest',gba:'GbaTest',dynamic:'DynamicTest','map-observer':'MapObserver',map:'MapTest',character:'CharacterTest',casino:'CasinoTest',protocol:'ProtocolTest',showcase:'ShowcaseTest',shop:'ShopTest',advent:'AdventTest',warps:'WarpTest',roulette:'RouletteTest',blackjack:'BlackjackTest',poker:'PokerTest',rewards:'RewardTest',slots:'SlotTest',confetti:'ConfettiTest',videos:'VideoTest']
 if(!names.containsKey(scenario))throw new GradleException('Unknown E2E scenario: '+scenario)
 loom {
  mods { dui_demo_e2e { sourceSet sourceSets.main } }
@@ -18,6 +18,7 @@ loom {
   client(); runDir '../run/clients/'+scenario
   vmArg '-Xmx2G'
   vmArg '-Ddui.e2e.scenario='+scenario
+  vmArg '-Ddui.e2e.browser.fixture='+System.getenv().getOrDefault('DUI_BROWSER_FIXTURE','')
   vmArg '-Ddui.e2e.media='+System.getenv().getOrDefault('DUI_MEDIA_BENCHMARKS','')
   vmArg '-Ddui.e2e.media.benchmark-only='+System.getenv().getOrDefault('DUI_MEDIA_BENCHMARK_ONLY','false')
   vmArg '-Ddui.e2e.media.window='+System.getenv().getOrDefault('DUI_MEDIA_WINDOW','1280x900')

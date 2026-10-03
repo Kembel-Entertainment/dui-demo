@@ -7,6 +7,7 @@ run/
 .DS_Store
 __pycache__/
 *.pyc
+node_modules/
 
 # Local commercial ROMs and player saves (the original demo fixture is intentional)
 *.gba

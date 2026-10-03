@@ -6,7 +6,8 @@
     "FixtureMouseAccess",
     "FixtureVideoFrames",
     "FixtureKeyboardAccess",
-    "FixtureContainerAccess"
+    "FixtureContainerAccess",
+    "FixtureWindowAccess"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -15,6 +15,35 @@ assert '_TEST_COMPLETE' in log and '_TEST_FAILED' not in log
 for error in ("Couldn't compile", 'Failed to load required shader', 'Unable to load font', 'DecoderException', 'Missing texture references', 'Missing textures in model'):
     assert error not in log, error
 hash = hashlib.sha1((ROOT / os.environ.get('DUI_RUN_DIR','run/server') / 'plugins/dui-demo/pack/dui.zip').read_bytes()).hexdigest()
+if name == 'browser':
+    assert all(result.get(key) for key in ('cursorVerified', 'clickVerified', 'menuNavigationVerified', 'historyVerified', 'scrollVerified', 'cleanupVerified', 'mouseMotionVerified', 'mouseClickVerified', 'rightClickMenuVerified', 'mouseWheelVerified', 'zoomVerified', 'hdViewportVerified')), result
+    files = sorted(out.glob('*.png'))
+    assert len(files) >= 4, files
+    assert all(p.stat().st_mtime >= run['startedAt'] for p in files)
+    width, height, pixel = png(out / 'browser.png')
+    colors = {pixel(x,y) for y in range(height//4, 3*height//4, 4) for x in range(width//4, 3*width//4, 4)}
+    # The known fixture uses a smooth gradient quantized to 5-bit channels. Check
+    # its spatial color pattern as well as variety, rather than requiring RGB888 levels.
+    assert len(colors) >= 32, ('Browser surface missing', len(colors))
+    left, right = pixel(width//5, height//2), pixel(4*width//5, height//2)
+    assert left[0] > right[0] + 40 and right[2] > left[2] + 30 and right[2] > right[0] + 60, ('Browser gradient missing', left, right)
+    # The fixture button must visibly grow at 125%, not just report a zoom state.
+    def button_width(file):
+        w,h,pixel = png(file)
+        longest = 0
+        for y in range(h//4, 3*h//4):
+            run = 0
+            for x in range(w//2 - 180, w//2 + 180):
+                rgb = pixel(x,y)[:3]
+                run = run + 1 if min(rgb) > 220 and max(rgb) - min(rgb) < 20 else 0
+                longest = max(longest,run)
+        return longest
+    original, enlarged = button_width(out/'browser.png'), button_width(out/'zoomed.png')
+    assert original >= 70 and enlarged >= original * 1.18, ('Zoom pixels did not grow', original, enlarged)
+    (out / 'verification.json').write_text(json.dumps(dict(result='PASS', scenario=name, client=result, screenshots=[p.name for p in files], packSha1=hash), indent=2)+'\n')
+    (out / 'index.html').write_text('<!doctype html><meta charset="utf-8"><title>Browser</title><h1>Browser</h1>'+''.join('<h2>'+p.stem+'</h2><img style="width:90%" src="'+p.name+'">' for p in files))
+    print('PASS headless browser / vanilla controls')
+    sys.exit(0)
 if name == 'cinema':
     files = sorted(out.glob('*.png'))
     if result.get('benchmarkOnly'):

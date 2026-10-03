@@ -1,0 +1,8 @@
+{
+  "name": "dui-demo-browser-runtime",
+  "private": true,
+  "version": "0.1.0",
+  "description": "External headless browser dependency for the consumer demo",
+  "dependencies": { "playwright": "1.63.0" },
+  "engines": { "node": ">=20" }
+}

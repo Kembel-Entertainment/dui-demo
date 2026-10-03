@@ -1,0 +1,26 @@
+<dui-menu width="342" height="234">
+  <dui-layer>
+    <dui-rect width="fill" height="fill" fill="#101722"/>
+    <dui-rect width="fill" height="3" fill="#FF405B"/>
+    <dui-heading x="15" y="15" width="312" height="18" label="BROWSER / CONTROL ROOM" color="#FFF5F7"/>
+    <dui-text x="15" y="42" width="312" height="9" label="{{title}}" color="#FFD0D8"/>
+    <dui-text x="15" y="60" width="312" height="18" label="{{status}}" color="#AAB9CD"/>
+    <dui-if test="{{running}}">
+      <dui-button id="browser_back" action="back" x="15" y="81" width="99" height="18" label="&lt; Back" fill="#253048" border="#FF405B"/>
+      <dui-button id="browser_forward" action="forward" x="123" y="81" width="96" height="18" label="Forward &gt;" fill="#253048" border="#FF405B"/>
+      <dui-button id="browser_reload" action="reload" x="228" y="81" width="99" height="18" label="Reload" fill="#253048" border="#FF405B"/>
+      <dui-button id="browser_up" action="up" x="15" y="108" width="99" height="18" label="Scroll up" fill="#253048"/>
+      <dui-button id="browser_down" action="down" x="123" y="108" width="96" height="18" label="Scroll down" fill="#253048"/>
+      <dui-button id="browser_home" action="home" x="228" y="108" width="99" height="18" label="YouTube" fill="#922039"/>
+      <dui-button id="browser_enter" action="enter" x="15" y="135" width="72" height="18" label="Enter" fill="#253048"/>
+      <dui-button id="browser_escape" action="escape" x="96" y="135" width="69" height="18" label="Esc" fill="#253048"/>
+      <dui-button id="browser_space" action="space" x="174" y="135" width="72" height="18" label="Space" fill="#253048"/>
+      <dui-button id="browser_tab" action="tab" x="255" y="135" width="72" height="18" label="Tab" fill="#253048"/>
+      <dui-button id="browser_zoom_out" action="zoom_out" x="15" y="162" width="99" height="18" label="Zoom -" fill="#253048"/>
+      <dui-button id="browser_zoom_reset" action="zoom_reset" x="123" y="162" width="96" height="18" label="{{zoom}} / reset" fill="#253048"/>
+      <dui-button id="browser_zoom_in" action="zoom_in" x="228" y="162" width="99" height="18" label="Zoom +" fill="#253048"/>
+      <dui-button id="browser_resume" action="resume" x="15" y="189" width="312" height="18" label="Return to the browser &gt;" fill="#922039" border="#FF405B"/>
+    </dui-if>
+    <dui-text x="15" y="222" width="312" height="9" label="Mouse move / Left click / Right click controls" color="#AAB9CD"/>
+  </dui-layer>
+</dui-menu>

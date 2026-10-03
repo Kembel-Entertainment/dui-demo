@@ -55,6 +55,7 @@ Connect an unmodified Minecraft **26.2** client to **127.0.0.1:25584** and accep
 | `/dui map` or `/worldmap` | Original camera-controlled atlas, look-to-pan, scroll zoom, gaze/click details and live pixel HUD |
 | `/worldmap dynamic` | Runtime marker position, size and opacity with matching map hit geometry; left-click advances, right-click closes |
 | `/dui reload` | Validate and reload every template; requires `dui-demo.reload` |
+| `/browser` or `/dui browser` | Private headless Chromium, YouTube home, live pixels and navigation/text/cursor controls; see [browser setup](docs/browser.md) |
 
 The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots`, `/advent`, `/warps`, `/poker`, `/roulette`, `/blackjack` and `/uivideos` are also available. Reward, Advent, warp, poker, roulette, blackjack, shop, slot and video commands accept `compact`/`spacious`. `/uivideos refresh` checks the feed again.
 
@@ -73,7 +74,7 @@ When `videos.live` is enabled, the service restores its last successful feed and
   -PacceptEula=true -Pscenario=videos -PliveVideos e2e
 ```
 
-Scenarios: `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `blackjack`, `slots`, `confetti`, `videos`, `protocol`, `dynamic`, `casino`, `character`, `map`. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
+Scenarios: `gba`, `cinema`, `browser`, `showcase`, `shop`, `rewards`, `advent`, `warps`, `poker`, `roulette`, `blackjack`, `slots`, `confetti`, `videos`, `protocol`, `dynamic`, `casino`, `character`, `map`. The optional browser scenario requires explicit [runtime setup](docs/browser.md); an `all` run includes it. The runner starts an isolated server, launches muted clients sequentially and shuts down its own processes. It refuses occupied ports. A graphical display is required; the automated client is locally verified on macOS ARM64. Unit tests are portable Java tests; other client platforms are not yet verified.
 
 By default, E2E videos use deterministic own gradient images and feed entries; the ordinary demo uses the live Minecraft YouTube channel. `liveVideos` opts into real network requests, using the saved snapshot if the upstream feed is unavailable. Temporary test config and operator access are restored after the run.
 

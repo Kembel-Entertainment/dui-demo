@@ -5,6 +5,20 @@ pack:
 videos:
   live: true
 
+browser:
+  mouse-controls: true
+  # pixels-per-degree: 14.22 (defaults to viewport width / 90)
+  home: https://www.youtube.com/
+  node: node
+  # runtime: /absolute/path/to/browser/runtime (defaults to plugins/dui-demo/browser/runtime)
+  maximum-sessions: 2
+  width: 1280
+  height: 720
+  fps: 12
+  zoom: 100 # 50..250 percent; adjustable per session from the control menu
+  format: BGR555
+  bytes-per-second: 67108864
+
 gba:
   maximum-sessions: 2
   bytes-per-second: 16777216

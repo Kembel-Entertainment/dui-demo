@@ -5,6 +5,10 @@ api-version: '26.2'
 website: https://kembel.gg
 description: Work in progress examples for the embedded dui library
 commands:
+  browser:
+    description: Open a private headless browser streamed to a vanilla video surface
+    usage: /browser [open <url or search>|menu|resume|back|forward|reload|home|scroll <pixels>|click|type <text>|key <key>|stats|close]
+    permission: dui-demo.browser
   cinema:
     description: Play a silent local video through a vanilla video surface
     usage: /cinema [play <file> [width] [fps] [start-seconds]|pause|resume|restart|seek <seconds>|stats|close]
@@ -62,6 +66,9 @@ commands:
     description: Open the Aster character sheet and equip inventory items
     usage: /character [compact|spacious|kit]
 permissions:
+  dui-demo.browser:
+    description: Use the server-side browser demo
+    default: op
   dui-demo.character-kit:
     default: op
   dui-demo.reload:

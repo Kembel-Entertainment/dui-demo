@@ -9,7 +9,7 @@ REPORT = ROOT / 'build/reports/e2e'
 SERVER_PORT = int(os.environ.get('DUI_DEMO_PORT', '25584'))
 PACK_PORT = int(os.environ.get('DUI_PACK_PORT', '25585'))
 CLIENT_PORT = int(os.environ.get('DUI_E2E_PORT', str(SERVER_PORT)))
-SCENARIOS = ['gba', 'cinema', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol', 'dynamic', 'casino', 'character', 'map']
+SCENARIOS = ['gba', 'cinema', 'browser', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol', 'dynamic', 'casino', 'character', 'map']
 if not (1024 <= SERVER_PORT <= 65535 and 1024 <= PACK_PORT <= 65535) or SERVER_PORT == PACK_PORT:
     raise ValueError('Demo and pack ports must be distinct ports in 1024..65535')
 PAPER_SHA256 = 'b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083'
@@ -110,9 +110,17 @@ def run_e2e(scenario, live, start_at=None):
         template_backups[target] = target.read_bytes() if target.exists() else None
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(source.read_bytes())
+    if scenario in ('browser', 'all'):
+        target = PLUGIN / 'browser/bridge.mjs'
+        template_backups[target] = target.read_bytes() if target.exists() else None
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / 'src/main/resources/browser/bridge.mjs', target)
     character_op = uuid.UUID(bytes=hashlib.md5(b'OfflinePlayer:CharacterTest').digest(), version=3)
     map_op = uuid.UUID(bytes=hashlib.md5(b'OfflinePlayer:MapTest').digest(), version=3)
+    browser_op = uuid.UUID(bytes=hashlib.md5(b'OfflinePlayer:BrowserTest').digest(), version=3)
     ops.write_text(json.dumps([dict(uuid=str(map_op), name='MapTest', level=4, bypassesPlayerLimit=False), dict(uuid=str(op), name='SlotTest', level=4, bypassesPlayerLimit=False), dict(uuid=str(character_op), name='CharacterTest', level=4, bypassesPlayerLimit=False)]))
+    if scenario in ('browser', 'all'):
+        ops.write_text(json.dumps([*json.loads(ops.read_text()), dict(uuid=str(browser_op), name='BrowserTest', level=4, bypassesPlayerLimit=False)]))
     if scenario == 'gba':
         fixture = PLUGIN / 'gba/roms/color-controls.gba'
         fixture.parent.mkdir(parents=True,exist_ok=True)
@@ -129,7 +137,15 @@ def run_e2e(scenario, live, start_at=None):
     observer_log = None
     paper_config = SERVER / 'config/paper-global.yml'
     old_paper_config = paper_config.read_bytes() if paper_config.exists() else None
+    browser_fixture = None
+    previous_browser_fixture = os.environ.get('DUI_BROWSER_FIXTURE')
     try:
+        if scenario in ('browser', 'all'):
+            from browser_fixture import start
+            browser_fixture, address = start()
+            os.environ['DUI_BROWSER_FIXTURE'] = address
+            with config.open('a') as settings:
+                settings.write('browser:\n  home: ' + address + '\n  width: 1280\n  height: 720\n  zoom: 100\n')
         if os.environ.get('DUI_E2E_COMPRESSION_LEVEL'):
             if old_paper_config is None: raise RuntimeError('Prepare Paper once before comparing compression levels')
             level = int(os.environ['DUI_E2E_COMPRESSION_LEVEL'])
@@ -188,6 +204,10 @@ def run_e2e(scenario, live, start_at=None):
                 subprocess.run(['python3', str(ROOT / 'scripts/verify_e2e.py'), name], cwd=ROOT, check=True)
             print('All requested dui demo E2E scenarios passed.', flush=True)
     finally:
+        if browser_fixture is not None:
+            browser_fixture.shutdown(); browser_fixture.server_close()
+            if previous_browser_fixture is None: os.environ.pop('DUI_BROWSER_FIXTURE', None)
+            else: os.environ['DUI_BROWSER_FIXTURE'] = previous_browser_fixture
         if observer is not None and observer.poll() is None:
             observer.terminate()
             observer.wait(timeout=15)

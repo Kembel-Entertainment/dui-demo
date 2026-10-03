@@ -5,6 +5,7 @@ import net.fabricmc.api.ClientModInitializer;
 public final class ScenarioClient implements ClientModInitializer {
   public void onInitializeClient() {
     switch (System.getProperty("dui.e2e.scenario", "showcase")) {
+      case "browser" -> new BrowserClient().initialize();
       case "cinema" -> new CinemaClient().initialize();
       case "gba" -> new GbaClient().initialize();
       case "dynamic" -> new DynamicClient().initialize();
