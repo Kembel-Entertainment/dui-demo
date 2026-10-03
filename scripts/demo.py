@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Explicit local Paper runner and independent, muted Minecraft integration tests."""
-import argparse, hashlib, json, os, shutil, socket, subprocess, time, uuid
+import argparse, hashlib, json, os, re, shutil, socket, subprocess, time, uuid
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SERVER = ROOT / os.environ.get('DUI_RUN_DIR', 'run/server')
@@ -9,7 +9,7 @@ REPORT = ROOT / 'build/reports/e2e'
 SERVER_PORT = int(os.environ.get('DUI_DEMO_PORT', '25584'))
 PACK_PORT = int(os.environ.get('DUI_PACK_PORT', '25585'))
 CLIENT_PORT = int(os.environ.get('DUI_E2E_PORT', str(SERVER_PORT)))
-SCENARIOS = ['gba', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol', 'dynamic', 'casino', 'character', 'map']
+SCENARIOS = ['gba', 'cinema', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol', 'dynamic', 'casino', 'character', 'map']
 if not (1024 <= SERVER_PORT <= 65535 and 1024 <= PACK_PORT <= 65535) or SERVER_PORT == PACK_PORT:
     raise ValueError('Demo and pack ports must be distinct ports in 1024..65535')
 PAPER_SHA256 = 'b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083'
@@ -49,6 +49,9 @@ def prepare(accept):
     elif not eula.exists():
         eula.write_text('eula=false\n')
     (SERVER / 'server.properties').write_text('server-ip=127.0.0.1\nserver-port=' + str(SERVER_PORT) + '\nonline-mode=false\nwhite-list=false\nenforce-secure-profile=false\ndifficulty=peaceful\ngamemode=creative\nforce-gamemode=true\nlevel-type=minecraft:flat\ngenerator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\nview-distance=2\nsimulation-distance=2\nspawn-protection=0\nmotd=dui-demo / Paper 26.2\n')
+    if os.environ.get('DUI_E2E_COMPRESSION_THRESHOLD'):
+        with (SERVER / 'server.properties').open('a') as properties:
+            properties.write('network-compression-threshold=' + str(int(os.environ['DUI_E2E_COMPRESSION_THRESHOLD'])) + '\n')
 
 def install(plugin_jar=None):
     check_ports()
@@ -87,6 +90,13 @@ def run_e2e(scenario, live, start_at=None):
     config = PLUGIN / 'config.yml'
     previous = config.read_bytes() if config.exists() else None
     config.write_text(f'pack:\n  bind-address: 127.0.0.1\n  port: {PACK_PORT}\n  public-url: http://127.0.0.1:{PACK_PORT}/dui.zip\nvideos:\n  live: ' + str(live).lower() + '\ntesting:\n  map-fixtures: true\n')
+    if os.environ.get('DUI_MEDIA_TEST_BYTES'):
+        with config.open('a') as settings:
+            settings.write('media:\n  bytes-per-second: ' + str(int(os.environ['DUI_MEDIA_TEST_BYTES'])) + '\n')
+            if os.environ.get('DUI_MEDIA_TEST_FORMAT'):
+                color_format = os.environ['DUI_MEDIA_TEST_FORMAT']
+                if color_format not in ('RGB888','BGR555'): raise ValueError('Video format: RGB888 or BGR555')
+                settings.write('  format: ' + color_format + '\n')
     op = uuid.UUID(bytes=hashlib.md5(b'OfflinePlayer:SlotTest').digest(), version=3)
     ops = SERVER / 'ops.json'
     old_ops = ops.read_bytes() if ops.exists() else b'[]'
@@ -107,11 +117,26 @@ def run_e2e(scenario, live, start_at=None):
         fixture = PLUGIN / 'gba/roms/color-controls.gba'
         fixture.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(ROOT / 'src/main/resources/gba/color-controls.gba',fixture)
+    if scenario in ('cinema', 'all'):
+        fixture = PLUGIN / 'media/files/dui-color-fixture.mp4'
+        fixture.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run([os.environ.get('FFMPEG', 'ffmpeg'), '-v', 'error', '-y', '-f', 'lavfi',
+            '-i', 'testsrc2=size=384x216:rate=30:duration=16', '-vf', 'hue=h=90*t', '-an', '-c:v', 'libx264',
+            '-pix_fmt', 'yuv420p', str(fixture)], check=True)
     log_path = REPORT / 'server.log'
     server = None
     observer = None
     observer_log = None
+    paper_config = SERVER / 'config/paper-global.yml'
+    old_paper_config = paper_config.read_bytes() if paper_config.exists() else None
     try:
+        if os.environ.get('DUI_E2E_COMPRESSION_LEVEL'):
+            if old_paper_config is None: raise RuntimeError('Prepare Paper once before comparing compression levels')
+            level = int(os.environ['DUI_E2E_COMPRESSION_LEVEL'])
+            if not -1 <= level <= 9: raise ValueError('Compression level: -1..9')
+            updated, count = re.subn(r'(?m)^(\s+)compression-level:.*$', lambda m: m[1] + 'compression-level: ' + str(level), old_paper_config.decode(), count=1)
+            if count != 1: raise RuntimeError('Compression setting missing from Paper global config')
+            paper_config.write_text(updated)
         with log_path.open('w') as log:
             server = subprocess.Popen(server_command(), cwd=SERVER, stdin=subprocess.PIPE, stdout=log, stderr=subprocess.STDOUT, text=True)
             deadline = time.monotonic() + 120
@@ -176,6 +201,8 @@ def run_e2e(scenario, live, start_at=None):
             except subprocess.TimeoutExpired:
                 server.terminate()
                 server.wait(timeout=15)
+        if os.environ.get('DUI_E2E_COMPRESSION_LEVEL') and old_paper_config is not None:
+            paper_config.write_bytes(old_paper_config)
         if old_hud is None: hud_template.unlink(missing_ok=True)
         else: hud_template.write_bytes(old_hud)
         for target, previous_template in template_backups.items():

@@ -8,3 +8,13 @@ videos:
 gba:
   maximum-sessions: 2
   bytes-per-second: 16777216
+
+media:
+  # RGB888 = full 24-bit color. BGR555 = 15-bit color with about half as many maps.
+  format: RGB888
+  ffmpeg: ffmpeg
+  ffprobe: ffprobe
+  maximum-sessions: 2
+  width: 384
+  fps: 30
+  bytes-per-second: 16777216

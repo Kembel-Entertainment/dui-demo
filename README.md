@@ -129,3 +129,5 @@ All concrete widget skins, palettes, icons, motion presets and domain shaders li
 The extension labs exercise [dui's dynamic composition API](https://github.com/Kembel-Entertainment/dui/blob/master/docs/dynamic-composition.md) without library source changes. `extension-proof` owns font pixels, camera/limb poses, typed component measurement, group animation and a custom primitive. `ExtensionLab` supplies only the Paper adapter and backend lowering. `ExtensionMapLab` uses public runtime layer state and hit geometry. The `dynamic` client scenario checks these rendered features, interruption, input and cleanup; runtime geometry changes require no new pack, while adding font pixels or model render families requires a pack rebuild.
 
 Experimental mGBA frontend: [Pocket Arcade setup and architecture](docs/gba.md).
+
+Silent local video playback: `/cinema` / `/dui cinema`. See [Cinema setup, controls and the frame-source boundary](docs/cinema.md).

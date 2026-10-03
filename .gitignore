@@ -15,3 +15,9 @@ __pycache__/
 *.sav
 *.state
 *.state.bak
+
+# Local video inputs; generate test clips instead of committing media binaries.
+*.mp4
+*.mkv
+*.webm
+*.mov

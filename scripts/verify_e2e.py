@@ -15,6 +15,26 @@ assert '_TEST_COMPLETE' in log and '_TEST_FAILED' not in log
 for error in ("Couldn't compile", 'Failed to load required shader', 'Unable to load font', 'DecoderException', 'Missing texture references', 'Missing textures in model'):
     assert error not in log, error
 hash = hashlib.sha1((ROOT / os.environ.get('DUI_RUN_DIR','run/server') / 'plugins/dui-demo/pack/dui.zip').read_bytes()).hexdigest()
+if name == 'cinema':
+    files = sorted(out.glob('*.png'))
+    if result.get('benchmarkOnly'):
+        assert files and result['measurements'], result
+        assert all(data['visibleFps'] > 0 and data['renderSamples'] > 30 for data in result['measurements'].values()), result
+    else:
+        assert len(files) >= 6, files
+        assert result['pauseStable'] and result['eofVerified'], result
+        assert result['measurements']['fixture']['visibleFps'] >= 18, result
+    for file in files:
+        assert file.stat().st_mtime >= run['startedAt'], file
+    width, height, pixel = png(files[0] if result.get('benchmarkOnly') else out / 'moving.png')
+    colors = {pixel(x,y) for y in range(height//4, 3*height//4, 4) for x in range(width//4, 3*width//4, 4)}
+    assert len(colors) >= 48, ('Video missing', len(colors))
+    if not result.get('benchmarkOnly'): assert result['measurements']['paused']['visibleChanges'] <= 1, result
+    report = dict(result='PASS',scenario=name,client=result,screenshots=[p.name for p in files],packSha1=hash)
+    (out / 'verification.json').write_text(json.dumps(report,indent=2)+'\n')
+    (out / 'index.html').write_text('<!doctype html><meta charset="utf-8"><title>Cinema</title><h1>Cinema</h1>' + ''.join('<h2>'+p.stem+'</h2><img style="width:90%" src="'+p.name+'">' for p in files))
+    print('PASS cinema measurements', {label: data['visibleFps'] for label,data in result['measurements'].items()})
+    sys.exit(0)
 if name == 'gba':
     files = sorted(out.glob('*.png'))
     assert len(files) >= 3, files

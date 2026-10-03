@@ -1,6 +1,7 @@
 package gg.kembel.dui.demo.e2e.mixin;
 
 import gg.kembel.dui.demo.e2e.GbaClient;
+import gg.kembel.dui.demo.e2e.CinemaClient;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
@@ -11,5 +12,6 @@ public abstract class FixtureVideoFrames {
   @Inject(method="runTick",at=@At("RETURN"))
   private void dui$observeFrame(boolean render,CallbackInfo ci) {
     if(render&&GbaClient.instance!=null)GbaClient.instance.rendered((Minecraft)(Object)this);
+    if(render&&CinemaClient.instance!=null)CinemaClient.instance.rendered((Minecraft)(Object)this);
   }
 }

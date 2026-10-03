@@ -1,0 +1,15 @@
+<dui-menu width="360" height="279">
+  <dui-layer>
+    <dui-rect width="360" height="279" fill="#101722"/>
+    <dui-rect width="360" height="3" fill="#B5A1FF"/>
+    <dui-icon x="15" y="18" width="9" height="9" name="demo:next" color="#B5A1FF"/>
+    <dui-heading x="42" y="15" width="303" height="18" label="SCREEN ROOM" color="#F6F0FF"/>
+    <dui-text x="15" y="42" width="330" height="18" label="{{status}}" color="#AAB9CD"/>
+    <dui-repeat items="files" as="file">
+      <dui-button id="cinema_{{file.id}}" action="play" value="{{file.id}}" x="15" y="{{file.y}}" width="330" height="18" label="{{file.label}}" fill="#253048" border="#B5A1FF" highlight="#C1AFFA"/>
+    </dui-repeat>
+    <dui-if test="{{running}}"><dui-button id="cinema_resume" action="resume" x="15" y="216" width="330" height="18" label="Resume the screening" fill="#42405D" border="#B5A1FF"/></dui-if>
+    <dui-text x="15" y="243" width="330" height="9" label="1 PAUSE / 2 REPLAY / 8 LIBRARY / SHIFT EXIT" color="#C1AFFA"/>
+    <dui-text x="15" y="261" width="330" height="9" label="F1 = clean picture / local files stay local" color="#AAB9CD"/>
+  </dui-layer>
+</dui-menu>

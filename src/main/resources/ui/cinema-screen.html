@@ -1,0 +1,26 @@
+<dui-video width="{{width}}" height="{{height}}" format="{{format}}" fps="{{fps}}" max-tiles="{{tiles}}" bytes-per-second="{{bytes}}" background="#080B11" scale="fit">
+  <dui-hud native-hud="cover" native-hud-color="#080B11">
+    <dui-surface anchor-y="top" offset-y="6" opacity="0.85">
+      <dui-menu width="360" height="36"><dui-layer><dui-rect width="fill" height="fill" fill="#101722"/></dui-layer></dui-menu>
+    </dui-surface>
+    <dui-surface anchor-y="top" offset-y="6">
+      <dui-menu width="360" height="36"><dui-layer>
+        <dui-text x="9" y="9" width="9" height="9" label="&gt;" color="#B5A1FF"/>
+        <dui-text x="24" y="6" width="327" height="18" label="{{title}}" color="#F6F0FF"/>
+        <dui-text x="9" y="24" width="342" height="9" label="{{source}}" color="#C1AFFA"/>
+      </dui-layer></dui-menu>
+    </dui-surface>
+    <dui-surface anchor-y="bottom" offset-y="-3" opacity="0.85">
+      <dui-menu width="360" height="63"><dui-layer><dui-rect width="fill" height="fill" fill="#101722"/></dui-layer></dui-menu>
+    </dui-surface>
+    <dui-surface anchor-y="bottom" offset-y="-3">
+      <dui-menu width="360" height="63"><dui-layer>
+        <dui-progress x="9" y="0" width="342" height="3" value="{{progress}}" max="1" color="#B5A1FF"/>
+        <dui-text x="9" y="9" width="237" height="9" label="{{status}}" color="#F6F0FF"/>
+        <dui-text x="246" y="9" width="105" height="9" label="{{time}}" align="right" color="#C1AFFA"/>
+        <dui-text x="9" y="27" width="342" height="9" label="A/D Seek -/+5s / W/S Faster/Slower" color="#C1AFFA"/>
+        <dui-text x="9" y="45" width="342" height="9" label="1 Pause / 2 Replay / 8 Menu / Shift Exit" color="#AAB9CD"/>
+      </dui-layer></dui-menu>
+    </dui-surface>
+  </dui-hud>
+</dui-video>
