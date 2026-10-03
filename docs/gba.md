@@ -20,6 +20,41 @@ The test cartridge draws a moving color ramp; held GBA keys change its colors.
 Its assembly source is `src/test/fixtures/gba/color-controls.s`, and the optional reproducible
 fixture builder is `python3 scripts/gba-homebrew.py` (uses an already installed clang).
 
+## Installing local cartridges
+
+Put external `.gba` files in the plugin's data directory, relative to the Paper server:
+
+```text
+plugins/dui-demo/gba/roms/
+```
+
+For the development server, this is the following directory relative to the
+`dui-demo` repository:
+
+```text
+run/server/plugins/dui-demo/gba/roms/
+```
+
+For example, copy a cartridge as `my-game.gba`, open `/gba` to accept the resource
+pack, then run `/gba play my-game`. Use filenames containing only letters, digits,
+dots, hyphens or underscores. The catalogue is read whenever the menu opens, so
+adding a cartridge does not require a server restart. The menu shows the first five
+files; the play command can open the others by filename.
+
+Cartridges stay on the server. External cartridges are not bundled into the plugin
+JAR or the client resource pack. Player saves live separately in:
+
+```text
+plugins/dui-demo/gba/saves/<player UUID>/<ROM SHA-256>/
+```
+
+The repository ignores `run/`, all `*.gba` files, and save files matching `*.srm`,
+`*.sav`, `*.state` and `*.state.bak`. Keep external cartridges and player saves out
+of commits and release artifacts. There is one intentional ROM exception:
+`src/main/resources/gba/color-controls.gba`, our original, self-authored test fixture
+with assembly source in `src/test/fixtures/gba/color-controls.s`. The emulator
+integration and this fixture are versioned; external game cartridges are not.
+
 ## Controls
 
 | Default Minecraft binding | GBA input |

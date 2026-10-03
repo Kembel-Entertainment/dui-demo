@@ -12,7 +12,33 @@ def frame(name):
         return pixel(int((meta['canvasX']+x)*meta['scale']),int((meta['canvasY']+y)*meta['scale']))
     return meta,sample
 
-motion={}
+def chrome_probes(meta,sample):
+    """Opaque illustrations must leave the surrounding template and controls visible."""
+    layout=meta['layout'];effects=layout.get('effects',[]);paints=layout.get('paints',[])
+    probes=0
+    for y in range(4,layout['height']-4,4):
+        for x in range(4,layout['width']-4,4):
+            if any(e['x']-1<=x<e['x']+e['width']+1 and
+                   e['y']-1<=y<e['y']+e['height']+1 for e in effects):continue
+            top=None
+            for paint in paints:
+                if paint['x']-1<=x<paint['x']+paint['width']+1 and paint['y']-1<=y<paint['y']+paint['height']+1:
+                    top=paint
+            if top is None or top.get('text') is not None or top.get('icon') is not None:continue
+            if not (top['x']+1<=x<top['x']+top['width']-1 and
+                    top['y']+1<=y<top['y']+top['height']-1):continue
+            rgb=top['color'];expected=(rgb>>16&255,rgb>>8&255,rgb&255)
+            actual=sample(x+.5,y+.5)
+            assert max(abs(a-b) for a,b in zip(actual,expected))<=3,(
+                layout['section'],x,y,expected,actual,'Shader obscured template outside its component')
+            probes+=1
+    assert probes>100,(layout['section'],probes,'Insufficient visible template evidence')
+    return probes
+
+motion={};chrome=0
+for file in sorted((OUT/'screenshots').glob('*.json')):
+    meta,sample=frame(file.stem)
+    chrome+=chrome_probes(meta,sample)
 for name in ('horses','wheel','coinflip','bookofra'):
     early,a=frame(name+'-early');late,b=frame(name+'-late')
     effects=early['layout']['effects']
@@ -35,6 +61,6 @@ for name in ('horses','wheel','coinflip','bookofra'):
     for suffix in ('rules-wide','rules-compact'):
         meta=json.loads((OUT/'screenshots'/f'{name}-{suffix}.json').read_text())
         assert not meta['layout']['effects'],'Rules are covered by an effect'
-report=dict(result='PASS',games=4,consumerEffects=4,libraryChanges=0,gpu=motion)
+report=dict(result='PASS',games=4,consumerEffects=4,templatePixelProbes=chrome,gpu=motion)
 (OUT/'casino-verification.json').write_text(json.dumps(report,indent=2)+'\n')
 print('PASS casino',report)

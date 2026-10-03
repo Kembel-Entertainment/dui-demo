@@ -8,6 +8,31 @@ import org.junit.jupiter.api.Test;
 
 class AdventTest {
   @Test
+  void giftOpensUpwardAndRewardAndConfettiShareItsCenter() {
+    for (boolean compact : List.of(false, true)) {
+      var s = new AdventState();
+      s.compact = compact;
+      s.open(24, 100);
+      var opening = AdventView.render(s, 100);
+      var body = opening.items.stream().filter(i -> i.id().equals("parcel_body")).findFirst().orElseThrow();
+      var lid = opening.items.stream().filter(i -> i.id().equals("parcel_lid")).findFirst().orElseThrow();
+      assertTrue(lid.y() < body.y(), "Open lid must finish above the box");
+      assertEquals(body.y(), lid.y() + opening.motions.get("parcel_lid").ty(), "Closed starting pose");
+      // The authored lid has transparent padding above its bow (19 of 96 pixels).
+      assertTrue(lid.y() + 19.0 / 96 * lid.size() >= (compact ? 27 : 45), "Lid must clear the title");
+      var confetti = opening.effects.getFirst();
+      assertTrue(confetti.y() >= (compact ? 27 : 45), "Confetti must clear the title");
+      assertTrue(confetti.y() + confetti.height() <= opening.height - 27, "Confetti must clear controls");
+      assertEquals(body.x() + body.size() / 2, confetti.x() + (DemoShaders.a(confetti) & 511));
+      assertEquals(body.y() + body.size() / 2, confetti.y() + (DemoShaders.b(confetti) & 511));
+      s.reveal(s.generation, 124);
+      var reward = AdventView.render(s, 124).items.stream().filter(i -> i.id().equals("advent_reward")).findFirst().orElseThrow();
+      assertEquals(body.x() + body.size() / 2.0, reward.x() + reward.size() / 2.0, .5);
+      assertEquals(body.y() + body.size() / 2.0, reward.y() + reward.size() / 2.0, .5);
+    }
+  }
+
+  @Test
   void everyGiftCanBeOpenedRepeatedlyWithoutAClaimLedger() {
     var s = new AdventState();
     long tick = 0;

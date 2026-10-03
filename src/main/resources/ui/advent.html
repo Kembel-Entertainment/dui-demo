@@ -18,9 +18,9 @@
    <dui-text x="18" y="{{footer}}" width="198" height="18" label="PICK ANY BOX &gt;" color="#FFF1D0" />
   </dui-if>
   <dui-if test="{{scene}}">
-   <dui-surface class="frame" x="9" y="{{sceneY}}" width="{{inner}}" height="{{shelfH}}" />
+   <dui-surface class="frame" x="{{sceneX}}" y="{{sceneY}}" width="{{inner}}" height="{{shelfH}}" />
    <dui-if test="{{parcelVisible}}"><dui-demo-item id="parcel_body" x="{{itemX}}" y="{{itemY}}" size="{{itemSize}}" width="{{itemSize}}" height="{{itemSize}}" transition="bounce" transition-start="{{tick}}" transition-duration="24" transition-distance="18" />
-   <dui-demo-item id="parcel_lid" x="{{itemX}}" y="{{itemY}}" size="{{itemSize}}" width="{{itemSize}}" height="{{itemSize}}" transition="lift" transition-start="{{tick}}" transition-duration="24" transition-distance="{{lift}}" /></dui-if>
+   <dui-demo-item id="parcel_lid" x="{{itemX}}" y="{{lidY}}" size="{{itemSize}}" width="{{itemSize}}" height="{{itemSize}}" transition="lift" transition-start="{{tick}}" transition-duration="24" transition-distance="{{lift}}" /></dui-if>
    <dui-text x="{{textX}}" y="{{textY}}" width="{{textW}}" height="9" label="GIFT {{selected}} / 24" color="{{accent}}" />
    <dui-if test="{{opening}}">
     <dui-heading x="{{textX}}" y="{{copyY}}" width="{{textW}}" height="18" label="UNWRAPPING..." color="#FFF1D0" />
@@ -31,7 +31,7 @@
     <dui-heading x="{{textX}}" y="{{copyY}}" width="{{textW}}" height="18" label="{{name}}" color="#FFF1D0" />
     <dui-text x="{{textX}}" y="{{tagY}}" width="{{textW}}" height="18" label="{{caption}}" color="#A9C8C9" />
    </dui-if>
-   <dui-demo-particles id="gift_confetti" effect="confetti" x="0" y="0" width="{{width}}" height="{{height}}" origin-x="{{originX}}" origin-y="{{originY}}" count="52" delay="24" />
+   <dui-demo-particles id="gift_confetti" effect="confetti" x="{{sceneX}}" y="{{sceneY}}" width="{{inner}}" height="{{shelfH}}" origin-x="{{originX}}" origin-y="{{originY}}" count="52" delay="24" />
    <dui-button class="button" id="advent_back" action="advent_back" label="&lt; Calendar" x="12" y="{{footer}}" width="{{buttonW}}" height="18" />
    <dui-button class="button" id="advent_again" action="advent_again" locked="{{opening}}" fill="#FF679A" label="Again, please" x="{{againX}}" y="{{footer}}" width="{{buttonW}}" height="18" />
   </dui-if>

@@ -97,7 +97,9 @@ public final class AdventView {
     d.put("titleH", s.compact ? 27 : 36);
     d.put("subtitleY", s.compact ? 45 : 54);
     d.put("shelfY", s.compact ? 36 : 90);
-    d.put("sceneY", s.compact ? 36 : 63);
+    int sceneX = 9, sceneY = s.compact ? 36 : 63;
+    d.put("sceneX", sceneX);
+    d.put("sceneY", sceneY);
     d.put("wide", !s.compact);
     d.put("parcelVisible", !s.compact || !shown);
     d.put("roofY", s.compact ? 27 : 63);
@@ -117,10 +119,13 @@ public final class AdventView {
     d.put("itemX", itemX);
     d.put("itemY", itemY);
     d.put("itemSize", itemSize);
-    d.put("lift", s.compact ? 24 : 42);
-    d.put("rewardX", itemX + itemSize / 4);
-    d.put("rewardY", itemY + itemSize / 4);
-    d.put("rewardSize", s.compact ? 36 : 54);
+    int lift = s.compact ? 12 : 42, rewardSize = s.compact ? 36 : 54;
+    // Motion translations describe the start offset from the final destination.
+    d.put("lift", lift);
+    d.put("lidY", itemY - lift);
+    d.put("rewardX", itemX + (itemSize - rewardSize) / 2);
+    d.put("rewardY", itemY + (itemSize - rewardSize) / 2);
+    d.put("rewardSize", rewardSize);
     d.put("textX", s.compact ? 105 : 180);
     d.put("textY", s.compact ? 45 : 117);
     d.put("textW", s.compact ? 198 : 279);
@@ -128,8 +133,8 @@ public final class AdventView {
     d.put("tagY", s.compact ? 81 : 198);
     d.put("buttonW", s.compact ? 93 : 153);
     d.put("againX", s.compact ? 111 : 180);
-    d.put("originX", itemX + itemSize / 2);
-    d.put("originY", itemY + itemSize / 2);
+    d.put("originX", itemX + itemSize / 2 - sceneX);
+    d.put("originY", itemY + itemSize / 2 - sceneY);
     return d;
   }
 

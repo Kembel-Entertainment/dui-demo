@@ -30,6 +30,8 @@ final class AdventClient {
     "SHOT:reveal",
     "SHOT:party-late",
     "SAME_SCREEN",
+    "WAIT_SETTLED",
+    "SHOT:open-settled",
     "advent_again",
     "WAIT_REVEAL",
     "SHOT:replayed",
@@ -146,6 +148,10 @@ final class AdventClient {
         switch (step) {
           case "WAIT_REVEAL" -> {
             if (!layout().get("phase").getAsString().equals("REVEALED") || !received(mc)) return;
+          }
+          case "WAIT_SETTLED" -> {
+            if (!layout().getAsJsonObject("state").get("effectsFinished").getAsBoolean()
+                || !received(mc)) return;
           }
           case "REVEALED_NOW" -> {
             if (!layout().get("phase").getAsString().equals("REVEALED"))
