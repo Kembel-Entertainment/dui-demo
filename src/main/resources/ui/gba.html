@@ -1,0 +1,14 @@
+<dui-menu width="360" height="252">
+  <dui-layer>
+    <dui-rect width="360" height="252" fill="#141923"/>
+    <dui-rect x="0" y="0" width="360" height="3" fill="#62E6BF"/>
+    <dui-text x="12" y="12" width="336" height="18" label="POCKET ARCADE / GBA" color="#62E6BF"/>
+    <dui-text x="12" y="33" width="336" height="18" label="{{status}}" color="#DCE4F1"/>
+    <dui-repeat items="{{roms}}" as="rom">
+      <dui-button id="gba_{{rom.id}}" action="play" value="{{rom.id}}" x="12" y="{{rom.y}}" width="336" height="18" label="{{rom.title}}" fill="#27354B" border="#62E6BF" highlight="#62E6BF"/>
+    </dui-repeat>
+    <dui-if test="{{running}}"><dui-button id="gba_resume" action="resume" x="12" y="189" width="336" height="18" label="Resume cartridge" fill="#234B41"/></dui-if>
+    <dui-text x="12" y="219" width="336" height="9" label="WASD / SPACE = A / CTRL = B / 8 = MENU" color="#AAB9CD"/>
+    <dui-text x="12" y="234" width="336" height="9" label="F1 = clean fullscreen / Shift = save and leave" color="#62E6BF"/>
+  </dui-layer>
+</dui-menu>

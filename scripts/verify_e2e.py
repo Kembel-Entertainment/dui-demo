@@ -15,6 +15,23 @@ assert '_TEST_COMPLETE' in log and '_TEST_FAILED' not in log
 for error in ("Couldn't compile", 'Failed to load required shader', 'Unable to load font', 'DecoderException', 'Missing texture references', 'Missing textures in model'):
     assert error not in log, error
 hash = hashlib.sha1((ROOT / os.environ.get('DUI_RUN_DIR','run/server') / 'plugins/dui-demo/pack/dui.zip').read_bytes()).hexdigest()
+if name == 'gba':
+    files = sorted(out.glob('*.png'))
+    assert len(files) >= 3, files
+    for file in files:
+        assert file.stat().st_mtime >= run['startedAt'], file
+    for image_name in ('fullscreen.png', 'camera-turned.png', 'auto-scale.png'):
+        width, height, pixel = png(out / image_name)
+        colors = {pixel(x, y) for y in range(height//4, 3*height//4, 4) for x in range(width//4, 3*width//4, 4)}
+        assert len(colors) >= 128, ('Video image absent or corrupted', image_name, len(colors))
+        assert (255,0,255) not in colors, 'Invalid transport symbol visible'
+    assert result['visibleFps'] > 50, result
+    assert ' / keys 256 / ' in log, 'Held vanilla jump input never reached the worker as GBA A'
+    report = dict(result='PASS',scenario=name,client=result,screenshots=[p.name for p in files],packSha1=hash)
+    (out / 'verification.json').write_text(json.dumps(report,indent=2)+'\n')
+    (out / 'index.html').write_text('<!doctype html><meta charset="utf-8"><title>GBA renderer</title><h1>GBA renderer</h1>'+''.join('<img style="width:90%" src="'+p.name+'">' for p in files))
+    print('PASS gba visible FPS',result['visibleFps'])
+    sys.exit(0)
 screens = []
 image_probes = 0
 background_probes = 0

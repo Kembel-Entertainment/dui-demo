@@ -4,3 +4,7 @@ pack:
   public-url: http://127.0.0.1:25585/dui.zip
 videos:
   live: true
+
+gba:
+  maximum-sessions: 2
+  bytes-per-second: 16777216

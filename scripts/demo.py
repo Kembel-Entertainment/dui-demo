@@ -9,7 +9,7 @@ REPORT = ROOT / 'build/reports/e2e'
 SERVER_PORT = int(os.environ.get('DUI_DEMO_PORT', '25584'))
 PACK_PORT = int(os.environ.get('DUI_PACK_PORT', '25585'))
 CLIENT_PORT = int(os.environ.get('DUI_E2E_PORT', str(SERVER_PORT)))
-SCENARIOS = ['showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol', 'dynamic', 'casino', 'character', 'map']
+SCENARIOS = ['gba', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol', 'dynamic', 'casino', 'character', 'map']
 if not (1024 <= SERVER_PORT <= 65535 and 1024 <= PACK_PORT <= 65535) or SERVER_PORT == PACK_PORT:
     raise ValueError('Demo and pack ports must be distinct ports in 1024..65535')
 PAPER_SHA256 = 'b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083'
@@ -103,6 +103,10 @@ def run_e2e(scenario, live, start_at=None):
     character_op = uuid.UUID(bytes=hashlib.md5(b'OfflinePlayer:CharacterTest').digest(), version=3)
     map_op = uuid.UUID(bytes=hashlib.md5(b'OfflinePlayer:MapTest').digest(), version=3)
     ops.write_text(json.dumps([dict(uuid=str(map_op), name='MapTest', level=4, bypassesPlayerLimit=False), dict(uuid=str(op), name='SlotTest', level=4, bypassesPlayerLimit=False), dict(uuid=str(character_op), name='CharacterTest', level=4, bypassesPlayerLimit=False)]))
+    if scenario == 'gba':
+        fixture = PLUGIN / 'gba/roms/color-controls.gba'
+        fixture.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copyfile(ROOT / 'src/main/resources/gba/color-controls.gba',fixture)
     log_path = REPORT / 'server.log'
     server = None
     observer = None

@@ -7,3 +7,11 @@ run/
 .DS_Store
 __pycache__/
 *.pyc
+
+# Local commercial ROMs and player saves (the original demo fixture is intentional)
+*.gba
+!src/main/resources/gba/color-controls.gba
+*.srm
+*.sav
+*.state
+*.state.bak

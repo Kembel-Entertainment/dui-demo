@@ -1,0 +1,14 @@
+{
+  "version": "0.11-212-7a12d6d",
+  "source": "https://github.com/libretro/mgba/tree/7a12d6d4b9acb14c0ae62c9166b6a2f3d08007f6",
+  "artifacts": {
+    "macos-arm64": {
+      "sha256": "c3101d58d0b5ecf327ea3ac1aad63793d1a0c93c8291649a9e8d489353ce65b2",
+      "binary": "mgba_libretro.dylib"
+    },
+    "linux-x64": {
+      "sha256": "7b5435c7e3a959d20a72156c126ebde5070adcf502fee04fc1d1c7352757eadc",
+      "binary": "mgba_libretro.so"
+    }
+  }
+}

@@ -5,6 +5,9 @@ api-version: '26.2'
 website: https://kembel.gg
 description: Work in progress examples for the embedded dui library
 commands:
+  gba:
+    description: Play a local GBA cartridge using the mGBA core
+    usage: /gba [play <cartridge>|resume|save|stats|close]
   worldmap:
     description: Open the Atlas of Elsewhere world map
     usage: /worldmap [debug|still|state|close]

@@ -25,6 +25,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   private gg.kembel.dui.core.world.WorldHudTemplate mapHudTemplate;
   private final Map<String, MenuTemplate> templates = new HashMap<>();
   private Dui dui;
+  private gg.kembel.dui.demo.gba.GbaDemo gba;
   private MapTestFixture mapFixture;
   private final Map<UUID, WorldMapDemo> maps = new HashMap<>();
   private HttpServer http;
@@ -125,6 +126,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             }
           });
       reloadTemplates();
+      gba = new gg.kembel.dui.demo.gba.GbaDemo(this, dui, directory);
       videos =
           getConfig().getBoolean("videos.live", true)
               ? new VideoService(directory.resolve("videos-cache"))
@@ -139,6 +141,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
         commands.addAll(entry.aliases());
         if (getCommand(entry.id()) != null) commands.add(entry.id());
       }
+      commands.add("gba");
       for (String command : commands) Objects.requireNonNull(getCommand(command)).setExecutor(this);
       getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.2");
     } catch (Exception e) {
@@ -153,6 +156,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
 
   @Override
   public void onDisable() {
+    if (gba != null) gba.close();
     if (videos != null) videos.close();
     for (var entry : sessions.entrySet()) finishSlots(entry.getKey(), entry.getValue());
     for (var map : List.copyOf(maps.values())) map.close();
@@ -571,7 +575,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     String name = command.getName();
-    String section = catalogue.find(name).map(MenuCatalogue.Definition::id).orElse("components");
+    String section = name.equals("gba") ? "gba" : catalogue.find(name).map(MenuCatalogue.Definition::id).orElse("components");
     var arguments = new ArrayList<>(List.of(args));
     if (name.equals("dui") && !arguments.isEmpty())
       section = arguments.removeFirst().toLowerCase(Locale.ROOT);
@@ -603,6 +607,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       sender.sendMessage("Run /dui as a player.");
       return true;
     }
+    if (section.equals("gba")) return gba.command(p, arguments);
     if (!section.equals("setup") && catalogue.find(section).isEmpty()) {
       if (section.equals("extensions")) {
         var s = session(p);
