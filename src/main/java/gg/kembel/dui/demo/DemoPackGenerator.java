@@ -8,7 +8,7 @@ import java.util.*;
 public final class DemoPackGenerator {
   private DemoPackGenerator() {}
 
-  public static void main(String[] args) throws Exception {
+  public static List<PackContribution> contributions(Path minecraftJar) throws Exception {
     var effects = new ArrayList<PackContribution.Shader>();
     String builtins;
     try (var in = DemoPackGenerator.class.getResourceAsStream("/casino/builtin.glsl")) {
@@ -41,20 +41,21 @@ public final class DemoPackGenerator {
                 + " vec4(.91,.25,.61,smoothstep(1.0+phase,.65+phase,r));}"));
     for (var name : List.of("race", "prize-wheel", "coin", "temple-reel"))
       effects.add(effect(name));
+    return List.of(
+        new PackContribution(
+            "demo",
+            Map.of(),
+            effects,
+            List.of(),
+            Map.of("demo:builtin", builtins, "demo:casino", casinoPrimitives()),
+            DemoGlyphs.contributions(minecraftJar)),
+        WorldMapAssets.contribution(),
+        example.proof.ExtensionProof.contribution());
+  }
+
+  public static void main(String[] args) throws Exception {
     PackGenerator.generate(
-        Path.of(args[0]),
-        Path.of(args[2]),
-        Path.of(args[1]),
-        List.of(
-            new PackContribution(
-                "demo",
-                Map.of(),
-                effects,
-                List.of(),
-                Map.of("demo:builtin", builtins, "demo:casino", casinoPrimitives()),
-                DemoGlyphs.contributions(Path.of(args[0]))),
-            WorldMapAssets.contribution(),
-            example.proof.ExtensionProof.contribution()));
+        Path.of(args[0]), Path.of(args[2]), Path.of(args[1]), contributions(Path.of(args[0])));
   }
 
   private static String casinoPrimitives() throws Exception {

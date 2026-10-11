@@ -2,6 +2,11 @@ pack:
   bind-address: 127.0.0.1
   port: 25585
   public-url: http://127.0.0.1:25585/dui.zip
+# Empty = editable deployed copies in plugins/dui-demo/ui.
+# Development: point at your project's src/main/resources/ui (absolute or relative to the data folder).
+# Set once before server startup; /dui reload then reads fresh source files without a build.
+templates:
+  source-directory: ""
 videos:
   live: true
 

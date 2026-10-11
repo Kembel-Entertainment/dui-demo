@@ -11,6 +11,13 @@ import net.minecraft.client.input.MouseButtonInfo;
 
 final class RealClientHarness {
   private RealClientHarness() {}
+  static void detachHardware() {
+    for (int type : new int[] {org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_MOTION,
+        org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_BUTTON_DOWN, org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_BUTTON_UP,
+        org.lwjgl.sdl.SDLEvents.SDL_EVENT_MOUSE_WHEEL, org.lwjgl.sdl.SDLEvents.SDL_EVENT_KEY_DOWN,
+        org.lwjgl.sdl.SDLEvents.SDL_EVENT_KEY_UP, org.lwjgl.sdl.SDLEvents.SDL_EVENT_TEXT_INPUT})
+      org.lwjgl.sdl.SDLEvents.SDL_SetEventEnabled(type, false);
+  }
 
   static List<AbstractWidget> widgets(GuiEventListener parent) {
     var list = new ArrayList<AbstractWidget>();
@@ -30,18 +37,20 @@ final class RealClientHarness {
 
   static void move(Minecraft mc, double x, double y) {
     var w = mc.getWindow();
+    double px = x * w.getScreenWidth() / w.getGuiScaledWidth();
+    double py = y * w.getScreenHeight() / w.getGuiScaledHeight();
     ((FixtureMouseAccess) mc.mouseHandler)
         .dui$move(
             w.handle(),
-            x * w.getScreenWidth() / w.getGuiScaledWidth(),
-            y * w.getScreenHeight() / w.getGuiScaledHeight());
+            px, py, px - mc.mouseHandler.xpos(), py - mc.mouseHandler.ypos());
   }
 
   static void clickAt(Minecraft mc, double x, double y) {
     move(mc, x, y);
     var mouse = (FixtureMouseAccess) mc.mouseHandler;
-    mouse.dui$button(mc.getWindow().handle(), new MouseButtonInfo(0, 0), 1);
-    mouse.dui$button(mc.getWindow().handle(), new MouseButtonInfo(0, 0), 0);
+    var button = new MouseButtonInfo(com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT, 0);
+    mouse.dui$button(mc.getWindow().handle(), button, 1);
+    mouse.dui$button(mc.getWindow().handle(), button, 0);
     move(mc, 5, 5);
   }
 

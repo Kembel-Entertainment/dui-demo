@@ -1,4 +1,5 @@
 package gg.kembel.dui.demo.e2e;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import com.google.gson.*;
 import gg.kembel.dui.demo.e2e.mixin.FixtureMouseAccess;
@@ -51,7 +52,7 @@ final class DynamicClient {
 
   private static void button(Minecraft mc, int number) {
     var mouse = (FixtureMouseAccess) mc.mouseHandler;
-    var info = new MouseButtonInfo(number, 0);
+    var info = new MouseButtonInfo(number == 0 ? InputConstants.MOUSE_BUTTON_LEFT : InputConstants.MOUSE_BUTTON_RIGHT, 0);
     mouse.dui$button(mc.getWindow().handle(), info, 1);
     mouse.dui$button(mc.getWindow().handle(), info, 0);
   }
@@ -85,11 +86,7 @@ final class DynamicClient {
     mc.options.getSoundSourceOptionInstance(net.minecraft.sounds.SoundSource.MASTER).set(0.0);
     mc.options.pauseOnLostFocus = false;
     if (!detached) {
-      long window = mc.getWindow().handle();
-      org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetScrollCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetKeyCallback(window, null);
+      RealClientHarness.detachHardware();
       detached = true;
     }
     try {
@@ -99,7 +96,7 @@ final class DynamicClient {
         mc.options.guiScale().set(Paths.referenceScale(mc));
         mc.getWindow().setWindowed(1280, 900);
         mc.resizeGui();
-        org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
+        org.lwjgl.sdl.SDLVideo.SDL_HideWindow(mc.getWindow().handle());
         var server = new ServerData("Dynamic fixture", Paths.server(), ServerData.Type.OTHER);
         server.setResourcePackStatus(ServerData.ServerPackStatus.ENABLED);
         ConnectScreen.startConnecting(

@@ -89,7 +89,7 @@ final class AdventClient {
         mc.options.guiScale().set(Paths.referenceScale(mc));
         mc.getWindow().setWindowed(1280, 900);
         mc.resizeGui();
-        org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
+        org.lwjgl.sdl.SDLVideo.SDL_HideWindow(mc.getWindow().handle());
         var server = new ServerData("Advent fixture", Paths.server(), ServerData.Type.OTHER);
         server.setResourcePackStatus(ServerData.ServerPackStatus.ENABLED);
         ConnectScreen.startConnecting(

@@ -17,7 +17,7 @@
   </dui-repeat>
   <dui-repeat items="cardHits" as="h"><dui-button id="warp_card_{{h.slot}}" action="warp_select" value="{{h.slot}}" locked="{{moving}}" x="{{h.x}}" y="{{viewportY}}" width="{{h.w}}" height="{{viewportH}}" label="" fill="#DDB388" border="#DDB388" disabled-fill="#DDB388" disabled-border="#DDB388" tooltip="{{h.name}}" /></dui-repeat>
   <dui-button class="brass" id="warp_previous" action="warp_previous" locked="{{moving}}" x="{{navX}}" y="{{navY}}" width="{{navW}}" height="27" label="&lt;" tooltip="Previous realm / Slide the atlas right" />
-  <dui-button class="brass" id="warp_next" action="warp_next" locked="{{moving}}" x="{{navR}}" y="{{navY}}" width="{{navW}}" height="27" label="&gt;" tooltip="Next realm / Slide the atlas left" />
+  <dui-button class="brass" id="warp_next" action="warp_next" locked="{{moving}}" x="{{navR}}" y="{{navY}}" width="{{navW}}" height="45" label="&gt;" tooltip="Next realm / Slide the atlas left" />
   <dui-if test="{{wide}}">
    <dui-heading x="24" y="{{nameY}}" width="300" height="18" label="{{name}}" color="{{accent}}" />
    <dui-text x="348" y="189" width="108" height="9" label="{{counter}}" align="right" color="#EAC477" />

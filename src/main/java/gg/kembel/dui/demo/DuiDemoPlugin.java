@@ -25,6 +25,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   private gg.kembel.dui.core.world.WorldHudTemplate mapHudTemplate;
   private final Map<String, MenuTemplate> templates = new HashMap<>();
   private Dui dui;
+  private gg.kembel.dui.demo.platform.PlatformShowcase platform;
   private gg.kembel.dui.demo.gba.GbaDemo gba;
   private gg.kembel.dui.demo.media.CinemaDemo cinema;
   private gg.kembel.dui.demo.browser.BrowserDemo browser;
@@ -33,6 +34,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   private HttpServer http;
   private PackMetadata metadata;
   private Path directory;
+  private TemplateFiles templateFiles;
   private VideoProvider videos;
   private MenuCatalogue<DemoEntry> catalogue;
 
@@ -71,14 +73,12 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       for (String name : List.of("layouts", "display", "rewards", "slots", "ui"))
         Files.createDirectories(directory.resolve(name));
       configureMenus();
-      for (String name :
-          java.util.stream.Stream.concat(
-                  catalogue.templates().stream(), java.util.stream.Stream.of("worldmap-hud"))
-              .toList())
-        if (!Files.exists(directory.resolve("ui/" + name + ".html")))
-          try (var in = getResource("ui/" + name + ".html")) {
-            Files.copy(Objects.requireNonNull(in), directory.resolve("ui/" + name + ".html"));
-          }
+      templateFiles = new TemplateFiles(directory, getConfig().getString("templates.source-directory", ""));
+      templateFiles.installDefaults(
+          java.util.stream.Stream.concat(catalogue.templates().stream(),
+              java.util.stream.Stream.of("worldmap-hud", "gba", "gba-screen", "cinema", "cinema-screen", "browser", "browser-screen")).toList(),
+          this::getResource);
+      getLogger().info("DUI_TEMPLATE_DIRECTORY " + templateFiles.directory());
       var packDirectory = directory.resolve("pack");
       metadata = PackMetadata.read(packDirectory.resolve("dui.json"));
       byte[] pack = Files.readAllBytes(packDirectory.resolve("dui.zip"));
@@ -128,9 +128,11 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             }
           });
       reloadTemplates();
-      gba = new gg.kembel.dui.demo.gba.GbaDemo(this, dui, directory);
-      cinema = new gg.kembel.dui.demo.media.CinemaDemo(this, dui, directory);
-      browser = new gg.kembel.dui.demo.browser.BrowserDemo(this, dui, directory);
+      platform = new gg.kembel.dui.demo.platform.PlatformShowcase(dui.runtime());
+      Objects.requireNonNull(getCommand("platform")).setExecutor(this);
+      gba = new gg.kembel.dui.demo.gba.GbaDemo(this, dui, directory, templateFiles);
+      cinema = new gg.kembel.dui.demo.media.CinemaDemo(this, dui, directory, templateFiles);
+      browser = new gg.kembel.dui.demo.browser.BrowserDemo(this, dui, directory, templateFiles);
       videos =
           getConfig().getBoolean("videos.live", true)
               ? new VideoService(directory.resolve("videos-cache"))
@@ -149,7 +151,7 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       commands.add("cinema");
       commands.add("browser");
       for (String command : commands) Objects.requireNonNull(getCommand(command)).setExecutor(this);
-      getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.2");
+      getLogger().info("DUI_DEMO_READY pack=" + metadata.sha1() + " minecraft=26.3");
     } catch (Exception e) {
       getLogger()
           .log(
@@ -182,13 +184,13 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
           name,
           dui.compile(
               "ui/" + name + ".html",
-              DemoTemplates.normalize(Files.readString(directory.resolve("ui/" + name + ".html"))),
+              DemoTemplates.normalize(templateFiles.read(name)),
               CasinoComponents.registry(),
               DemoTemplates.environment(DemoTemplates.font())));
     var nextHud =
         dui.compileWorldHud(
             "ui/worldmap-hud.html",
-            Files.readString(directory.resolve("ui/worldmap-hud.html")),
+            templateFiles.read("worldmap-hud"),
             CasinoComponents.registry(),
             DemoTemplates.environment(DemoTemplates.font()));
     nextHud.render(
@@ -204,6 +206,11 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
             "detail",
             false));
     for (var map : maps.values()) map.validateHud(nextHud);
+    // Compile and validate every participant before changing any live template reference.
+    var commits = new ArrayList<Runnable>();
+    if (gba != null) commits.add(gba.prepareTemplateReload());
+    if (cinema != null) commits.add(cinema.prepareTemplateReload());
+    if (browser != null) commits.add(browser.prepareTemplateReload());
     var oldHud = mapHudTemplate;
     var old = new HashMap<>(templates);
     templates.clear();
@@ -211,13 +218,13 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
     try {
       catalogue.validate();
       mapHudTemplate = nextHud;
-      for (var map : maps.values()) map.refreshHud();
     } catch (Exception e) {
       mapHudTemplate = oldHud;
       templates.clear();
       templates.putAll(old);
       throw e;
     }
+    commits.forEach(Runnable::run);
   }
 
   private DemoSession session(Player player) {
@@ -583,6 +590,22 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
   @Override
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     String name = command.getName();
+    if (name.equals("platform")) {
+      if (!(sender instanceof Player player)) return true;
+      var viewer = dui.viewer(player);
+      var mode = args.length == 0 ? "menu" : args[0];
+      if (mode.equals("map")) { platform.map(viewer); return true; }
+      if (mode.equals("video")) { platform.video(viewer); return true; }
+      if (mode.equals("close")) { dui.runtime().spatial().closeViewer(viewer, true); dui.runtime().closeViewer(viewer, true); return true; }
+      platform.open(viewer, gg.kembel.dui.paper.PaperItem.of(new ItemStack(org.bukkit.Material.DIAMOND)),
+          PlayerAppearance.capture(player).portable(), data -> {
+            try {
+              var report = new LinkedHashMap<String, Object>(data); report.put("backend", "paper");
+              Files.writeString(directory.resolve("layouts/" + player.getName() + ".json"), JSON.toJson(report));
+            } catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); }
+          });
+      return true;
+    }
     String section = Set.of("gba", "cinema", "browser").contains(name) ? name : catalogue.find(name).map(MenuCatalogue.Definition::id).orElse("components");
     var arguments = new ArrayList<>(List.of(args));
     if (name.equals("dui") && !arguments.isEmpty())
@@ -594,13 +617,23 @@ public final class DuiDemoPlugin extends JavaPlugin implements Listener {
       }
       try {
         reloadTemplates();
-        sender.sendMessage("dui / Templates reloaded.");
+      } catch (Exception e) {
+        sender.sendMessage("Templates unchanged: " + e.getMessage());
+        return true;
+      }
+      sender.sendMessage("dui / Templates reloaded from " + templateFiles.directory());
+      try {
+        for (var map : maps.values()) map.refreshHud();
+        gba.refreshTemplates();
+        cinema.refreshTemplates();
+        browser.refreshTemplates();
         for (var p : getServer().getOnlinePlayers()) {
           var s = sessions.get(p.getUniqueId());
           if (s != null && s.ui != null && s.ui.isActive()) show(p, s);
         }
       } catch (Exception e) {
-        sender.sendMessage("Templates unchanged: " + e.getMessage());
+        sender.sendMessage("Templates loaded; reopen the view: " + e.getMessage());
+        getLogger().log(java.util.logging.Level.WARNING, "Template view refresh failed", e);
       }
       return true;
     }

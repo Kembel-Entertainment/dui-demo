@@ -23,11 +23,7 @@ final class MapObserverClient {
   private void tick(Minecraft mc) {
     mc.options.pauseOnLostFocus = false;
     if (!detached) {
-      long window = mc.getWindow().handle();
-      org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetScrollCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetKeyCallback(window, null);
+      RealClientHarness.detachHardware();
       detached = true;
     }
     ticks++;
@@ -39,7 +35,7 @@ final class MapObserverClient {
         mc.getWindow().setWindowed(640, 480);
         mc.options.guiScale().set(1);
         mc.resizeGui();
-        org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
+        org.lwjgl.sdl.SDLVideo.SDL_HideWindow(mc.getWindow().handle());
         var server = new ServerData("Private map observer", Paths.server(), ServerData.Type.OTHER);
         server.setResourcePackStatus(ServerData.ServerPackStatus.ENABLED);
         ConnectScreen.startConnecting(

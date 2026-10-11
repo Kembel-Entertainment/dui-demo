@@ -1,8 +1,8 @@
 # dui-demo
 
-**Work in Progress.** A Paper example plugin and real-client integration suite for [dui](https://github.com/Kembel-Entertainment/dui). Built by [Kembel Entertainment](https://kembel.gg).
+**Work in Progress.** Paper and Minestom examples and real-client integration tests for [dui](https://github.com/Kembel-Entertainment/dui), targeting Minecraft 26.3. Built by [Kembel Entertainment](https://kembel.gg).
 
-The plugin embeds `gg.kembel.dui:dui-paper:0.2.0-SNAPSHOT`. It has no dependency on dui implementation internals. Its own templates, sample state, network service and asset generators demonstrate the public API. No client mod is required to use the menus.
+The plugin embeds `gg.kembel.dui:dui-paper:0.3.0-SNAPSHOT`. It has no dependency on dui implementation internals. Its own templates, sample state, network service and asset generators demonstrate the public API. No client mod is required to use the menus.
 
 ## Build
 
@@ -16,15 +16,17 @@ Without `duiSource`, Gradle resolves the normal Maven dependency. Run `./gradlew
 
 Normal builds run unit tests and do not provision or start Minecraft. The separate `e2e` project is configured only when explicitly invoked by the integration runner.
 
+`platform-showcase` depends only on `dui-runtime`. `/platform`, `/platform map` and `/platform video` execute this same presentation on both hosts using the same combined pack. The larger Bukkit demos remain Paper application integrations. See [the shared platform example](docs/platforms.md) for Minestom startup and actual-client checks.
+
 Gradle supplies the exact current JAR to `installDemo`, so older files in `build/libs` do not confuse installation. With the local server stopped, installation preserves older versioned demo JARs under `run/server/plugin-backups/` before deploying the new version. Direct script calls can select an artifact with `python3 scripts/demo.py install --plugin-jar /path/to/dui-demo.jar`.
 
 ## Try the demos
 
-Provide the official Minecraft 26.2 client JAR, or fetch its pinned verified build:
+Provide the official Minecraft 26.3 client JAR, or fetch its pinned verified build:
 
 ```sh
 python3 scripts/demo.py client-jar
-./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.2-client.jar \
+./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.3-client.jar \
   -PacceptEula=true runDemo
 ```
 
@@ -32,7 +34,7 @@ python3 scripts/demo.py client-jar
 
 For a muted, unmodified localhost client, run `python3 scripts/client.py` in a second terminal with Java 25 available through `JAVA_HOME` or `PATH`. The launcher verifies downloads and uses an offline local profile.
 
-Connect an unmodified Minecraft **26.2** client to **127.0.0.1:25584** and accept the pack. The demo pack is served on loopback port **25585**. All game-mode changes and offline test profiles are confined to that localhost server.
+Connect an unmodified Minecraft **26.3** client to **127.0.0.1:25584** and accept the pack. The demo pack is served on loopback port **25585**. All game-mode changes and offline test profiles are confined to that localhost server.
 
 | Command | Example |
 | --- | --- |
@@ -59,18 +61,18 @@ Connect an unmodified Minecraft **26.2** client to **127.0.0.1:25584** and accep
 
 The short commands `/uikit`, `/uishop`, `/dailyrewards`, `/slots`, `/advent`, `/warps`, `/poker`, `/roulette`, `/blackjack` and `/uivideos` are also available. Reward, Advent, warp, poker, roulette, blackjack, shop, slot and video commands accept `compact`/`spacious`. `/uivideos refresh` checks the feed again.
 
-Active templates are copied to `run/server/plugins/dui-demo/ui/`. Change those templates and reload; the pack remains unchanged. Java supplies view data, business actions and own artwork only. The QR is generated at runtime and points to the demo YouTube video; it is not a real payment system. Casino balances and reward screens are demo-only. The Aster character sheet uses real inventory equipment; its separate OP-only `/character kit` explicitly creates sample items.
+By default templates are copied to `run/server/plugins/dui-demo/ui/`. Change those files and run `/dui reload`. For Studio development, configure `templates.source-directory` to the project's absolute `src/main/resources/ui` path and restart once; saving in Studio and running `/dui reload` then reads those same sources directly, without copying or rebuilding. This includes dialogue templates, the map HUD and GBA/Cinema/Browser templates. [Configuration and hot-reload limits](docs/studio.md#save-and-reload-on-paper). Java supplies view data, business actions and own artwork only. The QR is generated at runtime and points to the demo YouTube video; it is not a real payment system. Casino balances and reward screens are demo-only. The Aster character sheet uses real inventory equipment; its separate OP-only `/character kit` explicitly creates sample items.
 
 When `videos.live` is enabled, the service restores its last successful feed and thumbnails from `run/server/plugins/dui-demo/videos-cache/` before requesting updates. HTTP errors retain that snapshot and show a cached-results status; the saved check time is preserved. Disk reads, decoding and network requests run outside Paper's main thread. Successful downloads replace the cache atomically. The downloaded media is ignored by Git and never added to the resource pack.
 
 ## Real-client tests
 
 ```sh
-./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.2-client.jar \
+./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.3-client.jar \
   -PacceptEula=true e2e
-./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.2-client.jar \
+./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.3-client.jar \
   -PacceptEula=true -Pscenario=videos e2e
-./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.2-client.jar \
+./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.3-client.jar \
   -PacceptEula=true -Pscenario=videos -PliveVideos e2e
 ```
 
@@ -132,3 +134,7 @@ The extension labs exercise [dui's dynamic composition API](https://github.com/K
 Experimental mGBA frontend: [Pocket Arcade setup and architecture](docs/gba.md).
 
 Silent local video playback: `/cinema` / `/dui cinema`. See [Cinema setup, controls and the frame-source boundary](docs/cinema.md).
+
+## Desktop authoring
+
+The optional `studio-preview` module integrates the demo with the separate Tauri/Svelte **dui studio** app. It reuses the real presentation factories, component contracts and pack contributions without starting Paper or executing gameplay actions. Build with `-PduiStudioSource=../dui-studio` and open this folder. [Setup, shared JSON presentation files and the ownership boundary](docs/studio.md).

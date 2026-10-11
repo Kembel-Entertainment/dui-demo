@@ -19,8 +19,9 @@ public final class CinemaDemo implements Listener, AutoCloseable {
   private final Dui dui;
   private final Path directory;
   private final MediaFiles files;
-  private final MenuTemplate menu;
-  private final VideoSurfaceTemplate screen;
+  private final gg.kembel.dui.demo.TemplateFiles templateFiles;
+  private record Templates(MenuTemplate menu, VideoSurfaceTemplate screen) {}
+  private volatile Templates templates;
   private final Map<UUID, Session> sessions = new HashMap<>();
   private final ExecutorService launches = Executors.newFixedThreadPool(2, r -> {
     var t = new Thread(r, "dui-demo-media-launch"); t.setDaemon(true); return t;
@@ -45,23 +46,31 @@ public final class CinemaDemo implements Listener, AutoCloseable {
     boolean changing, started;
     Session(Player player, Path file) { this.player = player; this.file = file; }
   }
-  public CinemaDemo(JavaPlugin plugin, Dui dui, Path directory) throws Exception {
+  public CinemaDemo(JavaPlugin plugin, Dui dui, Path directory, gg.kembel.dui.demo.TemplateFiles templateFiles) throws Exception {
+    this.templateFiles = templateFiles;
     this.plugin = plugin; this.dui = dui; this.directory = directory;
     files = new MediaFiles(directory.resolve("media/files"));
-    for (String name : List.of("cinema", "cinema-screen")) {
-      Path template = directory.resolve("ui/" + name + ".html");
-      if (!Files.exists(template)) try (var input = plugin.getResource("ui/" + name + ".html")) {
-        Files.copy(Objects.requireNonNull(input), template);
-      }
-    }
-    menu = dui.compile("ui/cinema.html", gg.kembel.dui.demo.DemoTemplates.normalize(Files.readString(directory.resolve("ui/cinema.html"))),
-        ComponentRegistry.EMPTY, gg.kembel.dui.demo.DemoTemplates.environment(gg.kembel.dui.demo.DemoTemplates.font()));
-    screen = VideoSurfaceTemplate.parse(Files.readString(directory.resolve("ui/cinema-screen.html")),
-        gg.kembel.dui.demo.DemoTemplates.environment(gg.kembel.dui.demo.DemoTemplates.font()),
-        ComponentRegistry.EMPTY, "ui/cinema-screen.html");
-    screen.render(data("Cinema", 384, 216, 30, 25, 16777216, "READY", "", 0, PixelFormat.RGB888));
+    prepareTemplateReload().run();
     plugin.getServer().getPluginManager().registerEvents(this, plugin);
     ticker = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 1, 10);
+  }
+  public Runnable prepareTemplateReload() throws Exception {
+    var menu = dui.compile("ui/cinema.html", gg.kembel.dui.demo.DemoTemplates.normalize(templateFiles.read("cinema")),
+        ComponentRegistry.EMPTY, gg.kembel.dui.demo.DemoTemplates.environment(gg.kembel.dui.demo.DemoTemplates.font()));
+    var screen = VideoSurfaceTemplate.parse(templateFiles.read("cinema-screen"),
+        gg.kembel.dui.demo.DemoTemplates.environment(gg.kembel.dui.demo.DemoTemplates.font()),
+        ComponentRegistry.EMPTY, "ui/cinema-screen.html");
+    for (boolean running : List.of(false, true)) menu.render(Map.of("files", List.of(Map.of("id", "example", "label", "Example", "y", 72)), "running", running, "status", "Reload validation"));
+    screen.render(data("Cinema", 384, 216, 30, 25, 16777216, "READY", "", 0, PixelFormat.RGB888));
+    for (var session : sessions.values()) if (session.spec != null && !session.spec.equals(screen.render(session.data).specification()))
+      throw new IllegalArgumentException("Close active Cinema sessions before changing screen geometry or transport settings");
+    var next = new Templates(menu, screen);
+    return () -> templates = next;
+  }
+  public void refreshTemplates() throws Exception {
+    for (var session : List.copyOf(sessions.values()))
+      if (session.menu != null && session.menu.isActive()) showMenu(session.player);
+    tick();
   }
   public boolean command(Player player, List<String> arguments) {
     try {
@@ -116,7 +125,7 @@ public final class CinemaDemo implements Listener, AutoCloseable {
     for (Path file : catalogue.stream().limit(5).toList()) {
       entries.add(Map.of("id", file.getFileName().toString(), "label", title(file), "y", y)); y += 27;
     }
-    var view = dui.open(player, menu, ViewModel.data(Map.of("files", entries, "running", session != null && session.source != null,
+    var view = dui.open(player, templates.menu(), ViewModel.data(Map.of("files", entries, "running", session != null && session.source != null,
         "status", session != null && session.source == null ? "Preparing the decoder..." : catalogue.isEmpty()
             ? "Add a local video to media/files/." : "Local video / real-time pixels / audio off")),
         DialogOptions.notice("DUI / Cinema", "Close", "close"), event -> {
@@ -153,6 +162,7 @@ public final class CinemaDemo implements Listener, AutoCloseable {
         int height = Math.max(1, (int) Math.round((double) outputWidth * info.height() / info.width()));
         int tileWidth = 128 / format.symbols;
         int tiles = 1 + ((outputWidth + tileWidth - 1) / tileWidth) * ((height + 126) / 127);
+        var screen = templates.screen();
         var requested = screen.render(data(title(file), outputWidth, height, fps, tiles, bytes,
             "PLAYING / AUDIO OFF", "", 0, format)).specification();
         double effectiveFps = requested.sustainableFps();
@@ -197,7 +207,7 @@ public final class CinemaDemo implements Listener, AutoCloseable {
     if (session.menu != null) { session.menu.close(); session.menu = null; }
     if (session.surface != null) session.surface.close();
     session.source.pause(false);
-    var presentation = screen.render(session.data);
+    var presentation = templates.screen().render(session.data);
     session.surface = dui.openVideoSurface(session.player, presentation.specification(), new VideoSurfaceOptions(8, false), input -> {
       if (input.type() == SurfaceInput.Type.SLOT) {
         if (input.slot() == 0) session.source.pause(!session.source.paused());
@@ -245,7 +255,7 @@ public final class CinemaDemo implements Listener, AutoCloseable {
           + String.format(Locale.ROOT, " / %.2fx", session.speed));
       bindings.put("progress", Math.min(1, state.seconds() / session.info.duration()));
       bindings.put("time", time(state.seconds()) + " / " + time(session.info.duration()));
-      session.surface.hud(screen.render(bindings).hud());
+      session.surface.hud(templates.screen().render(bindings).hud());
       export(session);
     }
   }

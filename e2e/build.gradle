@@ -1,8 +1,8 @@
 plugins { id 'net.fabricmc.fabric-loom' version '1.17.21' }
 group = 'gg.kembel.dui.demo'
-version = '0.2.0-SNAPSHOT'
+version = '0.3.0-SNAPSHOT'
 repositories { mavenCentral() }
-dependencies { minecraft 'com.mojang:minecraft:26.2'; implementation 'net.fabricmc:fabric-loader:0.19.5'; implementation 'net.fabricmc.fabric-api:fabric-api:0.161.0+26.2' }
+dependencies { minecraft 'com.mojang:minecraft:26.3'; implementation 'net.fabricmc:fabric-loader:0.19.5'; implementation 'net.fabricmc.fabric-api:fabric-api:0.162.0+26.3' }
 java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
 tasks.withType(JavaCompile).configureEach { options.release = 25 }
 // Optional official client runtime; compilation continues to use the configured JDK.
@@ -10,21 +10,22 @@ tasks.withType(JavaExec).configureEach {
  if(System.getenv('DUI_E2E_JAVA')) executable=System.getenv('DUI_E2E_JAVA')
 }
 def scenario=providers.gradleProperty('scenario').getOrElse('showcase')
-def names=[browser:'BrowserTest',cinema:'CinemaTest',gba:'GbaTest',dynamic:'DynamicTest','map-observer':'MapObserver',map:'MapTest',character:'CharacterTest',casino:'CasinoTest',protocol:'ProtocolTest',showcase:'ShowcaseTest',shop:'ShopTest',advent:'AdventTest',warps:'WarpTest',roulette:'RouletteTest',blackjack:'BlackjackTest',poker:'PokerTest',rewards:'RewardTest',slots:'SlotTest',confetti:'ConfettiTest',videos:'VideoTest']
+def names=[platform:'PlatformTest',browser:'BrowserTest',cinema:'CinemaTest',gba:'GbaTest',dynamic:'DynamicTest','map-observer':'MapObserver',map:'MapTest',character:'CharacterTest',casino:'CasinoTest',protocol:'ProtocolTest',showcase:'ShowcaseTest',shop:'ShopTest',advent:'AdventTest',warps:'WarpTest',roulette:'RouletteTest',blackjack:'BlackjackTest',poker:'PokerTest',rewards:'RewardTest',slots:'SlotTest',confetti:'ConfettiTest',videos:'VideoTest']
 if(!names.containsKey(scenario))throw new GradleException('Unknown E2E scenario: '+scenario)
 loom {
  mods { dui_demo_e2e { sourceSet sourceSets.main } }
  runs { testClient {
-  client(); runDir '../run/clients/'+scenario
+  client(); runDir providers.gradleProperty('e2eGameDirectory').getOrElse('../run/clients/'+scenario)
   vmArg '-Xmx2G'
   vmArg '-Ddui.e2e.scenario='+scenario
+  vmArg '-Ddui.e2e.platform='+providers.gradleProperty('e2ePlatform').getOrElse('paper')
   vmArg '-Ddui.e2e.browser.fixture='+System.getenv().getOrDefault('DUI_BROWSER_FIXTURE','')
   vmArg '-Ddui.e2e.media='+System.getenv().getOrDefault('DUI_MEDIA_BENCHMARKS','')
   vmArg '-Ddui.e2e.media.benchmark-only='+System.getenv().getOrDefault('DUI_MEDIA_BENCHMARK_ONLY','false')
   vmArg '-Ddui.e2e.media.window='+System.getenv().getOrDefault('DUI_MEDIA_WINDOW','1280x900')
   vmArg '-Ddui.e2e.media.seconds='+System.getenv().getOrDefault('DUI_MEDIA_BENCHMARK_SECONDS','6')
   vmArg '-Ddui.e2e.port='+providers.gradleProperty('e2ePort').getOrElse('25584')
-  vmArg '-Ddui.e2e.output='+file('../build/reports/e2e/'+scenario).absolutePath
+  vmArg '-Ddui.e2e.output='+file(providers.gradleProperty('e2eOutput').getOrElse('../build/reports/e2e/'+scenario)).absolutePath
   vmArg '-Ddui.e2e.plugin='+file(providers.gradleProperty('e2eServerDirectory').getOrElse('../run/server')+'/plugins/dui-demo').absolutePath
   programArgs '--username',names[scenario],'--width','1280','--height','900'
  } }

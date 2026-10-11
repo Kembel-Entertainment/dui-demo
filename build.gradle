@@ -1,18 +1,19 @@
 plugins { id 'java' }
 group = 'gg.kembel.dui'
-version = '0.2.0-SNAPSHOT'
+version = '0.3.0-SNAPSHOT'
 repositories { mavenLocal(); mavenCentral(); maven { url = 'https://repo.papermc.io/repository/maven-public/' } }
 configurations { packTools }
 dependencies {
+    implementation project(':platform-showcase')
     implementation project(':extension-proof')
-    implementation 'gg.kembel.dui:dui-paper:0.2.0-SNAPSHOT'
-    testImplementation 'gg.kembel.dui:dui-test:0.2.0-SNAPSHOT'
+    implementation 'gg.kembel.dui:dui-paper:0.3.0-SNAPSHOT'
+    testImplementation 'gg.kembel.dui:dui-test:0.3.0-SNAPSHOT'
     implementation 'com.google.code.gson:gson:2.13.2'
     implementation 'com.google.zxing:core:3.5.4'
-    packTools 'gg.kembel.dui:dui-pack:0.2.0-SNAPSHOT'
-    compileOnly 'gg.kembel.dui:dui-pack:0.2.0-SNAPSHOT'
-    compileOnly 'io.papermc.paper:paper-api:26.2.build.129-stable'
-    testImplementation 'io.papermc.paper:paper-api:26.2.build.129-stable'
+    packTools 'gg.kembel.dui:dui-pack:0.3.0-SNAPSHOT'
+    compileOnly 'gg.kembel.dui:dui-pack:0.3.0-SNAPSHOT'
+    compileOnly 'io.papermc.paper:paper-api:26.3.build.170-beta'
+    testImplementation 'io.papermc.paper:paper-api:26.3.build.170-beta'
     testImplementation platform('org.junit:junit-bom:5.14.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -24,7 +25,7 @@ tasks.named('check'){dependsOn ':extension-proof:check'}
 jar {
     dependsOn configurations.runtimeClasspath
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-    exclude 'META-INF/*.SF', 'META-INF/*.RSA', 'META-INF/*.DSA', 'module-info.class'
+    exclude 'META-INF/*.SF', 'META-INF/*.RSA', 'META-INF/*.DSA', 'module-info.class', 'net/kyori/**'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
@@ -34,7 +35,7 @@ tasks.register('demoArt', JavaExec) {
 }
 tasks.register('buildPack', JavaExec) {
  dependsOn demoArt, configurations.packTools; classpath=sourceSets.main.runtimeClasspath + configurations.packTools; mainClass='gg.kembel.dui.demo.DemoPackGenerator'
- doFirst { if(!project.hasProperty('minecraftJar'))throw new GradleException('Pass -PminecraftJar=/path/to/verified/26.2-client.jar'); args project.property('minecraftJar'),layout.buildDirectory.dir('pack').get().asFile.absolutePath,layout.buildDirectory.dir('pack-additions').get().asFile.absolutePath }
+ doFirst { if(!project.hasProperty('minecraftJar'))throw new GradleException('Pass -PminecraftJar=/path/to/verified/26.3-client.jar'); args project.property('minecraftJar'),layout.buildDirectory.dir('pack').get().asFile.absolutePath,layout.buildDirectory.dir('pack-additions').get().asFile.absolutePath }
 }
 tasks.register('installDemo', Exec) {
  dependsOn jar, buildPack

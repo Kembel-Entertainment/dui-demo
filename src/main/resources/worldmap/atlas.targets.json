@@ -1,0 +1,32 @@
+[
+  {
+    "id": "sylvan",
+    "name": "Sylvan Reach",
+    "x": 400,
+    "y": 400,
+    "width": 144,
+    "height": 72,
+    "unlocked": true,
+    "record": "00:42"
+  },
+  {
+    "id": "cloud",
+    "name": "Cloud Harbor",
+    "x": 560,
+    "y": 240,
+    "width": 144,
+    "height": 72,
+    "unlocked": true,
+    "record": "01:18"
+  },
+  {
+    "id": "ember",
+    "name": "Ember Vault",
+    "x": 720,
+    "y": 400,
+    "width": 144,
+    "height": 72,
+    "unlocked": false,
+    "record": "--:--"
+  }
+]

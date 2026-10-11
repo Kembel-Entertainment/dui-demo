@@ -25,73 +25,13 @@ public final class WorldMapAssets {
       String record) {}
 
   public static final List<Target> TARGETS =
-      List.of(
-          new Target("sylvan", "Sylvan Reach", 400, 400, 144, 72, true, "00:42"),
-          new Target("cloud", "Cloud Harbor", 560, 240, 144, 72, true, "01:18"),
-          new Target("ember", "Ember Vault", 720, 400, 144, 72, false, "--:--"));
+      List.of(DemoPresentation.read("/worldmap/atlas.targets.json", Target[].class));
   public static final List<String> MODES = List.of("solo", "public", "party", "back");
 
   private WorldMapAssets() {}
 
   public static WorldMapDefinition definition() {
-    var layers = new ArrayList<WorldMapDefinition.Layer>();
-    layers.add(layer("background", "background", 560, 320, 1120, 640, DemoLayerKind.BACKGROUND));
-    for (int i = 0; i < 20; i++)
-      layers.add(
-          layer(
-              "tile_" + i,
-              "tile_" + i,
-              (i % 5 + .5) * 224,
-              (i / 5 + .5) * 160,
-              224,
-              160,
-              DemoLayerKind.MAP));
-    for (var t : TARGETS)
-      layers.add(layer(t.id(), t.id(), t.x(), t.y(), t.width(), t.height(), DemoLayerKind.MAP));
-    for (var t : TARGETS)
-      layers.add(layer("hover_" + t.id(), "hover", t.x(), t.y(), 152, 80, DemoLayerKind.PULSE));
-    double[][] offsets = {{0, -100}, {-140, 0}, {140, 0}, {0, 100}};
-    for (var t : TARGETS)
-      for (int i = 0; i < 4; i++)
-        layers.add(
-            layer(
-                t.id() + "_" + MODES.get(i),
-                MODES.get(i),
-                t.x() + offsets[i][0],
-                t.y() + offsets[i][1],
-                96,
-                44,
-                DemoLayerKind.MAP));
-    layers.add(layer("calibration", "calibration", 560, 320, 144, 72, DemoLayerKind.MAP));
-    return new WorldMapDefinition(
-        "demo:elsewhere",
-        1120,
-        640,
-        8,
-        200,
-        15,
-        12,
-        31,
-        layers,
-        new WorldMapDefinition.Opening(18, .88, 0, 1, gg.kembel.dui.core.Motion.Easing.EASE_OUT));
-  }
-
-  private static WorldMapDefinition.Layer layer(
-      String id, String image, double x, double y, double w, double h, DemoLayerKind kind) {
-    return new WorldMapDefinition.Layer(
-        id,
-        image,
-        kind == DemoLayerKind.BACKGROUND ? .5 : x,
-        kind == DemoLayerKind.BACKGROUND ? .5 : y,
-        kind == DemoLayerKind.BACKGROUND ? 1 : w,
-        kind == DemoLayerKind.BACKGROUND ? 1 : h,
-        kind == DemoLayerKind.BACKGROUND
-            ? WorldMapDefinition.Space.SCREEN
-            : WorldMapDefinition.Space.MAP,
-        kind == DemoLayerKind.BACKGROUND ? .80 : .9,
-        kind == DemoLayerKind.PULSE ? .6 : 1,
-        1,
-        kind == DemoLayerKind.PULSE ? .25 : 0);
+    return DemoPresentation.read("/worldmap/atlas.map.json", WorldMapDefinition.class);
   }
 
   public static PackContribution contribution() throws IOException {

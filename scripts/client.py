@@ -2,7 +2,7 @@
 """Launch the verified, unmodified client, muted, only against the localhost demo."""
 import argparse, hashlib, json, os, platform, shutil, struct, uuid
 from pathlib import Path
-from demo import ROOT, download, java
+from demo import ROOT, download, java, SERVER_PORT
 METADATA = json.loads((ROOT / 'scripts/minecraft.json').read_text())
 
 def allowed(library, osname, arch):
@@ -34,9 +34,13 @@ def artifact_file(artifact, library):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--username', default='DuiDemo')
+    parser.add_argument('--server-port', type=int, default=SERVER_PORT)
     parser.add_argument('--prepare-only', action='store_true')
     parser.add_argument('--minecraft-jar', type=Path)
     args = parser.parse_args()
+    if not 1024 <= args.server_port <= 65535:
+        raise ValueError('Local server port must be in 1024..65535')
+    address = '127.0.0.1:' + str(args.server_port)
     system = platform.system()
     osname = {'Darwin': 'osx', 'Linux': 'linux', 'Windows': 'windows'}[system]
     arch = platform.machine().lower()
@@ -56,7 +60,7 @@ def main():
         if artifact:
             libraries.append(str(artifact_file(artifact, library)))
     client = METADATA['downloads']['client']
-    jar = args.minecraft_jar or download(client['url'], ROOT / '.cache/minecraft-26.2-client.jar', 'sha1', client['sha1'])
+    jar = args.minecraft_jar or download(client['url'], ROOT / '.cache/minecraft-26.3-client.jar', 'sha1', client['sha1'])
     if hashlib.sha1(jar.read_bytes()).hexdigest() != client['sha1']:
         raise RuntimeError('Wrong vanilla client JAR')
     libraries.append(str(jar.resolve()))
@@ -94,11 +98,11 @@ def main():
 
     def tag(name, value):
         return b'\x08' + string(name) + string(value)
-    server = tag('name', 'dui-demo / Vanilla') + tag('ip', '127.0.0.1:25584') + b'\x01' + string('acceptTextures') + b'\x01\x00'
+    server = tag('name', 'dui-demo / Vanilla') + tag('ip', address) + b'\x01' + string('acceptTextures') + b'\x01\x00'
     (game / 'servers.dat').write_bytes(b'\n\x00\x00\t' + string('servers') + b'\n' + struct.pack('>i', 1) + server + b'\x00')
     offline_id = uuid.UUID(bytes=hashlib.md5(('OfflinePlayer:' + args.username).encode()).digest(), version=3)
-    command = [java()] + (['-XstartOnFirstThread'] if system == 'Darwin' else []) + ['-Xms512M', '-Xmx2G', '--enable-native-access=ALL-UNNAMED', '--sun-misc-unsafe-memory-access=allow', '-Dorg.lwjgl.system.SharedLibraryExtractPath=' + str(game / 'natives/lwjgl'), '-Dio.netty.native.workdir=' + str(game / 'natives/netty'), '-cp', os.pathsep.join(libraries), METADATA['mainClass'], '--username', args.username, '--uuid', offline_id.hex, '--accessToken', '0', '--version', '26.2', '--versionType', 'release', '--gameDir', str(game), '--assetsDir', str(assets), '--assetIndex', index['id'], '--width', '1280', '--height', '900', '--quickPlayMultiplayer', '127.0.0.1:25584']
-    (game / 'launch-proof.json').write_text(json.dumps(dict(clientSha1=client['sha1'], mods=[], muted=True, username=args.username, server='127.0.0.1:25584'), indent=2))
+    command = [java()] + (['-XstartOnFirstThread'] if system == 'Darwin' else []) + ['-Xms512M', '-Xmx2G', '--enable-native-access=ALL-UNNAMED', '--sun-misc-unsafe-memory-access=allow', '-Dorg.lwjgl.system.SharedLibraryExtractPath=' + str(game / 'natives/lwjgl'), '-Dio.netty.native.workdir=' + str(game / 'natives/netty'), '-cp', os.pathsep.join(libraries), METADATA['mainClass'], '--username', args.username, '--uuid', offline_id.hex, '--accessToken', '0', '--version', '26.3', '--versionType', 'release', '--gameDir', str(game), '--assetsDir', str(assets), '--assetIndex', index['id'], '--width', '1280', '--height', '900', '--quickPlayMultiplayer', address]
+    (game / 'launch-proof.json').write_text(json.dumps(dict(clientSha1=client['sha1'], mods=[], muted=True, username=args.username, server=address), indent=2))
     os.chdir(game)
     os.execv(java(), command)
 if __name__ == '__main__':

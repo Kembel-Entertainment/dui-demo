@@ -1,0 +1,7 @@
+{
+  "duration": 120,
+  "segments": [
+    { "id": "open", "start": 0, "duration": 24 },
+    { "id": "celebrate", "start": 24, "duration": 96 }
+  ]
+}

@@ -1,6 +1,6 @@
 # Monarch Blackjack
 
-Play `/blackjack [compact|spacious]` or `/dui blackjack`. Original sapphire felt, brass rail, geometric crown, illustrated chip rack and a visible card shoe. All UI is English. Ordinary users need **Paper 26.2, an unmodified Minecraft client and the matching dui resource pack**.
+Play `/blackjack [compact|spacious]` or `/dui blackjack`. Original sapphire felt, brass rail, geometric crown, illustrated chip rack and a visible card shoe. All UI is English. Ordinary users need **Paper 26.3, an unmodified Minecraft client and the matching dui resource pack**.
 
 Choose 5/25/100/500 credits, then **Deal**. Start with 5,000 transient demo credits. **Hit** draws; **Stand** ends your hand; **Double** doubles the stake and takes exactly one card; **Split** separates equal-rank pairs. A highlight and hand tabs identify each hand. After settlement, select tabs to inspect split results. Long hands have previous/next card controls: all cards remain in the rules engine, while the viewport respects dui's eight-effect budget. Leave/reopen to reset the demo; no economy, actual inventory rewards or saved player bankroll.
 
@@ -27,7 +27,7 @@ The consumer-owned `demo-playing-card` component supports **`animation="fly" car
 ```sh
 ./gradlew -PduiSource=../dui test
 ./gradlew -PduiSource=../dui e2e -Pscenario=blackjack \
-  -PminecraftJar=/path/to/verified/26.2-client.jar
+  -PminecraftJar=/path/to/verified/26.3-client.jar
 ```
 
 Pure tests cover ace evaluation, natural versus split 21, soft-17 stand, dealer peek, push/bust, split aces, four-hand cap, double after split, atomic invalid moves, exact odd-stake returns, hidden card data, pagination and hundreds of shuffled ledger-consistent rounds. Consumer component tests verify flight parameters/lifetime. The muted test-only Fabric client clicks actual UI coordinates and measures GPU flight/flip/chip motion, exact split/double and 3:2 returns, stable still mode, Compact/Auto, inventory unchanged and close cancellation. Reports/gallery: `build/reports/e2e/blackjack/`.

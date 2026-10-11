@@ -1,7 +1,6 @@
 package gg.kembel.dui.demo.e2e;
 
 import com.google.gson.*;
-import com.mojang.blaze3d.opengl.GlTexture;
 import java.nio.*;
 import java.nio.file.*;
 import java.util.*;
@@ -11,55 +10,36 @@ import net.minecraft.client.gui.screens.*;
 import net.minecraft.client.gui.screens.dialog.DialogScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
-import org.lwjgl.opengl.*;
 
 /** Only observes vanilla pixels and drives vanilla hotbar/command inputs; no client video renderer. */
 public final class CinemaClient {
   public static CinemaClient instance;
-  private int ticks, stage, changed, fbo, samples, visible, last, benchmark;
+  private int ticks, stage, changed, samples, visible, last, benchmark;
   private long start, pausedFrames, lastChange, maximumGap, pausedSequence;
   private double pausedPosition;
   private int seat;
   private String inventory, measurement;
   private int originalSlot;
-  private final ByteBuffer pixels = org.lwjgl.BufferUtils.createByteBuffer(8 * 8 * 4);
+  private final PixelProbe probe = new PixelProbe();
   private final JsonObject measurements = new JsonObject();
   private final boolean benchmarkOnly = Boolean.getBoolean("dui.e2e.media.benchmark-only");
   private JsonObject initialStatistics;
   private final List<Double> gaps = new ArrayList<>();
   private final List<String> benchmarks = Arrays.stream(System.getProperty("dui.e2e.media", "").split(","))
       .filter(s -> !s.isBlank()).toList();
-  void initialize() { instance = this; ClientTickEvents.END_CLIENT_TICK.register(this::tick); }
+  void initialize() { instance = this; net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> probe.close()); ClientTickEvents.END_CLIENT_TICK.register(this::tick); }
   public void rendered(Minecraft mc) {
     if (measurement == null || mc.player == null || !mc.player.isPassenger() || mc.gui.screen() != null) return;
-    var target = mc.gameRenderer.mainRenderTarget();
-    if (!(target.getColorTexture() instanceof GlTexture texture)) return;
-    int previous = GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-    int packBuffer = GL11.glGetInteger(GL21.GL_PIXEL_PACK_BUFFER_BINDING);
-    int[] packing = {GL11.GL_PACK_ALIGNMENT, GL11.GL_PACK_ROW_LENGTH, GL11.GL_PACK_SKIP_ROWS, GL11.GL_PACK_SKIP_PIXELS};
-    int[] savedPacking = Arrays.stream(packing).map(GL11::glGetInteger).toArray();
-    if (fbo == 0) fbo = GL30.glGenFramebuffers();
-    GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, fbo);
-    GL30.glFramebufferTexture2D(GL30.GL_READ_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, texture.glId(), 0);
-    int signature = 1;
-    try {
-      GL15.glBindBuffer(GL21.GL_PIXEL_PACK_BUFFER, 0);
-      for (int value : packing) GL11.glPixelStorei(value, value == GL11.GL_PACK_ALIGNMENT ? 1 : 0);
-      for (double y : new double[] {.25, .5, .75}) for (double x : new double[] {.2, .5, .8}) {
-        pixels.clear(); GL11.glReadPixels((int) (target.width * x), (int) (target.height * y), 8, 8, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels);
-        for (int at = 0; at < pixels.capacity(); at++) signature = 31 * signature + Byte.toUnsignedInt(pixels.get(at));
-      }
-    } finally {
-      for (int i = 0; i < packing.length; i++) GL11.glPixelStorei(packing[i], savedPacking[i]);
-      GL15.glBindBuffer(GL21.GL_PIXEL_PACK_BUFFER, packBuffer);
-      GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, previous);
-    }
+    var label = measurement;
+    probe.sample(mc.gameRenderer.mainRenderTarget(), new double[][] {{.2,.25},{.5,.25},{.8,.25},{.2,.5},{.5,.5},{.8,.5},{.2,.75},{.5,.75},{.8,.75}}, 8, signature -> {
+      if (!Objects.equals(label, measurement)) return;
     samples++; if (signature != last) {
       long now = System.nanoTime();
       if (lastChange != 0) { maximumGap = Math.max(maximumGap, now - lastChange); gaps.add((now - lastChange) / 1e9); }
       lastChange = now; visible++; last = signature;
     }
     if (start == 0) start = System.nanoTime();
+    });
   }
   private void begin(String label) throws Exception {
     measurement = label; start = lastChange = maximumGap = 0; samples = visible = 0; last = -1;
@@ -191,7 +171,7 @@ public final class CinemaClient {
           result.addProperty("pauseStable", !benchmarkOnly); result.addProperty("eofVerified", !benchmarkOnly); result.add("measurements", measurements);
           result.addProperty("movementControlsVerified", !benchmarkOnly);
           Files.writeString(Paths.output().resolve("client-result.json"), result.toString());
-          if (fbo != 0) GL30.glDeleteFramebuffers(fbo); System.out.println("CINEMA_TEST_COMPLETE " + result); mc.stop(); stage = 11;
+          probe.close(); System.out.println("CINEMA_TEST_COMPLETE " + result); mc.stop(); stage = 11;
         }
       } else if (stage == 10 && mc.player.isPassenger() && mc.gui.screen() == null && ticks - changed > 40) {
         if (measurement == null) begin(benchmarks.get(benchmark));

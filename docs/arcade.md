@@ -1,6 +1,6 @@
 # Four consumer-owned arcade demos
 
-Paper 26.2, vanilla clients and dui's matching generated pack. These games are implemented entirely in **dui-demo**. The library source is unchanged. English UI, Compact/Wide, Motion/Still, an in-game Rules screen and transient demo credits are available in every game.
+Paper 26.3, vanilla clients and dui's matching generated pack. These games are implemented entirely in **dui-demo**. The library source is unchanged. English UI, Compact/Wide, Motion/Still, an in-game Rules screen and transient demo credits are available in every game.
 
 | Command | Demo | Behaviour |
 | --- | --- | --- |
@@ -59,9 +59,9 @@ To add another screen, compose these components or create another consumer compo
 
 ```sh
 ./gradlew -PduiSource=../dui test jar buildPack \
-  -PminecraftJar=/path/to/minecraft-26.2-client.jar
+  -PminecraftJar=/path/to/minecraft-26.3-client.jar
 ./gradlew -PduiSource=../dui -Pscenario=casino e2e \
-  -PminecraftJar=/path/to/minecraft-26.2-client.jar
+  -PminecraftJar=/path/to/minecraft-26.3-client.jar
 ```
 
 `ArcadeTest` covers advertised returns, reservation and once-only settlement, invalid selections, insufficient funds, left-to-right Wild combinations, the free-spin trigger/retrigger and expansion. The shared menu tests also cover all four new menus as pure projections with registered actions and bounded layouts.

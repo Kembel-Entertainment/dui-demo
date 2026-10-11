@@ -3,3 +3,8 @@ rootProject.name = 'dui-demo'
 if (providers.gradleProperty('duiSource').isPresent()) includeBuild(providers.gradleProperty('duiSource').get())
 
 include 'extension-proof'
+include 'platform-showcase', 'minestom-server'
+if (providers.gradleProperty('duiStudioSource').isPresent()) {
+    includeBuild(providers.gradleProperty('duiStudioSource').get())
+    include 'studio-preview'
+}

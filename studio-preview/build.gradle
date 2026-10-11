@@ -1,0 +1,23 @@
+plugins { id 'java-library' }
+group = 'gg.kembel.dui.demo'
+version = '0.1.0-SNAPSHOT'
+repositories { mavenLocal(); mavenCentral(); maven { url='https://repo.papermc.io/repository/maven-public/' } }
+dependencies {
+ implementation project(':')
+ implementation 'gg.kembel.dui.studio:studio-sdk:0.1.0-SNAPSHOT'
+ implementation 'io.papermc.paper:paper-api:26.3.build.170-beta'
+}
+java { sourceCompatibility=JavaVersion.VERSION_25;targetCompatibility=JavaVersion.VERSION_25 }
+tasks.register('prepareStudio', Sync) {
+ dependsOn jar, ':jar', ':demoArt'
+ into rootProject.layout.buildDirectory.dir('studio')
+ from(configurations.runtimeClasspath) { exclude 'studio-sdk-*.jar', 'dui-core-*.jar', 'dui-pack-*.jar' }
+ from(tasks.named('jar')) { rename { 'demo-studio-adapter.jar' } }
+ doLast {
+  def relative=destinationDir.listFiles().findAll{it.name.endsWith('.jar')}.collect{'build/studio/'+it.name}.sort()
+  def config=[schemaVersion:1,name:'dui-demo',adapter:[class:'gg.kembel.dui.demo.DemoStudioProvider',classpath:relative]]
+  def target=rootProject.file('dui.studio.local.json')
+  // Local classpaths are generated, while the portable adapter declaration remains tracked.
+  target.text=groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(config))+'\n'
+ }
+}

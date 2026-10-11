@@ -14,8 +14,7 @@ public final class AdventState {
   public record Gift(String name, String material, String caption) {}
 
   public static final AnimationTimeline OPENING =
-      AnimationTimeline.sequence(
-          AnimationTimeline.of("open", 24), AnimationTimeline.of("celebrate", 96));
+      DemoPresentation.read("/animations/advent.timeline.json", AnimationTimeline.class);
   public static final int OPEN_TICKS = (int) OPENING.segment("open").duration();
   public static final List<Gift> GIFTS =
       List.of(

@@ -17,8 +17,9 @@ public final class GbaDemo implements Listener,AutoCloseable {
   private final JavaPlugin plugin;
   private final Dui dui;
   private final Path directory,romDirectory;
-  private final MenuTemplate menu;
-  private final VideoSurfaceTemplate screen;
+  private final gg.kembel.dui.demo.TemplateFiles templateFiles;
+  private record Templates(MenuTemplate menu, VideoSurfaceTemplate screen) {}
+  private volatile Templates templates;
   private final Map<UUID,Session> sessions=new HashMap<>();
   private final Map<UUID,CompletableFuture<Void>> stopping=new HashMap<>();
   private final ExecutorService io=Executors.newFixedThreadPool(2,r->{var t=new Thread(r,"gba-launch");t.setDaemon(true);return t;});
@@ -29,22 +30,38 @@ public final class GbaDemo implements Listener,AutoCloseable {
     volatile VideoSurfaceSession surface;
     DialogSession menu;
     String title;
+    VideoSurfaceSpec spec;
     boolean changingView;
     final CompletableFuture<Void> termination = new CompletableFuture<>();
   }
-  public GbaDemo(JavaPlugin plugin,Dui dui,Path directory) throws Exception {
+  public GbaDemo(JavaPlugin plugin,Dui dui,Path directory,gg.kembel.dui.demo.TemplateFiles templateFiles) throws Exception {
+    this.templateFiles=templateFiles;
     this.plugin=plugin;this.dui=dui;this.directory=directory.resolve("gba");
     romDirectory=this.directory.resolve("roms");Files.createDirectories(romDirectory);
     Path demo=romDirectory.resolve("color-controls.gba");
     if(!Files.exists(demo))try(var input=plugin.getResource("gba/color-controls.gba")){Files.copy(Objects.requireNonNull(input),demo);}
-    for(String name:List.of("gba","gba-screen")) {
-      Path p=directory.resolve("ui/"+name+".html");
-      if(!Files.exists(p))try(var in=plugin.getResource("ui/"+name+".html")){Files.copy(Objects.requireNonNull(in),p);}
-    }
-    menu=dui.compile("ui/gba.html",Files.readString(directory.resolve("ui/gba.html")),ComponentRegistry.EMPTY,gg.kembel.dui.demo.DemoTemplates.environment(gg.kembel.dui.demo.DemoTemplates.font()));
-    screen=dui.compileVideoSurface("ui/gba-screen.html",Files.readString(directory.resolve("ui/gba-screen.html")),ComponentRegistry.EMPTY);
-    screen.render(screenData("GBA",60));
+    prepareTemplateReload().run();
     plugin.getServer().getPluginManager().registerEvents(this,plugin);
+  }
+  public Runnable prepareTemplateReload() throws Exception {
+    var menu=dui.compile("ui/gba.html",templateFiles.read("gba"),ComponentRegistry.EMPTY,gg.kembel.dui.demo.DemoTemplates.environment(gg.kembel.dui.demo.DemoTemplates.font()));
+    var screen=dui.compileVideoSurface("ui/gba-screen.html",templateFiles.read("gba-screen"),ComponentRegistry.EMPTY);
+    for(boolean running:List.of(false,true))menu.render(Map.of("roms",List.of(Map.of("id","example","title","Example","y",54)),"running",running,"status","Reload validation"));
+    screen.render(screenData("GBA",60));
+    for(var s:sessions.values())if(s.spec!=null&&!s.spec.equals(screen.render(screenData(s.title,60)).specification()))
+      throw new IllegalArgumentException("Close active GBA sessions before changing screen geometry or transport settings");
+    var next=new Templates(menu,screen);
+    return ()->templates=next;
+  }
+  public void refreshTemplates() throws Exception {
+    for(var entry:List.copyOf(sessions.entrySet())) {
+      var s=entry.getValue();
+      if(s.surface!=null&&s.surface.isActive())s.surface.hud(templates.screen().render(screenData(s.title,60)).hud());
+      else if(s.menu!=null&&s.menu.isActive()) {
+        var player=plugin.getServer().getPlayer(entry.getKey());
+        if(player!=null)showMenu(player);
+      }
+    }
   }
   private Map<String,Object> screenData(String title,double fps) {
     return Map.of("title",title,"fps",Math.min(60,fps),"bytes",plugin.getConfig().getLong("gba.bytes-per-second",16*1024*1024));
@@ -88,7 +105,7 @@ public final class GbaDemo implements Listener,AutoCloseable {
       String id=rom.getFileName().toString();entries.add(Map.of("id",id,"title",id.substring(0,id.length()-4),"y",y));y+=27;
     }
     Session existing=s;
-    var view=dui.open(player,menu,ViewModel.data(Map.of("roms",entries,"running",s!=null,"status",s==null?"Choose a cartridge. Saves belong to you.":"Paused. Your current session is safe.")),
+    var view=dui.open(player,templates.menu(),ViewModel.data(Map.of("roms",entries,"running",s!=null,"status",s==null?"Choose a cartridge. Saves belong to you.":"Paused. Your current session is safe.")),
         DialogOptions.notice("DUI / Pocket Arcade","Close","close"),context->{
           if(context.action().equals("play")){context.session().close();command(player,List.of("play",context.value()));}
           else if(context.action().equals("resume")&&existing!=null)showScreen(player,existing);
@@ -126,7 +143,8 @@ public final class GbaDemo implements Listener,AutoCloseable {
   private void showScreen(Player player,Session s) {
     s.changingView=true;
     if(s.menu!=null){s.menu.close();s.menu=null;}
-    var presentation=screen.render(screenData(s.title,60));
+    var presentation=templates.screen().render(screenData(s.title,60));
+    s.spec=presentation.specification();
     s.surface=dui.openVideoSurface(player,presentation.specification(),new VideoSurfaceOptions(8,false),event->{
       var worker=s.process;
       if(event.type()==SurfaceInput.Type.SLOT) {

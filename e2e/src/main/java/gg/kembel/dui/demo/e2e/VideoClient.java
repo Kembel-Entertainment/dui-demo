@@ -68,7 +68,7 @@ final class VideoClient {
         mc.options.guiScale().set(Paths.referenceScale(mc));
         mc.getWindow().setWindowed(1280, 900);
         mc.resizeGui();
-        org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
+        org.lwjgl.sdl.SDLVideo.SDL_HideWindow(mc.getWindow().handle());
         pack = fingerprint();
         var server =
             new ServerData("Runtime videos fixture", Paths.server(), ServerData.Type.OTHER);

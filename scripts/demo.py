@@ -12,8 +12,8 @@ CLIENT_PORT = int(os.environ.get('DUI_E2E_PORT', str(SERVER_PORT)))
 SCENARIOS = ['gba', 'cinema', 'browser', 'showcase', 'shop', 'rewards', 'advent', 'warps', 'roulette', 'blackjack', 'poker', 'slots', 'confetti', 'videos', 'protocol', 'dynamic', 'casino', 'character', 'map']
 if not (1024 <= SERVER_PORT <= 65535 and 1024 <= PACK_PORT <= 65535) or SERVER_PORT == PACK_PORT:
     raise ValueError('Demo and pack ports must be distinct ports in 1024..65535')
-PAPER_SHA256 = 'b1d8f6bfa1b6101fa8e947b53041cb3bdf5540e7b83b6547ca19ba7edefeb083'
-PAPER_URL = f'https://fill-data.papermc.io/v1/objects/{PAPER_SHA256}/paper-26.2-129.jar'
+PAPER_SHA256 = '178a7bd115d8ab069af267bca2cba567d3d23036392762189846f35e97e35a17'
+PAPER_URL = f'https://fill-data.papermc.io/v1/objects/{PAPER_SHA256}/paper-26.3-170.jar'
 
 def java():
     return str(Path(os.environ['JAVA_HOME']) / 'bin/java') if os.environ.get('JAVA_HOME') else shutil.which('java')
@@ -33,6 +33,7 @@ def download(url, path, algorithm, digest):
 def check_ports():
     for port in (SERVER_PORT, PACK_PORT):
         with socket.socket() as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 s.bind(('127.0.0.1', port))
             except OSError:
@@ -41,14 +42,14 @@ def check_ports():
 def prepare(accept):
     check_ports()
     SERVER.mkdir(parents=True, exist_ok=True)
-    paper = download(PAPER_URL, ROOT / '.cache/paper-26.2-129.jar', 'sha256', PAPER_SHA256)
+    paper = download(PAPER_URL, ROOT / '.cache/paper-26.3-170.jar', 'sha256', PAPER_SHA256)
     shutil.copyfile(paper, SERVER / 'paper.jar')
     eula = SERVER / 'eula.txt'
     if accept:
         eula.write_text('eula=true\n')
     elif not eula.exists():
         eula.write_text('eula=false\n')
-    (SERVER / 'server.properties').write_text('server-ip=127.0.0.1\nserver-port=' + str(SERVER_PORT) + '\nonline-mode=false\nwhite-list=false\nenforce-secure-profile=false\ndifficulty=peaceful\ngamemode=creative\nforce-gamemode=true\nlevel-type=minecraft:flat\ngenerator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\nview-distance=2\nsimulation-distance=2\nspawn-protection=0\nmotd=dui-demo / Paper 26.2\n')
+    (SERVER / 'server.properties').write_text('server-ip=127.0.0.1\nserver-port=' + str(SERVER_PORT) + '\nonline-mode=false\nwhite-list=false\nenforce-secure-profile=false\ndifficulty=peaceful\ngamemode=creative\nforce-gamemode=true\nlevel-type=minecraft:flat\ngenerator-settings={"layers":[{"block":"minecraft:bedrock","height":1},{"block":"minecraft:grass_block","height":1}],"biome":"minecraft:plains"}\nview-distance=2\nsimulation-distance=2\nspawn-protection=0\nmotd=dui-demo / Paper 26.3\n')
     if os.environ.get('DUI_E2E_COMPRESSION_THRESHOLD'):
         with (SERVER / 'server.properties').open('a') as properties:
             properties.write('network-compression-threshold=' + str(int(os.environ['DUI_E2E_COMPRESSION_THRESHOLD'])) + '\n')
@@ -256,6 +257,6 @@ def main():
     else:
         metadata = json.loads((ROOT / 'scripts/minecraft.json').read_text())
         client = metadata['downloads']['client']
-        print(download(client['url'], ROOT / '.cache/minecraft-26.2-client.jar', 'sha1', client['sha1']))
+        print(download(client['url'], ROOT / '.cache/minecraft-26.3-client.jar', 'sha1', client['sha1']))
 if __name__ == '__main__':
     main()

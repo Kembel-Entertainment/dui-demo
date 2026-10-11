@@ -9,7 +9,7 @@ The 20 tiles, target images and option images are included in the same generated
 Build and run with the README's Java 25 commands. The existing local server remains at 127.0.0.1:25584 with its pack at 25585. Opening this demo does not change gamemode or grant items. An explicit `testing.map-fixtures` setting enables an inventory/survival fixture only on a loopback-bound server for the offline `MapTest` profile; ordinary users and production bindings do not enable it.
 
 ```sh
-./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.2-client.jar \
+./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.3-client.jar \
   -PacceptEula=true -Pscenario=map e2e
 ```
 

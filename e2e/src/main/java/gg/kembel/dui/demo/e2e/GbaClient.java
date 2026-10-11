@@ -9,30 +9,21 @@ import net.minecraft.client.gui.screens.*;
 import net.minecraft.client.gui.screens.dialog.DialogScreen;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
-import com.mojang.blaze3d.opengl.GlTexture;
-import org.lwjgl.opengl.*;
 
 /** Observes ordinary vanilla rendering: the fixture adds no video renderer or custom input packets. */
 public final class GbaClient {
   public static GbaClient instance;
-  private int ticks,stage,changed,fbo,last=-1,samples,visible;
+  private int ticks,stage,changed,last=-1,samples,visible;
   private long start,measured;
   private String inventory;
-  private final ByteBuffer pixel=org.lwjgl.BufferUtils.createByteBuffer(4);
-  void initialize(){instance=this;ClientTickEvents.END_CLIENT_TICK.register(this::tick);}
+  private final PixelProbe probe = new PixelProbe();
+  void initialize(){instance=this;net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> probe.close());ClientTickEvents.END_CLIENT_TICK.register(this::tick);}
   public void rendered(Minecraft mc) {
     if(stage!=2||mc.player==null||!mc.player.isPassenger()||mc.gui.screen()!=null)return;
-    var target=mc.gameRenderer.mainRenderTarget();
-    if(!(target.getColorTexture() instanceof GlTexture texture))return;
-    int previous=GL11.glGetInteger(GL30.GL_READ_FRAMEBUFFER_BINDING);
-    if(fbo==0)fbo=GL30.glGenFramebuffers();
-    GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,fbo);
-    GL30.glFramebufferTexture2D(GL30.GL_READ_FRAMEBUFFER,GL30.GL_COLOR_ATTACHMENT0,GL11.GL_TEXTURE_2D,texture.glId(),0);
-    pixel.clear();GL11.glReadPixels(target.width/2,target.height/2+30,1,1,GL11.GL_RGBA,GL11.GL_UNSIGNED_BYTE,pixel);
-    int value=(Byte.toUnsignedInt(pixel.get(0))<<16)|(Byte.toUnsignedInt(pixel.get(1))<<8)|Byte.toUnsignedInt(pixel.get(2));
-    GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER,previous);
+    probe.sample(mc.gameRenderer.mainRenderTarget(), new double[][] {{.5, .5 + 30.0 / mc.gameRenderer.mainRenderTarget().height}}, 1, value -> {
     samples++;if(value!=last){visible++;last=value;}
     if(start==0)start=System.nanoTime();
+    });
   }
   private void step(){stage++;changed=ticks;System.out.println("GBA_TEST_STAGE "+stage);}
   private void shot(Minecraft mc,String name) {
@@ -79,7 +70,7 @@ public final class GbaClient {
         result.addProperty("visibleChanges",visible);result.addProperty("renderSamples",samples);
         result.addProperty("visibleFps",visible/(measured/1_000_000_000.0));result.addProperty("inventoryUnchanged",true);
         Files.writeString(Paths.output().resolve("client-result.json"),result.toString());
-        if(fbo!=0)GL30.glDeleteFramebuffers(fbo);System.out.println("GBA_TEST_COMPLETE "+result);mc.stop();stage=8;
+        probe.close();System.out.println("GBA_TEST_COMPLETE "+result);mc.stop();stage=8;
       }
     }catch(Exception e){try{Files.writeString(Paths.output().resolve("failure.txt"),e.toString());}catch(Exception ignored){}e.printStackTrace();mc.stop();stage=8;}
   }

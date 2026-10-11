@@ -1,6 +1,6 @@
 # Riviera Roulette
 
-A playable, original European single-zero table for **Paper 26.2 + an unmodified client** accepting dui’s matching resource pack. One local player per table. English UI, transient demo credits; no economy integration or inventory grants.
+A playable, original European single-zero table for **Paper 26.3 + an unmodified client** accepting dui’s matching resource pack. One local player per table. English UI, transient demo credits; no economy integration or inventory grants.
 
 ## Play
 
@@ -38,7 +38,7 @@ The outcome is selected once when Spin is accepted and is necessarily supplied t
 ```sh
 ./gradlew -PduiSource=../dui test
 ./gradlew -PduiSource=../dui -Pscenario=roulette \
-  -PminecraftJar=/path/to/verified/minecraft-26.2-client.jar e2e
+  -PminecraftJar=/path/to/verified/minecraft-26.3-client.jar e2e
 ```
 
 The five game tests cover all numbers, outside coverage/zero, reservation/refunds, invalid actions, limits, overlapping payouts, stale finish calls, Motion off, reset invalidation, all visible chips and both layouts. dui’s wheel/hitbox tests validate bounds, every encoded target and the unchanged shared transport.

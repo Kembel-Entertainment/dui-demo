@@ -423,11 +423,7 @@ final class MapClient {
 
   private void tick(Minecraft mc) {
     if (!physicalInputDetached) {
-      long window = mc.getWindow().handle();
-      org.lwjgl.glfw.GLFW.glfwSetCursorPosCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetMouseButtonCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetScrollCallback(window, null);
-      org.lwjgl.glfw.GLFW.glfwSetKeyCallback(window, null);
+      RealClientHarness.detachHardware();
       physicalInputDetached = true;
     }
     mc.options.getSoundSourceOptionInstance(SoundSource.MASTER).set(0.0);
@@ -448,7 +444,7 @@ final class MapClient {
       mc.getWindow().setWindowed(1280, 900);
       mc.options.guiScale().set(2);
       mc.resizeGui();
-      org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
+      org.lwjgl.sdl.SDLVideo.SDL_HideWindow(mc.getWindow().handle());
       stage++;
       changed = ticks;
       return;

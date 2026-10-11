@@ -22,8 +22,9 @@ public final class BrowserDemo implements Listener, AutoCloseable {
   private final JavaPlugin plugin;
   private final Dui dui;
   private final Path directory, bridge, runtime;
-  private final MenuTemplate menu;
-  private final VideoSurfaceTemplate screen;
+  private final gg.kembel.dui.demo.TemplateFiles templateFiles;
+  private record Templates(MenuTemplate menu, VideoSurfaceTemplate screen) {}
+  private volatile Templates templates;
   private final Map<UUID, Session> sessions = new HashMap<>();
   private final ExecutorService launches = Executors.newFixedThreadPool(2, r -> {
     var thread = new Thread(r, "dui-demo-browser-launch"); thread.setDaemon(true); return thread;
@@ -46,21 +47,38 @@ public final class BrowserDemo implements Listener, AutoCloseable {
       this.player = player; this.spec = spec; this.zoomPercent = zoomPercent; controls = new BrowserControls(spec.width(), spec.height());
     }
   }
-  public BrowserDemo(JavaPlugin plugin, Dui dui, Path directory) throws Exception {
+  public BrowserDemo(JavaPlugin plugin, Dui dui, Path directory, gg.kembel.dui.demo.TemplateFiles templateFiles) throws Exception {
+    this.templateFiles = templateFiles;
     this.plugin = plugin; this.dui = dui; this.directory = directory;
     bridge = directory.resolve("browser/bridge.mjs");
     runtime = Path.of(plugin.getConfig().getString("browser.runtime", directory.resolve("browser/runtime").toString())).toAbsolutePath();
-    for (String resource : List.of("ui/browser.html", "ui/browser-screen.html", "browser/bridge.mjs")) {
+    for (String resource : List.of("browser/bridge.mjs")) {
       Path file = directory.resolve(resource); Files.createDirectories(file.getParent());
       if (!Files.exists(file)) try (var input = plugin.getResource(resource)) { Files.copy(Objects.requireNonNull(input), file); }
     }
-    menu = dui.compile("ui/browser.html", DemoTemplates.normalize(Files.readString(directory.resolve("ui/browser.html"))),
-        ComponentRegistry.EMPTY, DemoTemplates.environment(DemoTemplates.font()));
-    screen = VideoSurfaceTemplate.parse(Files.readString(directory.resolve("ui/browser-screen.html")),
-        DemoTemplates.environment(DemoTemplates.font()), ComponentRegistry.EMPTY, "ui/browser-screen.html");
-    screen.render(data(768, 432, 12, 49, 16777216, PixelFormat.BGR555, "Browser", "", "READY"));
+    prepareTemplateReload().run();
     ticker = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 1, 1);
     plugin.getServer().getPluginManager().registerEvents(this, plugin);
+  }
+  public Runnable prepareTemplateReload() throws Exception {
+    var menu = dui.compile("ui/browser.html", DemoTemplates.normalize(templateFiles.read("browser")),
+        ComponentRegistry.EMPTY, DemoTemplates.environment(DemoTemplates.font()));
+    var screen = VideoSurfaceTemplate.parse(templateFiles.read("browser-screen"),
+        DemoTemplates.environment(DemoTemplates.font()), ComponentRegistry.EMPTY, "ui/browser-screen.html");
+    for (boolean running : List.of(false, true)) menu.render(Map.of("title", "Browser", "status", "Reload validation", "running", running, "zoom", "100%"));
+    screen.render(data(768, 432, 12, 49, 16777216, PixelFormat.BGR555, "Browser", "", "READY"));
+    for (var session : sessions.values()) {
+      var spec = session.spec;
+      if (!spec.equals(screen.render(data(spec.width(), spec.height(), spec.maximumFps(), spec.budget().maximumTiles(), spec.budget().bytesPerSecond(), spec.format(), "Browser", "", "LIVE")).specification()))
+        throw new IllegalArgumentException("Close active Browser sessions before changing screen geometry or transport settings");
+    }
+    var next = new Templates(menu, screen);
+    return () -> templates = next;
+  }
+  public void refreshTemplates() throws Exception {
+    for (var session : List.copyOf(sessions.values()))
+      if (session.menu != null && session.menu.isActive()) showMenu(session);
+    // HUDs also pick up the new template in the normal 10-tick sampler.
   }
   private String home() { return BrowserControls.address(plugin.getConfig().getString("browser.home", "https://www.youtube.com/")); }
   public boolean command(Player player, List<String> args) {
@@ -106,6 +124,7 @@ public final class BrowserDemo implements Listener, AutoCloseable {
     int tileWidth = 128 / format.symbols;
     int tiles = 1 + ((width + tileWidth - 1) / tileWidth) * ((height + 126) / 127);
     long bytes = plugin.getConfig().getLong("browser.bytes-per-second", 67108864);
+    var screen = templates.screen();
     var requested = screen.render(data(width, height, fps, tiles, bytes, format, "Browser", url, "STARTING")).specification();
     var spec = screen.render(data(width, height, requested.sustainableFps(), tiles, bytes, format, "Browser", url, "STARTING")).specification();
     int initialZoom = BrowserControls.zoom(plugin.getConfig().getInt("browser.zoom", 100));
@@ -134,7 +153,7 @@ public final class BrowserDemo implements Listener, AutoCloseable {
         List.of(new DialogOptions.Button("Open / Search", "address", 104),
             new DialogOptions.Button("Type", "type", 104), new DialogOptions.Button("Type + Enter", "submit", 104)),
         new DialogOptions.Button("Close browser", "close", 320), 3, false);
-    session.menu = dui.open(session.player, menu,
+    session.menu = dui.open(session.player, templates.menu(),
         ViewModel.data(Map.of("title", state == null ? "Starting Chromium..." : trim(state.title(), 45),
             "status", state == null ? "Preparing a private browser session" : state.error().isBlank() ? "Session stays open while you use this menu" : trim(state.error(), 65),
             "running", session.source != null, "zoom", session.zoomPercent + "%")), options, event -> {
@@ -224,7 +243,7 @@ public final class BrowserDemo implements Listener, AutoCloseable {
       if (session.surface != null) {
         var state = session.source.state(); var spec = session.spec;
         int tiles = spec.budget().maximumTiles();
-        session.surface.hud(screen.render(data(spec.width(), spec.height(), spec.maximumFps(), tiles, spec.budget().bytesPerSecond(),
+        session.surface.hud(templates.screen().render(data(spec.width(), spec.height(), spec.maximumFps(), tiles, spec.budget().bytesPerSecond(),
             spec.format(), trim(state.title(), 45), trim(state.url(), 65), state.error().isBlank() ? "LIVE / " + state.zoomPercent() + "% / AUDIO OFF" : trim(state.error(), 60))).hud());
       }
       export(session);

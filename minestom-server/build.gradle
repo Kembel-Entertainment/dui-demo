@@ -1,0 +1,26 @@
+plugins { id 'application' }
+group = 'gg.kembel.dui'
+version = '0.3.0-SNAPSHOT'
+repositories {
+    mavenLocal(); mavenCentral()
+    maven { url = 'https://central.sonatype.com/repository/maven-snapshots/'; content { includeModule('net.minestom', 'minestom') } }
+}
+dependencies {
+    implementation project(':platform-showcase')
+    implementation 'gg.kembel.dui:dui-minestom:0.3.0-SNAPSHOT'
+    implementation 'net.minestom:minestom:26_3-20261007.224755-10'
+    implementation 'org.slf4j:slf4j-simple:2.0.18'
+    implementation 'com.google.code.gson:gson:2.14.0'
+}
+java { sourceCompatibility = JavaVersion.VERSION_25; targetCompatibility = JavaVersion.VERSION_25 }
+tasks.withType(JavaCompile).configureEach { options.release = 25 }
+application { mainClass = 'gg.kembel.dui.demo.minestom.MinestomDemo' }
+tasks.named('run', JavaExec) {
+    standardInput = System.in
+    systemProperty 'dui.demo.pack', rootProject.layout.buildDirectory.dir('pack').get().asFile.absolutePath
+    systemProperty 'dui.demo.reports', rootProject.file('run/minestom/plugins/dui-demo/layouts').absolutePath
+    doFirst {
+        if (!rootProject.file('build/pack/dui.json').isFile())
+            throw new GradleException('Build the combined demo pack first with buildPack -PminecraftJar=/path/to/26.3-client.jar')
+    }
+}

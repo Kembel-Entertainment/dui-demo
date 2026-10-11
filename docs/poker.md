@@ -1,6 +1,6 @@
 # Velvet Hold’em
 
-An original four-seat no-limit Texas Hold’em playground: one human and Violet, Cedar and Nova. All UI copy is English. Paper 26.2 + an unmodified client accepting the generated dui pack. No money, economy plugin, inventory grant, shared table, calendar restriction, or persisted poker state.
+An original four-seat no-limit Texas Hold’em playground: one human and Violet, Cedar and Nova. All UI copy is English. Paper 26.3 + an unmodified client accepting the generated dui pack. No money, economy plugin, inventory grant, shared table, calendar restriction, or persisted poker state.
 
 ## Play
 
@@ -28,6 +28,6 @@ A petrol velvet table, aubergine rail, brass/gold edge, ivory cards, mint decisi
 
 ## Validation
 
-`./gradlew -PduiSource=../dui test` checks hand ranking, hidden bindings, legal action order, short/cumulative raises, heads-up blinds, side-pots/refunds/splits, many seeded bot games, chip conservation and both templates. `e2e -Pscenario=poker -PminecraftJar=<verified 26.2 jar>` runs a muted Minecraft client with genuine mouse events through all streets, a 240-chip scripted payout, card/flip/chip pixel-motion probes, Motion off, Compact/Auto and close cancellation. This fixture mod is test-only; ordinary users need no client mod.
+`./gradlew -PduiSource=../dui test` checks hand ranking, hidden bindings, legal action order, short/cumulative raises, heads-up blinds, side-pots/refunds/splits, many seeded bot games, chip conservation and both templates. `e2e -Pscenario=poker -PminecraftJar=<verified 26.3 jar>` runs a muted Minecraft client with genuine mouse events through all streets, a 240-chip scripted payout, card/flip/chip pixel-motion probes, Motion off, Compact/Auto and close cancellation. This fixture mod is test-only; ordinary users need no client mod.
 
 Reports and screenshots: `build/reports/e2e/poker/`. Background screenshot probes exclude documented overlapping paints/effects/foreground images; they still require hundreds of visible matching RGB samples per frame. Foreground rasters remain verified normally.

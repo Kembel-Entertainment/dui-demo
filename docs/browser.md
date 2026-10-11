@@ -2,7 +2,7 @@
 
 `/browser` and `/dui browser` open **https://www.youtube.com/** by default. Every
 viewer gets a private, fresh headless Chromium context on the server. The unmodified
-Minecraft 26.2 client receives live pixels through DUI's existing video surface.
+Minecraft 26.3 client receives live pixels through DUI's existing video surface.
 Page images and videos are not baked into a resource pack or checked into Git.
 There is no client mod, personal browser-profile access or persistent login feature.
 
@@ -149,7 +149,7 @@ scrolling, history, zoom across reload, pause and shutdown.
 ```sh
 DUI_BROWSER_RUNTIME="$PWD/run/server/plugins/dui-demo/browser/runtime" \
   ./gradlew -PduiSource=../dui :test --tests gg.kembel.dui.demo.browser.BrowserTest
-./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.2-client.jar \
+./gradlew -PduiSource=../dui -PminecraftJar=.cache/minecraft-26.3-client.jar \
   -PacceptEula=true -Pscenario=browser e2e
 ```
 

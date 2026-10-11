@@ -1,4 +1,5 @@
 package gg.kembel.dui.demo.e2e;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import com.google.gson.*;
 import gg.kembel.dui.demo.e2e.mixin.FixtureMouseAccess;
@@ -40,7 +41,7 @@ final class BrowserClient {
   }
   private static void button(Minecraft mc, int number) {
     var mouse = (FixtureMouseAccess) mc.mouseHandler;
-    var info = new MouseButtonInfo(number, 0);
+    var info = new MouseButtonInfo(number == 0 ? InputConstants.MOUSE_BUTTON_LEFT : InputConstants.MOUSE_BUTTON_RIGHT, 0);
     mouse.dui$button(mc.getWindow().handle(), info, 1);
     mouse.dui$button(mc.getWindow().handle(), info, 0);
   }
@@ -67,13 +68,13 @@ final class BrowserClient {
         if (stats(mc).getAsJsonObject("source").get("frames").getAsLong() < 5) return;
         shot(mc, "browser"); button(mc, 0); step();
       } else if (stage == 3 && title(mc).equals("Clicked")) {
-        // Inject the ordinary GLFW focus callback: unattended macOS test windows can be inactive.
+        // Inject the ordinary SDL3 focus callback: unattended macOS test windows can be inactive.
         ((gg.kembel.dui.demo.e2e.mixin.FixtureWindowAccess) (Object) mc.getWindow())
-            .dui$focus(mc.getWindow().handle(), true);
+            .dui$focus(true);
         var mouse = (FixtureMouseAccess) mc.mouseHandler;
         double x = mc.mouseHandler.xpos(), y = mc.mouseHandler.ypos();
-        mouse.dui$move(mc.getWindow().handle(), x, y); // Prime Vanilla's first-move suppression after grab.
-        mouse.dui$move(mc.getWindow().handle(), x + 80, y + 20);
+        mouse.dui$move(mc.getWindow().handle(), x, y, 0, 0); // Prime Vanilla's first-move suppression after grab.
+        mouse.dui$move(mc.getWindow().handle(), x + 80, y + 20, 80, 20);
         mc.mouseHandler.handleAccumulatedMovement();
         System.out.println("BROWSER_MOUSE_START yaw=" + mc.player.getYRot() + " pitch=" + mc.player.getXRot()); step();
       } else if (stage == 4 && ticks - changed >= 20) {

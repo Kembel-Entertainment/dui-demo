@@ -22,3 +22,5 @@ node_modules/
 *.mkv
 *.webm
 *.mov
+
+dui.studio.local.json

@@ -302,7 +302,7 @@ final class ShowcaseClient {
         mc.options.guiScale().set(Paths.referenceScale(mc));
         mc.getWindow().setWindowed(1280, 900);
         mc.resizeGui();
-        org.lwjgl.glfw.GLFW.glfwHideWindow(mc.getWindow().handle());
+        org.lwjgl.sdl.SDLVideo.SDL_HideWindow(mc.getWindow().handle());
         var data = new ServerData("dui fixture", Paths.server(), ServerData.Type.OTHER);
         data.setResourcePackStatus(ServerData.ServerPackStatus.ENABLED);
         ConnectScreen.startConnecting(

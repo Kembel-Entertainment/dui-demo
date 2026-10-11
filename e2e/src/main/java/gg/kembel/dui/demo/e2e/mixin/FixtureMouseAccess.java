@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(MouseHandler.class)
 public interface FixtureMouseAccess {
   @Invoker("onMove")
-  void dui$move(long window, double x, double y);
+  void dui$move(long window, double x, double y, double dx, double dy);
 
   @Invoker("onButton")
   void dui$button(long window, MouseButtonInfo button, int action);
